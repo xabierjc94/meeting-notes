@@ -2,7 +2,7 @@ export default function EditorToolbar({ editor }) {
   if (!editor) return null
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 mb-4 border border-slate-200/60 rounded-xl bg-white/80 backdrop-blur-sm flex-wrap shadow-sm">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 mb-4 border border-slate-200/60 rounded-xl bg-white/80 backdrop-blur-sm flex-wrap overflow-x-auto shadow-sm">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         active={editor.isActive('heading', { level: 1 })}
