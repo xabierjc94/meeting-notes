@@ -5,6 +5,7 @@ import { AdminProvider } from './context/AdminContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import TasksPage from './pages/TasksPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import UsersPanel from './pages/admin/UsersPanel'
 import ActivityLog from './pages/admin/ActivityLog'
@@ -65,6 +66,10 @@ function AppRoutes() {
             </NotesProvider>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/tasks"
+        element={<ProtectedRoute><TasksPage /></ProtectedRoute>}
       />
       <Route
         path="/admin"

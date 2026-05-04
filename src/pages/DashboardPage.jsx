@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useNotes } from '../context/NotesContext'
 import NoteCard from '../components/notes/NoteCard'
@@ -35,9 +36,25 @@ function SidebarContent({ greeting, userName, user, notes, loading, error, filte
           <span className="font-bold text-white text-lg tracking-tight">MeetingNotes</span>
         </div>
 
-        <div className="mb-5">
+        <div className="mb-4">
           <p className="text-xs text-violet-300/60 font-medium mb-1">{greeting}, {userName}</p>
           <h2 className="text-white font-semibold text-sm">¿Qué vas a documentar hoy?</h2>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
+          <div className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-white/10 text-white text-xs font-semibold">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Notas
+          </div>
+          <Link to="/tasks" className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 text-xs font-semibold transition-all">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Tareas
+          </Link>
         </div>
 
         <button
