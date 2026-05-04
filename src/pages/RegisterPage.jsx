@@ -25,49 +25,113 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Crear cuenta</h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900">
+      <div className="flex-1 hidden lg:flex items-center justify-center p-12">
+        <div className="max-w-lg animate-fadeIn">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/25">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-white">MeetingNotes</span>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+          <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+            Empieza a organizar tus reuniones hoy
+          </h2>
+          <p className="text-lg text-violet-200/70 leading-relaxed">
+            Crea una cuenta gratuita y accede a todas las herramientas que necesitas para tomar mejores notas.
+          </p>
+          <div className="mt-12 space-y-4">
+            {['Notas ilimitadas', 'Sincronización en tiempo real', 'Editor de texto enriquecido'].map((item, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-violet-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-violet-200/60">{item}</span>
+              </div>
+            ))}
           </div>
+        </div>
+      </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md animate-scaleIn">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div className="lg:hidden flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <span className="text-xl font-bold text-white">MeetingNotes</span>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Creando cuenta...' : 'Registrarse'}
-          </button>
-        </form>
+            <h1 className="text-2xl font-semibold text-white mb-1">Crear cuenta</h1>
+            <p className="text-sm text-violet-200/50 mb-8">Regístrate para empezar</p>
 
-        <p className="mt-4 text-sm text-gray-500 text-center">
-          ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="text-indigo-600 hover:underline">Inicia sesión</Link>
-        </p>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-violet-200/70 mb-2">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
+                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
+                             transition-all duration-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-violet-200/70 mb-2">Contraseña</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
+                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
+                             transition-all duration-200"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                  <p className="text-sm text-red-300">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl py-3 text-sm font-semibold
+                           hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition-all duration-200 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Creando cuenta...
+                  </span>
+                ) : 'Registrarse'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-sm text-violet-200/40 text-center">
+              ¿Ya tienes cuenta?{' '}
+              <Link to="/login" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">Inicia sesión</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

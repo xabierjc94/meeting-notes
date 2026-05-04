@@ -7,21 +7,6 @@ import { useNotes } from '../../context/NotesContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import EditorToolbar from './EditorToolbar'
 
-// ─────────────────────────────────────────────────────────────
-// ARQUITECTURA: dos componentes en lugar de uno
-//
-// NoteEditor (exterior): carga los datos de Supabase.
-//   Mientras carga, muestra un skeleton.
-//
-// EditorInner (interior): solo se monta cuando los datos ya están
-//   disponibles. Así TipTap se inicializa con el contenido correcto
-//   de forma síncrona, sin necesidad de actualizar el editor después.
-//
-// El parent (DashboardPage) usa key={activeNoteId} en <NoteEditor>,
-// lo que hace que React desmonte y remonte el componente completo
-// cada vez que cambias de nota. Limpio y sin efectos secundarios.
-// ─────────────────────────────────────────────────────────────
-
 export default function NoteEditor({ noteId }) {
   const [initialData, setInitialData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -34,7 +19,7 @@ export default function NoteEditor({ noteId }) {
       try {
         const { data, error } = await supabase
           .from('notes')
-          .select('*')     // Aquí sí necesitamos el content completo
+          .select('*')
           .eq('id', noteId)
           .single()
 
@@ -52,16 +37,20 @@ export default function NoteEditor({ noteId }) {
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
     <div className="flex items-center justify-center h-full">
-      <p className="text-sm text-red-500">Error al cargar la nota: {fetchError}</p>
+      <div className="text-center animate-scaleIn">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <p className="text-sm text-red-500 font-medium">Error al cargar la nota</p>
+        <p className="text-xs text-slate-400 mt-1">{fetchError}</p>
+      </div>
     </div>
   )
 
   return <EditorInner initialData={initialData} />
 }
-
-// ─────────────────────────────────────────────────────────────
-// EditorInner: el editor real, con datos ya disponibles
-// ─────────────────────────────────────────────────────────────
 
 function EditorInner({ initialData }) {
   const { updateNote, updateNoteLocal } = useNotes()
@@ -71,7 +60,6 @@ function EditorInner({ initialData }) {
   const [meetingDate, setMeetingDate] = useState(initialData.meeting_date || '')
   const [saveStatus, setSaveStatus] = useState('saved')
 
-  // La función de guardado — el debounce la envuelve
   const save = async (changes) => {
     setSaveStatus('saving')
     try {
@@ -83,12 +71,8 @@ function EditorInner({ initialData }) {
     }
   }
 
-  // debouncedSave: misma firma que save() pero espera 1s de inactividad
   const debouncedSave = useDebounce(save, 1000)
 
-  // ─────────────────────────────────────────
-  // Inicialización de TipTap
-  // ─────────────────────────────────────────
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -96,23 +80,16 @@ function EditorInner({ initialData }) {
         placeholder: 'Escribe el contenido de la reunión...',
       }),
     ],
-    // initialData.content es el JSON guardado previamente (o null para nota nueva)
     content: initialData.content,
     onUpdate: ({ editor }) => {
       setSaveStatus('unsaved')
-      // Guardamos el JSON completo del editor — TipTap lo serializa automáticamente
       debouncedSave({ content: editor.getJSON() })
     },
   })
 
-  // ─────────────────────────────────────────
-  // Handlers de título y fecha
-  // ─────────────────────────────────────────
-
   const handleTitleChange = (e) => {
     const val = e.target.value
     setTitle(val)
-    // Actualizar sidebar inmediatamente (sin esperar a Supabase)
     updateNoteLocal(noteId, { title: val })
     setSaveStatus('unsaved')
     debouncedSave({ title: val })
@@ -126,35 +103,30 @@ function EditorInner({ initialData }) {
     debouncedSave({ meeting_date: val || null })
   }
 
-  // Auto-altura en el textarea del título
   const autoResize = (e) => {
     e.target.style.height = 'auto'
     e.target.style.height = e.target.scrollHeight + 'px'
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-12 py-10">
-
-      {/* Indicador de guardado */}
+    <div className="max-w-3xl mx-auto px-10 py-8 animate-fadeIn">
       <div className="flex justify-end mb-6 h-5">
         <SaveIndicator status={saveStatus} />
       </div>
 
-      {/* Título editable — textarea para auto-altura con múltiples líneas */}
       <textarea
         value={title}
         onChange={handleTitleChange}
         onInput={autoResize}
         placeholder="Sin título"
         rows={1}
-        className="w-full text-[2rem] font-bold text-gray-900 bg-transparent
+        className="w-full text-[2.2rem] font-bold text-slate-900 bg-transparent
                    border-none outline-none resize-none leading-tight mb-4
-                   placeholder-gray-300"
+                   placeholder-slate-200"
       />
 
-      {/* Fecha de la reunión */}
       <div className="flex items-center gap-2 mb-8">
-        <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
@@ -162,28 +134,22 @@ function EditorInner({ initialData }) {
           type="date"
           value={meetingDate}
           onChange={handleDateChange}
-          className="text-sm text-gray-400 bg-transparent border-none outline-none
-                     cursor-pointer hover:text-gray-600 transition-colors"
+          className="text-sm text-slate-400 bg-transparent border-none outline-none
+                     cursor-pointer hover:text-slate-600 transition-colors"
         />
         {!meetingDate && (
-          <span className="text-sm text-gray-300">Añadir fecha de reunión</span>
+          <span className="text-sm text-slate-200">Añadir fecha de reunión</span>
         )}
       </div>
 
-      {/* Toolbar + Editor */}
       <EditorToolbar editor={editor} />
 
-      {/* ─────────────────────────────────────────
-          EditorContent: donde se renderiza TipTap
-          Las clases `prose` vienen de @tailwindcss/typography
-          y dan estilo automático a h1, h2, p, ul, blockquote, code...
-          ───────────────────────────────────────── */}
       <EditorContent
         editor={editor}
-        className="prose prose-gray prose-sm max-w-none min-h-[400px]
+        className="prose prose-slate prose-sm max-w-none min-h-[400px]
                    focus:outline-none
                    [&_.tiptap]:outline-none
-                   [&_.tiptap_p.is-editor-empty:first-child::before]:text-gray-300
+                   [&_.tiptap_p.is-editor-empty:first-child::before]:text-slate-300
                    [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
                    [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
                    [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
@@ -193,32 +159,28 @@ function EditorInner({ initialData }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Componentes de UI auxiliares
-// ─────────────────────────────────────────────────────────────
-
 function SaveIndicator({ status }) {
   if (status === 'saved') return (
-    <span className="flex items-center gap-1.5 text-xs text-gray-400">
-      <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+    <span className="flex items-center gap-1.5 text-xs text-slate-400">
+      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
       Guardado
     </span>
   )
   if (status === 'saving') return (
-    <span className="flex items-center gap-1.5 text-xs text-gray-400">
-      <span className="w-3 h-3 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
+    <span className="flex items-center gap-1.5 text-xs text-slate-400">
+      <span className="w-3 h-3 border-2 border-slate-200 border-t-violet-500 rounded-full animate-spin" />
       Guardando...
     </span>
   )
   if (status === 'unsaved') return (
-    <span className="flex items-center gap-1.5 text-xs text-gray-400">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+    <span className="flex items-center gap-1.5 text-xs text-slate-400">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
       Sin guardar
     </span>
   )
   if (status === 'error') return (
     <span className="flex items-center gap-1.5 text-xs text-red-500">
-      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+      <span className="w-1.5 h-1.5 rounded-full bg-red-400 shadow-sm shadow-red-400/50" />
       Error al guardar
     </span>
   )
@@ -227,13 +189,13 @@ function SaveIndicator({ status }) {
 
 function EditorSkeleton() {
   return (
-    <div className="max-w-3xl mx-auto px-12 py-10 animate-pulse">
-      <div className="h-10 bg-gray-200 rounded w-2/3 mb-4" />
-      <div className="h-4 bg-gray-100 rounded w-1/4 mb-10" />
+    <div className="max-w-3xl mx-auto px-10 py-8 animate-pulse">
+      <div className="h-10 bg-slate-100 rounded-xl w-2/3 mb-4" />
+      <div className="h-4 bg-slate-50 rounded-lg w-1/4 mb-10" />
       <div className="space-y-3">
-        <div className="h-4 bg-gray-100 rounded w-full" />
-        <div className="h-4 bg-gray-100 rounded w-5/6" />
-        <div className="h-4 bg-gray-100 rounded w-4/6" />
+        <div className="h-4 bg-slate-50 rounded-lg w-full" />
+        <div className="h-4 bg-slate-50 rounded-lg w-5/6" />
+        <div className="h-4 bg-slate-50 rounded-lg w-4/6" />
       </div>
     </div>
   )

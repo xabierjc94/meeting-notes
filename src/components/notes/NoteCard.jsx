@@ -43,35 +43,36 @@ export default function NoteCard({ note }) {
       onMouseEnter={() => setShowDelete(true)}
       onMouseLeave={() => setShowDelete(false)}
       className={`
-        relative px-3 py-2.5 rounded-lg cursor-pointer transition-colors duration-100
+        relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
         ${isActive
-          ? 'bg-indigo-50 border border-indigo-200'
-          : 'hover:bg-gray-100 border border-transparent'
+          ? 'bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200/60 shadow-sm'
+          : 'hover:bg-slate-50 border border-transparent hover:border-slate-100'
         }
         ${deleting ? 'opacity-40 pointer-events-none' : ''}
+        ${isActive ? 'animate-scaleIn' : ''}
       `}
     >
-      <p className={`text-sm font-medium truncate pr-6 ${isActive ? 'text-indigo-700' : 'text-gray-800'}`}>
+      <p className={`text-sm font-semibold truncate pr-7 transition-colors ${isActive ? 'text-violet-700' : 'text-slate-700'}`}>
         {note.title || 'Sin título'}
       </p>
 
-      <div className="flex items-center gap-1.5 mt-0.5">
+      <div className="flex items-center gap-1.5 mt-1">
         {note.meeting_date && (
           <>
-            <span className="text-xs text-gray-400">{formatDate(note.meeting_date)}</span>
-            <span className="text-xs text-gray-300">·</span>
+            <span className={`text-xs ${isActive ? 'text-violet-400' : 'text-slate-400'}`}>{formatDate(note.meeting_date)}</span>
+            <span className={`text-xs ${isActive ? 'text-violet-300' : 'text-slate-300'}`}>·</span>
           </>
         )}
-        <span className="text-xs text-gray-400">{timeAgo(note.updated_at)}</span>
+        <span className={`text-xs ${isActive ? 'text-violet-400' : 'text-slate-400'}`}>{timeAgo(note.updated_at)}</span>
       </div>
 
       {showDelete && !deleting && (
         <button
           onClick={handleDelete}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
           title="Borrar nota"
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>

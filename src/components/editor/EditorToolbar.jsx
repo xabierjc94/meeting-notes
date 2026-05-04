@@ -1,15 +1,8 @@
-// EditorToolbar recibe el objeto `editor` de TipTap como prop.
-// Cada botón usa la API de comandos de TipTap:
-//   editor.chain().focus().toggleBold().run()
-//   editor.isActive('bold') → devuelve true si el cursor está en texto en negrita
-
 export default function EditorToolbar({ editor }) {
   if (!editor) return null
 
   return (
-    <div className="flex items-center gap-0.5 px-1 py-1 mb-2 border border-gray-200 rounded-lg bg-gray-50 flex-wrap">
-
-      {/* Headings */}
+    <div className="flex items-center gap-0.5 px-2 py-1.5 mb-4 border border-slate-200/60 rounded-xl bg-white/80 backdrop-blur-sm flex-wrap shadow-sm">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         active={editor.isActive('heading', { level: 1 })}
@@ -27,7 +20,6 @@ export default function EditorToolbar({ editor }) {
 
       <Divider />
 
-      {/* Formato de texto */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         active={editor.isActive('bold')}
@@ -59,7 +51,6 @@ export default function EditorToolbar({ editor }) {
 
       <Divider />
 
-      {/* Listas */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         active={editor.isActive('bulletList')}
@@ -77,7 +68,6 @@ export default function EditorToolbar({ editor }) {
 
       <Divider />
 
-      {/* Bloques */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         active={editor.isActive('blockquote')}
@@ -95,7 +85,6 @@ export default function EditorToolbar({ editor }) {
 
       <Divider />
 
-      {/* Deshacer / Rehacer */}
       <ToolbarButton
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().undo()}
@@ -114,10 +103,6 @@ export default function EditorToolbar({ editor }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Componentes auxiliares
-// ─────────────────────────────────────────────────────────────
-
 function ToolbarButton({ onClick, active, disabled, title, children }) {
   return (
     <button
@@ -125,11 +110,11 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
       disabled={disabled}
       title={title}
       className={`
-        w-7 h-7 flex items-center justify-center rounded text-xs font-medium
-        transition-colors duration-100
+        w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium
+        transition-all duration-150
         ${active
-          ? 'bg-indigo-100 text-indigo-700'
-          : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+          ? 'bg-violet-100 text-violet-700 shadow-sm'
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
         }
         ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
       `}
@@ -140,10 +125,9 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
 }
 
 function Divider() {
-  return <div className="w-px h-4 bg-gray-200 mx-0.5" />
+  return <div className="w-px h-5 bg-slate-200/60 mx-0.5" />
 }
 
-// SVG Icons — tamaño fijo para no heredar el font-size del botón
 const iconClass = 'w-3.5 h-3.5'
 
 function BoldIcon() {
