@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useTasks } from '../../context/TasksContext'
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Baja', color: 'text-emerald-600 bg-emerald-50' },
-  { value: 'medium', label: 'Media', color: 'text-amber-600 bg-amber-50' },
-  { value: 'high', label: 'Alta', color: 'text-orange-600 bg-orange-50' },
+  { value: 'low',    label: 'Baja',    color: 'text-emerald-600 bg-emerald-50' },
+  { value: 'medium', label: 'Media',   color: 'text-amber-600 bg-amber-50' },
+  { value: 'high',   label: 'Alta',    color: 'text-orange-600 bg-orange-50' },
   { value: 'urgent', label: 'Urgente', color: 'text-red-600 bg-red-50' },
 ]
 
@@ -32,15 +32,12 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   }, [columns])
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e?.preventDefault()
     if (!form.title.trim()) return
     setSaving(true)
     try {
-      if (isEditing) {
-        await editTask(task.id, form)
-      } else {
-        await addTask(form)
-      }
+      if (isEditing) await editTask(task.id, form)
+      else await addTask(form)
       onClose()
     } finally {
       setSaving(false)
@@ -66,26 +63,30 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
     setTagInput('')
   }
 
-  const removeTag = (tag) => {
-    setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }))
-  }
+  const removeTag = (tag) => setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }))
 
   const handleTagKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault()
-      addTag(tagInput)
-    } else if (e.key === 'Backspace' && !tagInput && form.tags.length > 0) {
-      removeTag(form.tags[form.tags.length - 1])
-    }
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput) }
+    else if (e.key === 'Backspace' && !tagInput && form.tags.length > 0) removeTag(form.tags[form.tags.length - 1])
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] flex flex-col">
+    /* Bottom sheet on mobile, centered modal on desktop */
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
+
+        {/* Handle bar (mobile only) */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-slate-200 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 sm:py-4 border-b border-slate-100 shrink-0">
           <h3 className="font-semibold text-slate-800">{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 transition-colors">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 active:bg-slate-200 transition-colors"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -93,39 +94,35 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Title */}
-          <div>
-            <input
-              type="text"
-              placeholder="Título de la tarea"
-              value={form.title}
-              onChange={e => setForm({ ...form, title: e.target.value })}
-              autoFocus
-              required
-              className="w-full text-lg font-semibold text-slate-800 placeholder-slate-300 border-0 outline-none focus:ring-0 p-0"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Título de la tarea"
+            value={form.title}
+            onChange={e => setForm({ ...form, title: e.target.value })}
+            autoFocus
+            required
+            className="w-full text-lg font-semibold text-slate-800 placeholder-slate-300 border-0 outline-none focus:ring-0 p-0"
+          />
 
           {/* Description */}
-          <div>
-            <textarea
-              placeholder="Añade una descripción..."
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
-            />
-          </div>
+          <textarea
+            placeholder="Añade una descripción..."
+            value={form.description}
+            onChange={e => setForm({ ...form, description: e.target.value })}
+            rows={3}
+            className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+          />
 
-          {/* Column + Priority */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Column + Priority — stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">Columna</label>
               <select
                 value={form.column_id}
                 onChange={e => setForm({ ...form, column_id: e.target.value })}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
               >
                 {columns.map(col => (
                   <option key={col.id} value={col.id}>{col.name}</option>
@@ -137,7 +134,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
               <select
                 value={form.priority}
                 onChange={e => setForm({ ...form, priority: e.target.value })}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
               >
                 {PRIORITY_OPTIONS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -153,7 +150,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
               type="date"
               value={form.due_date}
               onChange={e => setForm({ ...form, due_date: e.target.value })}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+              className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
             />
           </div>
 
@@ -161,13 +158,13 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Etiquetas</label>
             <div
-              className="flex flex-wrap gap-1.5 p-2.5 border border-slate-200 rounded-xl cursor-text min-h-[44px] focus-within:ring-2 focus-within:ring-violet-500/30 focus-within:border-violet-400 transition-all"
+              className="flex flex-wrap gap-1.5 p-3 border border-slate-200 rounded-xl cursor-text min-h-[48px] focus-within:ring-2 focus-within:ring-violet-500/30 focus-within:border-violet-400 transition-all"
               onClick={() => tagInputRef.current?.focus()}
             >
               {form.tags.map(tag => (
-                <span key={tag} className="flex items-center gap-1 px-2.5 py-0.5 bg-violet-100 text-violet-700 text-xs font-medium rounded-lg">
+                <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-violet-100 text-violet-700 text-xs font-medium rounded-lg">
                   {tag}
-                  <button type="button" onClick={() => removeTag(tag)} className="text-violet-400 hover:text-violet-700 transition-colors">×</button>
+                  <button type="button" onClick={() => removeTag(tag)} className="w-4 h-4 flex items-center justify-center text-violet-400 hover:text-violet-700 transition-colors">×</button>
                 </span>
               ))}
               <input
@@ -182,31 +179,31 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
               />
             </div>
           </div>
-        </form>
+        </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
+        <div className="flex gap-3 px-5 py-4 border-t border-slate-100 shrink-0 pb-safe">
           {isEditing && (
             <button
               type="button"
               onClick={handleDelete}
               disabled={deleting}
-              className="px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-60"
+              className="px-4 py-3.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-60"
             >
-              {deleting ? 'Eliminando...' : 'Eliminar'}
+              {deleting ? '...' : 'Eliminar'}
             </button>
           )}
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex-1 px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving || !form.title.trim()}
-            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 transition-all shadow-md shadow-violet-500/20 disabled:opacity-60"
+            className="flex-1 px-4 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 disabled:opacity-60"
           >
             {saving ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear tarea'}
           </button>

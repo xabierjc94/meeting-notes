@@ -29,15 +29,18 @@ export default function TaskCard({ task, onClick, overlay }) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border shadow-sm p-3.5 cursor-pointer group transition-all duration-200
-        ${overlay ? 'rotate-2 shadow-xl border-violet-200 scale-105' : 'border-slate-200/80 hover:border-violet-300 hover:shadow-md'}`}
+      className={`bg-white rounded-xl border shadow-sm p-3.5 cursor-pointer transition-all duration-150 select-none
+        ${overlay
+          ? 'rotate-2 shadow-xl border-violet-200 scale-105'
+          : 'border-slate-200/80 hover:border-violet-300 hover:shadow-md active:scale-[0.98] active:shadow-sm'
+        }`}
     >
       {/* Priority + title */}
       <div className="flex items-start gap-2 mb-2">
         <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-md text-xs font-semibold ${priority.class}`}>
           {priority.label}
         </span>
-        <p className="text-sm font-semibold text-slate-700 leading-snug group-hover:text-violet-700 transition-colors line-clamp-2">
+        <p className="text-sm font-semibold text-slate-700 leading-snug line-clamp-2">
           {task.title}
         </p>
       </div>

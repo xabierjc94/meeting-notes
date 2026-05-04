@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, DragOverlay, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useTasks } from '../../context/TasksContext'
 import KanbanColumn from './KanbanColumn'
@@ -10,11 +10,13 @@ export default function KanbanBoard() {
   const { columns, tasks, tasksByColumn, addColumn, reorderTasks, moveTaskToColumn } = useTasks()
   const [activeTask, setActiveTask] = useState(null)
   const [editingTask, setEditingTask] = useState(null)
-  const [newTaskColumn, setNewTaskColumn] = useState(null)
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColName, setNewColName] = useState('')
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
+  )
 
   function findColumnId(id) {
     if (columns.find(c => c.id === id)) return id
@@ -61,7 +63,7 @@ export default function KanbanBoard() {
     <div className="h-full flex flex-col">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="flex-1 overflow-x-auto overflow-y-hidden">
-          <div className="flex gap-4 h-full p-6 group/board">
+          <div className="flex gap-3 sm:gap-4 h-full p-4 sm:p-6 group/board">
             {columns.map(col => (
               <div key={col.id} className="group">
                 <KanbanColumn
@@ -74,7 +76,7 @@ export default function KanbanBoard() {
             ))}
 
             {/* Add column */}
-            <div className="w-72 shrink-0">
+            <div className="w-[80vw] sm:w-72 shrink-0">
               {addingColumn ? (
                 <form onSubmit={handleAddColumn} className="bg-slate-100/60 rounded-2xl p-3">
                   <input
@@ -84,17 +86,17 @@ export default function KanbanBoard() {
                     placeholder="Nombre de la columna..."
                     autoFocus
                     onBlur={() => !newColName && setAddingColumn(false)}
-                    className="w-full text-sm border border-violet-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500/30 bg-white mb-2"
+                    className="w-full text-sm border border-violet-300 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/30 bg-white mb-2"
                   />
                   <div className="flex gap-2">
-                    <button type="submit" className="flex-1 py-2 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-500 transition-colors">Crear</button>
-                    <button type="button" onClick={() => setAddingColumn(false)} className="flex-1 py-2 border border-slate-200 text-slate-500 text-xs font-semibold rounded-lg hover:bg-white transition-colors">Cancelar</button>
+                    <button type="submit" className="flex-1 py-3 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-500 transition-colors">Crear</button>
+                    <button type="button" onClick={() => setAddingColumn(false)} className="flex-1 py-3 border border-slate-200 text-slate-500 text-sm font-semibold rounded-xl hover:bg-white transition-colors">Cancelar</button>
                   </div>
                 </form>
               ) : (
                 <button
                   onClick={() => setAddingColumn(true)}
-                  className="w-full flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium py-3 px-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-300 hover:bg-violet-50/40 transition-all"
+                  className="w-full flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium py-4 px-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-300 hover:bg-violet-50/40 transition-all"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -111,11 +113,10 @@ export default function KanbanBoard() {
         </DragOverlay>
       </DndContext>
 
-      {(editingTask || newTaskColumn) && (
+      {editingTask && (
         <TaskModal
           task={editingTask}
-          defaultColumnId={newTaskColumn}
-          onClose={() => { setEditingTask(null); setNewTaskColumn(null) }}
+          onClose={() => setEditingTask(null)}
         />
       )}
     </div>
