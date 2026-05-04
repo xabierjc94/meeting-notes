@@ -2,8 +2,17 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
+function validatePassword(password) {
+  if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres'
+  if (!/[A-Z]/.test(password)) return 'Debe incluir al menos una mayúscula'
+  if (!/[a-z]/.test(password)) return 'Debe incluir al menos una minúscula'
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) return 'Debe incluir al menos un símbolo (!@#$%^&*)'
+  return null
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -11,10 +20,23 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signUp({ email, password })
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      setError(passwordError)
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+      },
+    })
 
     if (error) {
       setError(error.message)
@@ -76,6 +98,20 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
+                <label className="block text-sm font-medium text-violet-200/70 mb-2">Nombre completo</label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Tu nombre"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
+                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
+                             transition-all duration-200"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-violet-200/70 mb-2">Email</label>
                 <input
                   type="email"
@@ -94,14 +130,15 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="8+ caracteres, mayúscula, minúscula y símbolo"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
                              placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
                              transition-all duration-200"
                 />
+                <p className="text-xs text-violet-200/40 mt-2">Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 símbolo</p>
               </div>
 
               {error && (
