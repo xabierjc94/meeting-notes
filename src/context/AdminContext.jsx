@@ -23,7 +23,8 @@ export function AdminProvider({ children }) {
       ])
       setProfiles(profilesData)
       setStats(statsData)
-      setLogs(logsData)
+      const profileMap = Object.fromEntries(profilesData.map(p => [p.id, p]))
+      setLogs(logsData.map(log => ({ ...log, profiles: profileMap[log.user_id] ?? null })))
     } catch (err) {
       setError(err.message)
     } finally {

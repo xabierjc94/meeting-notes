@@ -16,7 +16,7 @@ const subLabels = { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }
 const subColors = { free: 'bg-slate-100 text-slate-600', pro: 'bg-amber-100 text-amber-700', enterprise: 'bg-violet-100 text-violet-700' }
 
 export default function AdminDashboard() {
-  const { stats, profiles, logs, loading } = useAdmin()
+  const { stats, profiles, logs, loading, error } = useAdmin()
 
   const recentUsers = useMemo(() => profiles.slice(0, 5), [profiles])
 

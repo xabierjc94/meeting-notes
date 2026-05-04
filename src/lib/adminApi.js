@@ -31,7 +31,7 @@ export async function deleteProfile(userId) {
 export async function getActivityLogs() {
   const { data, error } = await supabase
     .from('activity_logs')
-    .select('*, profiles(full_name, email)')
+    .select('*')
     .order('created_at', { ascending: false })
     .limit(100)
   if (error) throw error
