@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
+import { AdminProvider } from './context/AdminContext'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import UsersPanel from './pages/admin/UsersPanel'
+import ActivityLog from './pages/admin/ActivityLog'
 
 function LoadingScreen() {
   return (
@@ -35,6 +39,17 @@ function PublicRoute({ children }) {
   return children
 }
 
+function SuperAdminRoute({ children }) {
+  const { user, profile, profileLoaded, loading } = useAuth()
+if (loading || !profileLoaded) return <LoadingScreen />
+  if (!user) return <Navigate to="/login" replace />
+
+  if (!profile || !['admin', 'superadmin'].includes(profile.role)) {
+    return <Navigate to="/dashboard" replace />
+  }
+  return children
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -45,12 +60,40 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            {/* NotesProvider envuelve solo las rutas que necesitan notas
-                Esto evita que se carguen notas en páginas de auth */}
             <NotesProvider>
               <DashboardPage />
             </NotesProvider>
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <SuperAdminRoute>
+            <AdminProvider>
+              <AdminDashboard />
+            </AdminProvider>
+          </SuperAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <SuperAdminRoute>
+            <AdminProvider>
+              <UsersPanel />
+            </AdminProvider>
+          </SuperAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/activity"
+        element={
+          <SuperAdminRoute>
+            <AdminProvider>
+              <ActivityLog />
+            </AdminProvider>
+          </SuperAdminRoute>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
