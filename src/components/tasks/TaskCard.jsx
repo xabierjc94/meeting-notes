@@ -1,8 +1,8 @@
 const PRIORITY_CONFIG = {
-  low:    { label: 'Baja',    class: 'bg-emerald-100 text-emerald-700' },
-  medium: { label: 'Media',   class: 'bg-amber-100 text-amber-700' },
-  high:   { label: 'Alta',    class: 'bg-orange-100 text-orange-700' },
-  urgent: { label: 'Urgente', class: 'bg-red-100 text-red-700' },
+  low:    { label: 'Baja',    dot: 'bg-emerald-400', text: 'text-emerald-400', border: 'border-l-emerald-400', glow: '#10b981' },
+  medium: { label: 'Media',   dot: 'bg-amber-400',   text: 'text-amber-400',   border: 'border-l-amber-400',   glow: '#f59e0b' },
+  high:   { label: 'Alta',    dot: 'bg-orange-400',  text: 'text-orange-400',  border: 'border-l-orange-400',  glow: '#f97316' },
+  urgent: { label: 'Urgente', dot: 'bg-red-400',     text: 'text-red-400',     border: 'border-l-red-400',     glow: '#ef4444' },
 }
 
 function isOverdue(date) {
@@ -29,50 +29,56 @@ export default function TaskCard({ task, onClick, overlay }) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border shadow-sm p-3.5 cursor-pointer transition-all duration-150 select-none
+      className={`group relative bg-white/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
+        transition-all duration-200
+        ${priority.border}
         ${overlay
-          ? 'rotate-2 shadow-xl border-violet-200 scale-105'
-          : 'border-slate-200/80 hover:border-violet-300 hover:shadow-md active:scale-[0.98] active:shadow-sm'
+          ? 'rotate-2 shadow-2xl shadow-black/40 scale-105 border border-white/50'
+          : 'border border-white/0 hover:border-white/60 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm'
         }`}
     >
-      {/* Priority + title */}
-      <div className="flex items-start gap-2 mb-2">
-        <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-md text-xs font-semibold ${priority.class}`}>
-          {priority.label}
-        </span>
-        <p className="text-sm font-semibold text-slate-700 leading-snug line-clamp-2">
+      <div className="p-3.5">
+        {/* Priority badge + title */}
+        <div className="flex items-start gap-2 mb-2">
+          <div className={`flex items-center gap-1 shrink-0 mt-0.5`}>
+            <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
+            <span className={`text-[10px] font-bold uppercase tracking-wide ${priority.text}`}>{priority.label}</span>
+          </div>
+        </div>
+
+        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-2">
           {task.title}
         </p>
+
+        {/* Description preview */}
+        {task.description && (
+          <p className="text-xs text-slate-400 mb-2.5 line-clamp-2 leading-relaxed">{task.description}</p>
+        )}
+
+        {/* Tags */}
+        {task.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2.5">
+            {task.tags.slice(0, 3).map(tag => (
+              <span key={tag} className="px-2 py-0.5 bg-violet-50 text-violet-600 text-[10px] rounded-md font-semibold border border-violet-100">
+                #{tag}
+              </span>
+            ))}
+            {task.tags.length > 3 && (
+              <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-[10px] rounded-md border border-slate-100">+{task.tags.length - 3}</span>
+            )}
+          </div>
+        )}
+
+        {/* Due date */}
+        {task.due_date && (
+          <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {overdue ? '⚠ Vencida · ' : ''}{formatDate(task.due_date)}
+          </div>
+        )}
       </div>
-
-      {/* Description preview */}
-      {task.description && (
-        <p className="text-xs text-slate-400 mb-2.5 line-clamp-2 leading-relaxed">{task.description}</p>
-      )}
-
-      {/* Tags */}
-      {task.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2.5">
-          {task.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="px-2 py-0.5 bg-violet-50 text-violet-600 text-xs rounded-md font-medium">
-              #{tag}
-            </span>
-          ))}
-          {task.tags.length > 3 && (
-            <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-xs rounded-md">+{task.tags.length - 3}</span>
-          )}
-        </div>
-      )}
-
-      {/* Due date */}
-      {task.due_date && (
-        <div className={`flex items-center gap-1 text-xs font-medium ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {overdue ? 'Vencida · ' : ''}{formatDate(task.due_date)}
-        </div>
-      )}
     </div>
   )
 }

@@ -60,10 +60,10 @@ export default function KanbanBoard() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="flex-1 sm:overflow-x-auto sm:overflow-y-hidden">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:h-full p-4 sm:p-6 group/board">
+          <div className="flex flex-col sm:flex-row gap-4 sm:h-full p-4 sm:p-6 group/board">
             {columns.map(col => (
               <div key={col.id} className="group">
                 <KanbanColumn
@@ -78,7 +78,7 @@ export default function KanbanBoard() {
             {/* Add column */}
             <div className="w-full sm:w-72 sm:shrink-0">
               {addingColumn ? (
-                <form onSubmit={handleAddColumn} className="bg-slate-100/60 rounded-2xl p-3">
+                <form onSubmit={handleAddColumn} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4">
                   <input
                     type="text"
                     value={newColName}
@@ -86,17 +86,17 @@ export default function KanbanBoard() {
                     placeholder="Nombre de la columna..."
                     autoFocus
                     onBlur={() => !newColName && setAddingColumn(false)}
-                    className="w-full text-sm border border-violet-300 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/30 bg-white mb-2"
+                    className="w-full text-sm border border-white/20 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/40 mb-3"
                   />
                   <div className="flex gap-2">
-                    <button type="submit" className="flex-1 py-3 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-500 transition-colors">Crear</button>
-                    <button type="button" onClick={() => setAddingColumn(false)} className="flex-1 py-3 border border-slate-200 text-slate-500 text-sm font-semibold rounded-xl hover:bg-white transition-colors">Cancelar</button>
+                    <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors">Crear</button>
+                    <button type="button" onClick={() => setAddingColumn(false)} className="flex-1 py-2.5 border border-white/20 text-white/70 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors">Cancelar</button>
                   </div>
                 </form>
               ) : (
                 <button
                   onClick={() => setAddingColumn(true)}
-                  className="w-full flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium py-4 px-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-300 hover:bg-violet-50/40 transition-all"
+                  className="w-full flex items-center gap-2 text-white/40 hover:text-white/70 text-sm font-medium py-4 px-4 rounded-2xl border-2 border-dashed border-white/15 hover:border-violet-400/50 hover:bg-white/5 transition-all"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
