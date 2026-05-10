@@ -4,6 +4,7 @@ import {
   getColumns, createColumn, updateColumn, deleteColumn,
   getTasks, createTask, updateTask, deleteTask, batchUpdateTaskPositions
 } from '../lib/tasksApi'
+import { arrayMove } from '@dnd-kit/sortable'
 
 const TasksContext = createContext()
 
@@ -69,6 +70,14 @@ export function TasksProvider({ children }) {
     setTasks(prev => prev.filter(t => t.id !== id))
   }
 
+  const reorderColumns = useCallback((oldIndex, newIndex) => {
+    setColumns(prev => {
+      const reordered = arrayMove(prev, oldIndex, newIndex).map((c, i) => ({ ...c, position: i }))
+      reordered.forEach(c => updateColumn(c.id, { position: c.position }))
+      return reordered
+    })
+  }, [])
+
   const reorderTasks = useCallback((columnId, reordered) => {
     const updated = reordered.map((t, i) => ({ ...t, position: i }))
     setTasks(prev => {
@@ -98,7 +107,7 @@ export function TasksProvider({ children }) {
       columns, tasks, tasksByColumn, loading,
       addColumn, editColumn, removeColumn,
       addTask, editTask, removeTask,
-      reorderTasks, moveTaskToColumn, fetchData
+      reorderColumns, reorderTasks, moveTaskToColumn, fetchData
     }}>
       {children}
     </TasksContext.Provider>

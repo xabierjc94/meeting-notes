@@ -22,7 +22,7 @@ function SortableTaskCard({ task, onOpen }) {
   )
 }
 
-export default function KanbanColumn({ column, tasks, onOpenTask }) {
+export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProps = {}, isDragging = false, overlay = false }) {
   const { editColumn, removeColumn, addTask } = useTasks()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
@@ -57,9 +57,8 @@ export default function KanbanColumn({ column, tasks, onOpenTask }) {
     <div className="flex flex-col w-full sm:w-72 sm:shrink-0">
       {/* Column container */}
       <div className={`flex flex-col rounded-2xl overflow-hidden border transition-all duration-200
-        ${isOver
-          ? 'border-violet-400/60 shadow-lg shadow-violet-500/20'
-          : 'border-white/10'
+        ${isDragging ? 'border-violet-400/60 shadow-2xl shadow-violet-500/30 scale-105' :
+          isOver ? 'border-violet-400/60 shadow-lg shadow-violet-500/20' : 'border-white/10'
         } bg-white/8 backdrop-blur-md`}
         style={{ background: isOver ? 'rgba(139,92,246,0.08)' : 'rgba(255,255,255,0.06)' }}
       >
@@ -103,6 +102,18 @@ export default function KanbanColumn({ column, tasks, onOpenTask }) {
             </div>
           ) : (
             <div className="flex items-center gap-2.5">
+              {/* Drag handle */}
+              <div
+                {...dragHandleProps}
+                className="cursor-grab active:cursor-grabbing text-white/25 hover:text-white/60 transition-colors shrink-0 touch-none"
+                title="Arrastrar columna"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                  <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                  <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                </svg>
+              </div>
               <div className="w-2.5 h-2.5 rounded-full shrink-0 shadow-md" style={{ backgroundColor: column.color, boxShadow: `0 0 8px ${column.color}80` }} />
               <span className="flex-1 text-sm font-bold text-white truncate">{column.name}</span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white/60 bg-white/10">{tasks.length}</span>
