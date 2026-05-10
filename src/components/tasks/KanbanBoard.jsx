@@ -62,8 +62,8 @@ export default function KanbanBoard() {
   return (
     <div className="h-full flex flex-col">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-        <div className="flex-1 overflow-x-auto overflow-y-hidden">
-          <div className="flex gap-3 sm:gap-4 h-full p-4 sm:p-6 group/board">
+        <div className="flex-1 sm:overflow-x-auto sm:overflow-y-hidden">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:h-full p-4 sm:p-6 group/board">
             {columns.map(col => (
               <div key={col.id} className="group">
                 <KanbanColumn
@@ -76,7 +76,7 @@ export default function KanbanBoard() {
             ))}
 
             {/* Add column */}
-            <div className="w-[80vw] sm:w-72 shrink-0">
+            <div className="w-full sm:w-72 sm:shrink-0">
               {addingColumn ? (
                 <form onSubmit={handleAddColumn} className="bg-slate-100/60 rounded-2xl p-3">
                   <input

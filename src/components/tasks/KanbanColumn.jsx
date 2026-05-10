@@ -54,7 +54,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask }) {
   }
 
   return (
-    <div className="flex flex-col w-[80vw] sm:w-72 shrink-0">
+    <div className="flex flex-col w-full sm:w-72 sm:shrink-0">
       {/* Column header */}
       <div className="flex items-center gap-2 mb-3 px-1">
         {editing ? (
