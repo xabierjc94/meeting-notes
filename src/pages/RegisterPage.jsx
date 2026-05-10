@@ -1,6 +1,34 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+
+function PasswordRequirements({ password }) {
+  const checks = [
+    { label: '8 caracteres o más', met: password.length >= 8 },
+    { label: '1 mayúscula', met: /[A-Z]/.test(password) },
+    { label: '1 minúscula', met: /[a-z]/.test(password) },
+    { label: '1 símbolo (!@#$%^&*)', met: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password) },
+  ]
+
+  return (
+    <div className="mt-3 space-y-1.5">
+      {checks.map((c, i) => (
+        <div key={i} className="flex items-center gap-2 text-xs transition-colors duration-200">
+          <div className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all duration-200 ${
+            c.met ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-white/5 border-white/15'
+          }`}>
+            {c.met && (
+              <svg className="w-2.5 h-2.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+          <span className={c.met ? 'text-emerald-400/80' : 'text-violet-200/30'}>{c.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function validatePassword(password) {
   if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres'
@@ -17,6 +45,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const passwordValid = useMemo(() => {
+    return password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)
+  }, [password])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -59,7 +94,7 @@ export default function RegisterPage() {
             </div>
             <span className="text-2xl font-bold text-white">MeetingNotes</span>
           </div>
-          <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
             Empieza a organizar tus reuniones hoy
           </h2>
           <p className="text-lg text-violet-200/70 leading-relaxed">
@@ -130,15 +165,14 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   required
-                  minLength={8}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="8+ caracteres, mayúscula, minúscula y símbolo"
+                  placeholder="Escribe una contraseña segura"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
                              placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
                              transition-all duration-200"
                 />
-                <p className="text-xs text-violet-200/40 mt-2">Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 símbolo</p>
+                <PasswordRequirements password={password} />
               </div>
 
               {error && (
@@ -149,7 +183,7 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !passwordValid}
                 className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl py-3 text-sm font-semibold
                            hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
                            transition-all duration-200 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"

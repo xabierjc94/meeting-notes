@@ -87,9 +87,11 @@ export default function ActivityLog() {
                       {log.profiles?.full_name || 'Desconocido'} ({log.profiles?.email || '—'})
                     </p>
                     {log.details && (
-                      <p className="text-xs text-slate-400 mt-1 font-mono bg-slate-50 px-2 py-1 rounded inline-block">
-                        {JSON.stringify(log.details)}
-                      </p>
+                      <div className="overflow-x-auto max-w-full mt-1">
+                        <p className="text-xs text-slate-400 font-mono bg-slate-50 px-2 py-1 rounded whitespace-nowrap">
+                          {JSON.stringify(log.details)}
+                        </p>
+                      </div>
                     )}
                   </div>
                   <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{timeAgo(log.created_at)}</span>

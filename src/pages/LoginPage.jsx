@@ -37,7 +37,7 @@ export default function LoginPage() {
             </div>
             <span className="text-2xl font-bold text-white">MeetingNotes</span>
           </div>
-          <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
             Captura tus ideas más importantes
           </h2>
           <p className="text-lg text-violet-200/70 leading-relaxed">
