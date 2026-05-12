@@ -1,11 +1,5 @@
 import { supabase } from './supabaseClient'
 
-const DEFAULT_COLUMNS = [
-  { name: 'Por hacer', color: '#6366f1', position: 0 },
-  { name: 'En progreso', color: '#f59e0b', position: 1 },
-  { name: 'Completado', color: '#10b981', position: 2 },
-]
-
 export async function getColumns(userId, projectId) {
   const { data, error } = await supabase
     .from('task_columns')
@@ -14,15 +8,6 @@ export async function getColumns(userId, projectId) {
     .eq('project_id', projectId)
     .order('position')
   if (error) throw error
-
-  if (data.length === 0) {
-    const { data: created, error: ce } = await supabase
-      .from('task_columns')
-      .insert(DEFAULT_COLUMNS.map(c => ({ ...c, user_id: userId, project_id: projectId })))
-      .select()
-    if (ce) throw ce
-    return created.sort((a, b) => a.position - b.position)
-  }
   return data
 }
 
