@@ -54,7 +54,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   }
 
   return (
-    <div className="flex flex-col w-full sm:w-72 sm:shrink-0">
+    <div className="flex flex-col w-full md:w-64 lg:w-72 md:shrink-0">
       {/* Column container */}
       <div className={`flex flex-col rounded-2xl overflow-hidden border transition-all duration-200
         ${isDragging ? 'border-violet-400/60 shadow-2xl shadow-violet-500/30 scale-105' :
@@ -119,7 +119,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white/60 bg-white/10">{tasks.length}</span>
               <button
                 onClick={() => setEditing(true)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all md:opacity-0 md:group-hover:opacity-100"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -127,7 +127,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               </button>
               <button
                 onClick={handleDelete}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

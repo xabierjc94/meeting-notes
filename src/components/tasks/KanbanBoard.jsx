@@ -123,12 +123,12 @@ export default function KanbanBoard() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className="flex-1 overflow-y-auto sm:overflow-x-auto sm:overflow-y-hidden">
+        <div className="flex-1 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden">
           <SortableContext
             items={columns.map(c => `col-${c.id}`)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex flex-col sm:flex-row gap-4 sm:h-full p-4 sm:p-6">
+            <div className="flex flex-col md:flex-row gap-4 md:h-full p-4 md:p-6">
               {columns.map(col => (
                 <ColumnWithTasks
                   key={col.id}
@@ -140,7 +140,7 @@ export default function KanbanBoard() {
               ))}
 
               {/* Add column */}
-              <div className="w-full sm:w-72 sm:shrink-0">
+              <div className="w-full md:w-64 lg:w-72 md:shrink-0">
                 {addingColumn ? (
                   <form onSubmit={handleAddColumn} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4">
                     <input
