@@ -123,7 +123,7 @@ export default function KanbanBoard() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className="flex-1 sm:overflow-x-auto sm:overflow-y-hidden">
+        <div className="flex-1 overflow-y-auto sm:overflow-x-auto sm:overflow-y-hidden">
           <SortableContext
             items={columns.map(c => `col-${c.id}`)}
             strategy={horizontalListSortingStrategy}
