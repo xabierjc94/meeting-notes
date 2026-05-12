@@ -15,7 +15,7 @@ function TasksContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
+      <div className="flex items-center justify-center h-dvh bg-slate-50">
         <div className="text-center">
           <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +29,7 @@ function TasksContent() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-dvh bg-slate-50">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">

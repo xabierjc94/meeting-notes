@@ -229,7 +229,7 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-dvh bg-slate-50 overflow-hidden">
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex flex-col shrink-0 animate-slideInLeft">
         {sidebarContent}
