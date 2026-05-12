@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { supabase } from '../lib/supabaseClient'
 
 function PasswordRequirements({ password }) {
@@ -82,6 +83,11 @@ export default function RegisterPage() {
   }
 
   return (
+    <>
+    <Helmet>
+      <title>Crear cuenta — MeetingNotes</title>
+      <meta name="description" content="Crea tu cuenta gratuita en MeetingNotes y empieza a organizar tus reuniones con notas estructuradas y tablero Kanban." />
+    </Helmet>
     <div className="min-h-screen flex bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900">
       <div className="flex-1 hidden lg:flex items-center justify-center p-12">
         <div className="max-w-lg animate-fadeIn">
@@ -205,5 +211,6 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
