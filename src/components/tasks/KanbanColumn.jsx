@@ -31,6 +31,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [showNewTaskModal, setShowNewTaskModal] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
 
@@ -41,8 +42,8 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   }
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar la columna "${column.name}" y todas sus tareas?`)) return
     await removeColumn(column.id)
+    setConfirmDelete(false)
   }
 
   const handleQuickAdd = async (e) => {
@@ -125,14 +126,31 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
-              <button
-                onClick={handleDelete}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              {confirmDelete ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleDelete}
+                    className="px-2 py-1 text-xs font-semibold bg-red-500 hover:bg-red-400 text-white rounded-lg transition-colors active:scale-95"
+                  >
+                    Sí
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="px-2 py-1 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/70 rounded-lg transition-colors active:scale-95"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
         </div>
