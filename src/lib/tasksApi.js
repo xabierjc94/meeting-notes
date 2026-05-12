@@ -6,18 +6,19 @@ const DEFAULT_COLUMNS = [
   { name: 'Completado', color: '#10b981', position: 2 },
 ]
 
-export async function getColumns(userId) {
+export async function getColumns(userId, projectId) {
   const { data, error } = await supabase
     .from('task_columns')
     .select('*')
     .eq('user_id', userId)
+    .eq('project_id', projectId)
     .order('position')
   if (error) throw error
 
   if (data.length === 0) {
     const { data: created, error: ce } = await supabase
       .from('task_columns')
-      .insert(DEFAULT_COLUMNS.map(c => ({ ...c, user_id: userId })))
+      .insert(DEFAULT_COLUMNS.map(c => ({ ...c, user_id: userId, project_id: projectId })))
       .select()
     if (ce) throw ce
     return created.sort((a, b) => a.position - b.position)
@@ -25,10 +26,10 @@ export async function getColumns(userId) {
   return data
 }
 
-export async function createColumn(userId, data) {
+export async function createColumn(userId, projectId, data) {
   const { data: col, error } = await supabase
     .from('task_columns')
-    .insert({ ...data, user_id: userId })
+    .insert({ ...data, user_id: userId, project_id: projectId })
     .select()
     .single()
   if (error) throw error
@@ -51,11 +52,21 @@ export async function deleteColumn(id) {
   if (error) throw error
 }
 
-export async function getTasks(userId) {
+export async function getTasks(userId, projectId) {
+  const { data: columns, error: colError } = await supabase
+    .from('task_columns')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('project_id', projectId)
+  if (colError) throw colError
+
+  if (columns.length === 0) return []
+
+  const columnIds = columns.map(c => c.id)
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
-    .eq('user_id', userId)
+    .in('column_id', columnIds)
     .order('position')
   if (error) throw error
   return data

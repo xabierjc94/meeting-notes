@@ -7,6 +7,7 @@ import { AdminProvider } from './context/AdminContext'
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const TasksPage = lazy(() => import('./pages/TasksPage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const UsersPanel = lazy(() => import('./pages/admin/UsersPanel'))
@@ -72,6 +73,10 @@ function AppRoutes() {
       />
       <Route
         path="/tasks"
+        element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/tasks/:projectId"
         element={<ProtectedRoute><TasksPage /></ProtectedRoute>}
       />
       <Route

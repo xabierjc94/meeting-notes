@@ -8,23 +8,26 @@ import { arrayMove } from '@dnd-kit/sortable'
 
 const TasksContext = createContext()
 
-export function TasksProvider({ children }) {
+export function TasksProvider({ children, projectId }) {
   const { user } = useAuth()
   const [columns, setColumns] = useState([])
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
-    if (!user) return
+    if (!user || !projectId) return
     setLoading(true)
     try {
-      const [cols, tsks] = await Promise.all([getColumns(user.id), getTasks(user.id)])
+      const [cols, tsks] = await Promise.all([
+        getColumns(user.id, projectId),
+        getTasks(user.id, projectId)
+      ])
       setColumns(cols)
       setTasks(tsks)
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, projectId])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -37,7 +40,7 @@ export function TasksProvider({ children }) {
   }, [columns, tasks])
 
   const addColumn = async (data) => {
-    const col = await createColumn(user.id, { ...data, position: columns.length })
+    const col = await createColumn(user.id, projectId, { ...data, position: columns.length })
     setColumns(prev => [...prev, col])
     return col
   }
