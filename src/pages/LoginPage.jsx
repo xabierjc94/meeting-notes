@@ -30,6 +30,7 @@ export default function LoginPage() {
     <Helmet>
       <title>Iniciar sesión — MeetingNotes</title>
       <meta name="description" content="Accede a tu cuenta de MeetingNotes y continúa organizando tus reuniones." />
+      <link rel="canonical" href="https://meetingnotes.es/login" />
     </Helmet>
     <div className="min-h-screen flex bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900">
       <div className="flex-1 hidden lg:flex items-center justify-center p-12">

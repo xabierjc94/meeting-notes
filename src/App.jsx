@@ -1,14 +1,16 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
 import { AdminProvider } from './context/AdminContext'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import TasksPage from './pages/TasksPage'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import UsersPanel from './pages/admin/UsersPanel'
-import ActivityLog from './pages/admin/ActivityLog'
+
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const TasksPage = lazy(() => import('./pages/TasksPage'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const UsersPanel = lazy(() => import('./pages/admin/UsersPanel'))
+const ActivityLog = lazy(() => import('./pages/admin/ActivityLog'))
 
 function LoadingScreen() {
   return (
@@ -53,6 +55,7 @@ if (loading || !profileLoaded) return <LoadingScreen />
 
 function AppRoutes() {
   return (
+    <Suspense fallback={<LoadingScreen />}>
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -103,6 +106,7 @@ function AppRoutes() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   )
 }
 
