@@ -21,10 +21,30 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
-export default function TaskCard({ task, onClick, overlay }) {
+export default function TaskCard({ task, onClick, overlay, compact = false, stretch = false }) {
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const overdue = isOverdue(task.due_date)
   const dueSoon = isDueSoon(task.due_date)
+
+  if (compact) {
+    return (
+      <div
+        onClick={onClick}
+        className={`${stretch ? 'h-full' : ''} flex flex-col justify-center gap-1 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/0 hover:border-white/60 hover:shadow-md active:scale-[0.98]`}
+      >
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full shrink-0 ${priority.dot}`} style={{ boxShadow: `0 0 5px ${priority.glow}` }} />
+          <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${priority.text}`}>{priority.label}</span>
+          {task.due_date && (
+            <span className={`ml-auto text-[10px] font-medium shrink-0 ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
+              {overdue ? '⚠ ' : ''}{formatDate(task.due_date)}
+            </span>
+          )}
+        </div>
+        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{task.title}</p>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -38,7 +58,6 @@ export default function TaskCard({ task, onClick, overlay }) {
         }`}
     >
       <div className="p-3.5">
-        {/* Priority badge + title */}
         <div className="flex items-start gap-2 mb-2">
           <div className={`flex items-center gap-1 shrink-0 mt-0.5`}>
             <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
@@ -50,12 +69,10 @@ export default function TaskCard({ task, onClick, overlay }) {
           {task.title}
         </p>
 
-        {/* Description preview */}
         {task.description && (
           <p className="text-xs text-slate-400 mb-2.5 line-clamp-2 leading-relaxed">{task.description}</p>
         )}
 
-        {/* Tags */}
         {task.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2.5">
             {task.tags.slice(0, 3).map(tag => (
@@ -69,7 +86,6 @@ export default function TaskCard({ task, onClick, overlay }) {
           </div>
         )}
 
-        {/* Due date */}
         {task.due_date && (
           <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
