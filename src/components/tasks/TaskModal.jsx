@@ -27,6 +27,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!form.column_id && columns.length > 0) {
@@ -38,10 +39,13 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
     e?.preventDefault()
     if (!form.title.trim()) return
     setSaving(true)
+    setError(null)
     try {
       if (isEditing) await editTask(task.id, form)
       else await addTask(form)
       onClose()
+    } catch {
+      setError('No se pudo guardar la tarea. Inténtalo de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -49,9 +53,13 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
 
   const handleDelete = async () => {
     setDeleting(true)
+    setError(null)
     try {
       await removeTask(task.id)
       onClose()
+    } catch {
+      setError('No se pudo eliminar la tarea. Inténtalo de nuevo.')
+      setConfirmDelete(false)
     } finally {
       setDeleting(false)
     }
@@ -184,31 +192,34 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-5 py-4 border-t border-slate-100 shrink-0 pb-safe">
-          {isEditing && (
+        <div className="flex flex-col gap-2 px-5 py-4 border-t border-slate-100 shrink-0 pb-safe">
+          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+          <div className="flex gap-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={deleting}
+                className="px-4 py-3.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-60"
+              >
+                {deleting ? '...' : 'Eliminar'}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setConfirmDelete(true)}
-              disabled={deleting}
-              className="px-4 py-3.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-60"
+              onClick={onClose}
+              className="flex-1 px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             >
-              {deleting ? '...' : 'Eliminar'}
+              Cancelar
             </button>
-          )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={saving || !form.title.trim()}
-            className="flex-1 px-4 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 disabled:opacity-60"
-          >
-            {saving ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear tarea'}
-          </button>
+            <button
+              onClick={handleSubmit}
+              disabled={saving || !form.title.trim()}
+              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 disabled:opacity-60"
+            >
+              {saving ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear tarea'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

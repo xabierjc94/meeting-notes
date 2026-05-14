@@ -110,7 +110,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
       disabled={disabled}
       title={title}
       className={`
-        w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium
+        w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-medium
         transition-all duration-150
         ${active
           ? 'bg-violet-100 text-violet-700 shadow-sm'

@@ -43,12 +43,10 @@ function SortableColumn({ col, onOpenTask }) {
 }
 
 export default function KanbanBoard() {
-  const { columns, tasks, tasksByColumn, addColumn, reorderTasks, reorderColumns, moveTaskToColumn } = useTasks()
+  const { columns, tasks, tasksByColumn, reorderTasks, reorderColumns, moveTaskToColumn } = useTasks()
   const [activeTask, setActiveTask] = useState(null)
   const [activeColumn, setActiveColumn] = useState(null)
   const [editingTask, setEditingTask] = useState(null)
-  const [addingColumn, setAddingColumn] = useState(false)
-  const [newColName, setNewColName] = useState('')
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -113,14 +111,6 @@ export default function KanbanBoard() {
     }
   }
 
-  const handleAddColumn = async (e) => {
-    e.preventDefault()
-    if (!newColName.trim()) return
-    await addColumn({ name: newColName.trim(), color: '#6366f1' })
-    setNewColName('')
-    setAddingColumn(false)
-  }
-
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900">
       <DndContext
@@ -129,12 +119,12 @@ export default function KanbanBoard() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className="flex-1 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden">
+        <div className="flex-1 overflow-x-auto overflow-y-auto md:overflow-y-hidden">
           <SortableContext
             items={columns.map(c => `col-${c.id}`)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex flex-col md:flex-row gap-4 md:h-full p-4 md:p-6">
+            <div className="flex flex-row gap-4 h-full p-4 md:p-6 min-w-max">
               {columns.map(col => (
                 <ColumnWithTasks
                   key={col.id}
@@ -145,36 +135,6 @@ export default function KanbanBoard() {
                 />
               ))}
 
-              {/* Add column */}
-              <div className="w-full md:w-64 lg:w-72 md:shrink-0">
-                {addingColumn ? (
-                  <form onSubmit={handleAddColumn} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4">
-                    <input
-                      type="text"
-                      value={newColName}
-                      onChange={e => setNewColName(e.target.value)}
-                      placeholder="Nombre de la columna..."
-                      autoFocus
-                      onBlur={() => !newColName && setAddingColumn(false)}
-                      className="w-full text-sm border border-white/20 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/40 mb-3"
-                    />
-                    <div className="flex gap-2">
-                      <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors">Crear</button>
-                      <button type="button" onClick={() => setAddingColumn(false)} className="flex-1 py-2.5 border border-white/20 text-white/70 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors">Cancelar</button>
-                    </div>
-                  </form>
-                ) : (
-                  <button
-                    onClick={() => setAddingColumn(true)}
-                    className="w-full flex items-center gap-2 text-white/40 hover:text-white/70 text-sm font-medium py-4 px-4 rounded-2xl border-2 border-dashed border-white/15 hover:border-violet-400/50 hover:bg-white/5 transition-all"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nueva columna
-                  </button>
-                )}
-              </div>
             </div>
           </SortableContext>
         </div>
@@ -216,7 +176,7 @@ function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId }) {
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="group md:h-full"
+      className="group h-full"
     >
       <KanbanColumn
         column={col}

@@ -56,15 +56,20 @@ export function TasksProvider({ children, projectId }) {
     setTasks(prev => prev.filter(t => t.column_id !== id))
   }
 
+  const sanitizeTaskData = (data) => ({
+    ...data,
+    due_date: data.due_date?.trim() || null,
+  })
+
   const addTask = async (data) => {
     const colTasks = tasks.filter(t => t.column_id === data.column_id)
-    const task = await createTask(user.id, { ...data, position: colTasks.length })
+    const task = await createTask(user.id, { ...sanitizeTaskData(data), position: colTasks.length })
     setTasks(prev => [...prev, task])
     return task
   }
 
   const editTask = async (id, data) => {
-    const task = await updateTask(id, data)
+    const task = await updateTask(id, 'due_date' in data ? sanitizeTaskData(data) : data)
     setTasks(prev => prev.map(t => t.id === id ? task : t))
   }
 

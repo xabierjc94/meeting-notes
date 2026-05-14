@@ -14,14 +14,18 @@ function ProjectModal({ project, onClose, onSave, position }) {
   const [description, setDescription] = useState(project?.description || '')
   const [color, setColor] = useState(project?.color || '#6366f1')
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!name.trim()) return
     setSaving(true)
+    setError(null)
     try {
       await onSave({ name: name.trim(), description: description.trim(), color, position })
       onClose()
+    } catch {
+      setError('No se pudo guardar el proyecto. Inténtalo de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -71,6 +75,7 @@ function ProjectModal({ project, onClose, onSave, position }) {
                 ))}
               </div>
             </div>
+            {error && <p className="text-xs text-red-400 text-center">{error}</p>}
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
@@ -178,9 +183,12 @@ export default function ProjectsPage() {
   }
 
   const handleDelete = async () => {
-    await deleteProject(confirmProject.id)
-    setProjects(prev => prev.filter(p => p.id !== confirmProject.id))
-    setConfirmProject(null)
+    try {
+      await deleteProject(confirmProject.id)
+      setProjects(prev => prev.filter(p => p.id !== confirmProject.id))
+    } finally {
+      setConfirmProject(null)
+    }
   }
 
   const handleEdit = (project) => {

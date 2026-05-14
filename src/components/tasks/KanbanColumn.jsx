@@ -32,32 +32,54 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   const [newTitle, setNewTitle] = useState('')
   const [showNewTaskModal, setShowNewTaskModal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [colError, setColError] = useState(null)
 
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
 
-  const saveColumn = async () => {
-    if (name.trim()) await editColumn(column.id, { name: name.trim(), color })
+  const cancelEdit = () => {
+    setName(column.name)
+    setColor(column.color)
     setEditing(false)
     setShowColorPicker(false)
+    setColError(null)
+  }
+
+  const saveColumn = async () => {
+    if (!name.trim()) { setColError('El nombre no puede estar vacío'); return }
+    try {
+      await editColumn(column.id, { name: name.trim(), color })
+      setEditing(false)
+      setShowColorPicker(false)
+      setColError(null)
+    } catch {
+      setColError('Error al guardar. Inténtalo de nuevo.')
+    }
   }
 
   const handleDelete = async () => {
-    await removeColumn(column.id)
-    setConfirmDelete(false)
+    try {
+      await removeColumn(column.id)
+    } catch {
+      setConfirmDelete(false)
+    }
   }
 
   const handleQuickAdd = async (e) => {
     e.preventDefault()
     if (!newTitle.trim()) return
-    await addTask({ title: newTitle.trim(), column_id: column.id, priority: 'medium', tags: [] })
-    setNewTitle('')
-    setAdding(false)
+    try {
+      await addTask({ title: newTitle.trim(), column_id: column.id, priority: 'medium', tags: [] })
+      setNewTitle('')
+      setAdding(false)
+    } catch {
+      // keep form open so user can retry
+    }
   }
 
   return (
-    <div className="flex flex-col w-full md:w-64 lg:w-72 md:shrink-0 md:h-full">
+    <div className="flex flex-col w-72 shrink-0 h-full">
       {/* Column container */}
-      <div className={`group flex flex-col rounded-2xl overflow-hidden border transition-all duration-200 md:h-full
+      <div className={`group flex flex-col rounded-2xl overflow-hidden border transition-all duration-200 h-full
         ${isDragging ? 'border-violet-400/60 shadow-2xl shadow-violet-500/30 scale-105' :
           isOver ? 'border-violet-400/60 shadow-lg shadow-violet-500/20' : 'border-white/10'
         } bg-white/8 backdrop-blur-md`}
@@ -80,13 +102,15 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 <input
                   type="text"
                   value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && saveColumn()}
+                  onChange={e => { setName(e.target.value); setColError(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter') saveColumn(); else if (e.key === 'Escape') cancelEdit() }}
                   autoFocus
                   className="flex-1 text-sm font-semibold text-white bg-white/10 border border-white/20 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 placeholder-white/30"
                 />
                 <button onClick={saveColumn} className="text-xs text-violet-300 font-semibold hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">OK</button>
+                <button onClick={cancelEdit} className="text-xs text-white/40 font-semibold hover:text-white/70 px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">✕</button>
               </div>
+              {colError && <p className="text-xs text-red-400 px-1">{colError}</p>}
               {showColorPicker && (
                 <div className="flex flex-wrap gap-2 p-3 bg-slate-900/80 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl">
                   {COLORS.map(c => (
@@ -120,7 +144,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white/60 bg-white/10">{tasks.length}</span>
               <button
                 onClick={() => setEditing(true)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all md:opacity-0 md:group-hover:opacity-100"
+                className="w-9 h-9 md:w-7 md:h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all md:opacity-0 md:group-hover:opacity-100"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -130,13 +154,13 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 <div className="flex items-center gap-1">
                   <button
                     onClick={handleDelete}
-                    className="px-2 py-1 text-xs font-semibold bg-red-500 hover:bg-red-400 text-white rounded-lg transition-colors active:scale-95"
+                    className="px-3 py-2 md:px-2 md:py-1 text-xs font-semibold bg-red-500 hover:bg-red-400 text-white rounded-lg transition-colors active:scale-95"
                   >
                     Sí
                   </button>
                   <button
                     onClick={() => setConfirmDelete(false)}
-                    className="px-2 py-1 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/70 rounded-lg transition-colors active:scale-95"
+                    className="px-3 py-2 md:px-2 md:py-1 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/70 rounded-lg transition-colors active:scale-95"
                   >
                     No
                   </button>
@@ -144,7 +168,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               ) : (
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100"
+                  className="w-9 h-9 md:w-7 md:h-7 flex items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -158,7 +182,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
         {/* Tasks area */}
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-[120px] p-3 flex-1 md:min-h-0 md:overflow-y-auto"
+          className="flex flex-col gap-2 p-3 flex-1 min-h-0 overflow-y-auto"
         >
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {tasks.map(task => (
