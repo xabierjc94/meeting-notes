@@ -13,7 +13,7 @@ function SortableTaskCard({ task, onOpen }) {
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1 }}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1, touchAction: 'none' }}
       {...attributes}
       {...listeners}
     >
