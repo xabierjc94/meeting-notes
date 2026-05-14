@@ -14,6 +14,26 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   const { columns, addTask, editTask, removeTask } = useTasks()
   const isEditing = !!task
   const tagInputRef = useRef(null)
+  const titleRef = useRef(null)
+  const descRef = useRef(null)
+  const notesRef = useRef(null)
+  const DESC_MAX = 200
+
+  const resizeDesc = (el) => {
+    el.style.height = 'auto'
+    const next = el.scrollHeight
+    el.style.height = Math.min(next, DESC_MAX) + 'px'
+    el.style.overflowY = next > DESC_MAX ? 'auto' : 'hidden'
+  }
+
+  useEffect(() => {
+    if (titleRef.current) {
+      titleRef.current.style.height = 'auto'
+      titleRef.current.style.height = titleRef.current.scrollHeight + 'px'
+    }
+    if (descRef.current) resizeDesc(descRef.current)
+    if (notesRef.current) resizeDesc(notesRef.current)
+  }, [])
 
   const [form, setForm] = useState({
     title: task?.title || '',
@@ -22,6 +42,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
     priority: task?.priority || 'medium',
     due_date: task?.due_date || '',
     tags: task?.tags || [],
+    notes: task?.notes || '',
   })
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
@@ -107,23 +128,30 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
         {/* Form */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Title */}
-          <input
-            type="text"
+          <textarea
+            ref={titleRef}
             placeholder="Título de la tarea"
             value={form.title}
-            onChange={e => setForm({ ...form, title: e.target.value })}
+            onChange={e => {
+              setForm({ ...form, title: e.target.value })
+              e.target.style.height = 'auto'
+              e.target.style.height = e.target.scrollHeight + 'px'
+            }}
+            onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
             autoFocus
             required
-            className="w-full text-lg font-semibold text-slate-800 placeholder-slate-300 border-0 outline-none focus:ring-0 p-0"
+            rows={1}
+            className="w-full text-lg font-semibold text-slate-800 placeholder-slate-300 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
           />
 
           {/* Description */}
           <textarea
+            ref={descRef}
             placeholder="Añade una descripción..."
             value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })}
+            onChange={e => { setForm({ ...form, description: e.target.value }); resizeDesc(e.target) }}
             rows={3}
-            className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+            className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all overflow-hidden"
           />
 
           {/* Column + Priority — stack on mobile */}
@@ -188,6 +216,18 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
                 className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-slate-700 placeholder-slate-300"
               />
             </div>
+          </div>
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Notas</label>
+            <textarea
+              ref={notesRef}
+              placeholder="Escribe un comentario o nota..."
+              value={form.notes}
+              onChange={e => { setForm({ ...form, notes: e.target.value }); resizeDesc(e.target) }}
+              rows={2}
+              className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all overflow-hidden"
+            />
           </div>
         </div>
 
