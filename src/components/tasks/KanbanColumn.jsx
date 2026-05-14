@@ -55,9 +55,9 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   }
 
   return (
-    <div className="flex flex-col w-full md:w-64 lg:w-72 md:shrink-0">
+    <div className="flex flex-col w-full md:w-64 lg:w-72 md:shrink-0 md:h-full">
       {/* Column container */}
-      <div className={`flex flex-col rounded-2xl overflow-hidden border transition-all duration-200
+      <div className={`group flex flex-col rounded-2xl overflow-hidden border transition-all duration-200 md:h-full
         ${isDragging ? 'border-violet-400/60 shadow-2xl shadow-violet-500/30 scale-105' :
           isOver ? 'border-violet-400/60 shadow-lg shadow-violet-500/20' : 'border-white/10'
         } bg-white/8 backdrop-blur-md`}
@@ -158,7 +158,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
         {/* Tasks area */}
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 min-h-[120px] p-3 flex-1"
+          className="flex flex-col gap-2 min-h-[120px] p-3 flex-1 md:min-h-0 md:overflow-y-auto"
         >
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {tasks.map(task => (

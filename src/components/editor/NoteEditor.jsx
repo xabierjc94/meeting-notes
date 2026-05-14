@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { useNotes } from '../../context/NotesContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import EditorToolbar from './EditorToolbar'
+import DatePicker from '../ui/DatePicker'
 
 export default function NoteEditor({ noteId }) {
   const [initialData, setInitialData] = useState(null)
@@ -96,8 +97,7 @@ function EditorInner({ initialData }) {
     debouncedSave({ title: val })
   }
 
-  const handleDateChange = (e) => {
-    const val = e.target.value
+  const handleDateChange = (val) => {
     setMeetingDate(val)
     updateNoteLocal(noteId, { meeting_date: val || null })
     setSaveStatus('unsaved')
@@ -136,25 +136,11 @@ function EditorInner({ initialData }) {
 
           {/* Date picker */}
           <div className="flex items-center gap-2 mt-2 sm:mt-3">
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
-              meetingDate ? 'bg-violet-50 border border-violet-200/50' : 'bg-transparent border border-transparent'
-            }`}>
-              <svg className={`w-4 h-4 shrink-0 transition-colors ${meetingDate ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <input
-                type="date"
-                value={meetingDate}
-                onChange={handleDateChange}
-                className={`text-sm bg-transparent border-none outline-none cursor-pointer transition-colors ${
-                  meetingDate ? 'text-violet-600' : 'text-slate-300 hover:text-slate-500'
-                }`}
-              />
-              {!meetingDate && (
-                <span className="text-sm text-slate-300">Fecha de reunión</span>
-              )}
-            </div>
+            <DatePicker
+              value={meetingDate}
+              onChange={handleDateChange}
+              placeholder="Fecha de reunión"
+            />
           </div>
         </div>
       </div>

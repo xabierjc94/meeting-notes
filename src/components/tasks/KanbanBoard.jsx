@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  DndContext, DragOverlay, closestCenter,
+  DndContext, DragOverlay, closestCorners,
   PointerSensor, TouchSensor, useSensor, useSensors,
   KeyboardSensor
 } from '@dnd-kit/core'
@@ -58,6 +58,12 @@ export default function KanbanBoard() {
 
   function findColumnId(id) {
     if (columns.find(c => c.id === id)) return id
+    // 'col-UUID' comes from the column's useSortable wrapper — strip prefix
+    if (typeof id === 'string' && id.startsWith('col-')) {
+      const rawId = id.slice(4)
+      const col = columns.find(c => String(c.id) === rawId)
+      if (col) return col.id
+    }
     return tasks.find(t => t.id === id)?.column_id
   }
 
@@ -119,7 +125,7 @@ export default function KanbanBoard() {
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900">
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={closestCorners}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
@@ -210,7 +216,7 @@ function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId }) {
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className="group"
+      className="group md:h-full"
     >
       <KanbanColumn
         column={col}

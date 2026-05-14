@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useAdmin } from '../../context/AdminContext'
 import AdminLayout from '../../components/admin/AdminLayout'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 const subLabels = { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }
 const roleLabels = { user: 'Usuario', admin: 'Admin', superadmin: 'Super Admin' }
@@ -169,6 +170,7 @@ export default function UsersPanel() {
   const { profiles, loading, updateUser, removeUser, fetchData } = useAdmin()
   const [search, setSearch] = useState('')
   const [editingUser, setEditingUser] = useState(null)
+  const [confirmUser, setConfirmUser] = useState(null)
   const [subFilter, setSubFilter] = useState('all')
   const [roleFilter, setRoleFilter] = useState('all')
 
@@ -193,10 +195,10 @@ export default function UsersPanel() {
     return result
   }, [profiles, search, subFilter, roleFilter])
 
-  const handleDelete = async (userId, email) => {
-    if (!confirm(`¿Eliminar el perfil de ${email}? El usuario no podrá acceder a la app.`)) return
-    await removeUser(userId)
+  const handleDelete = async () => {
+    await removeUser(confirmUser.id)
     await fetchData()
+    setConfirmUser(null)
   }
 
   const subFilters = [
@@ -348,7 +350,7 @@ export default function UsersPanel() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(u.id, u.email)}
+                        onClick={() => setConfirmUser(u)}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
                         title="Eliminar perfil"
                       >
@@ -373,6 +375,15 @@ export default function UsersPanel() {
             await updateUser(id, form)
             await fetchData()
           }}
+        />
+      )}
+
+      {confirmUser && (
+        <ConfirmDialog
+          title="Eliminar perfil"
+          message={`¿Eliminar el perfil de ${confirmUser.email}? El usuario no podrá acceder a la app.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmUser(null)}
         />
       )}
     </AdminLayout>

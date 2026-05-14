@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTasks } from '../../context/TasksContext'
+import ConfirmDialog from '../ui/ConfirmDialog'
+import DatePicker from '../ui/DatePicker'
 
 const PRIORITY_OPTIONS = [
   { value: 'low',    label: 'Baja',    color: 'text-emerald-600 bg-emerald-50' },
@@ -24,6 +26,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (!form.column_id && columns.length > 0) {
@@ -45,7 +48,6 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   }
 
   const handleDelete = async () => {
-    if (!confirm('¿Eliminar esta tarea?')) return
     setDeleting(true)
     try {
       await removeTask(task.id)
@@ -71,7 +73,8 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   }
 
   return (
-    /* Bottom sheet on mobile, centered modal on desktop */
+    <>
+    {/* Bottom sheet on mobile, centered modal on desktop */}
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm sm:p-4">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
 
@@ -146,11 +149,10 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
           {/* Due date */}
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Fecha límite</label>
-            <input
-              type="date"
+            <DatePicker
               value={form.due_date}
-              onChange={e => setForm({ ...form, due_date: e.target.value })}
-              className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+              onChange={val => setForm({ ...form, due_date: val })}
+              placeholder="Sin fecha límite"
             />
           </div>
 
@@ -186,7 +188,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
           {isEditing && (
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setConfirmDelete(true)}
               disabled={deleting}
               className="px-4 py-3.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-60"
             >
@@ -210,5 +212,15 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
         </div>
       </div>
     </div>
+
+    {confirmDelete && (
+      <ConfirmDialog
+        title="Eliminar tarea"
+        message={`¿Eliminar "${form.title}"? Esta acción no se puede deshacer.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
+    )}
+  </>
   )
 }

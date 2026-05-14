@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNotes } from '../../context/NotesContext'
+import ConfirmDialog from '../ui/ConfirmDialog'
 
 function formatDate(isoString) {
   if (!isoString) return null
@@ -22,14 +23,13 @@ function timeAgo(isoString) {
 export default function NoteCard({ note, variant = 'light' }) {
   const { activeNoteId, setActiveNote, deleteNote } = useNotes()
   const [deleting, setDeleting] = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const isActive = activeNoteId === note.id
 
-  const handleDelete = async (e) => {
-    e.stopPropagation()
-    if (!confirm(`¿Borrar "${note.title || 'Sin título'}"?`)) return
+  const handleDelete = async () => {
     setDeleting(true)
+    setConfirmDelete(false)
     try {
       await deleteNote(note.id)
     } catch {
@@ -42,10 +42,8 @@ export default function NoteCard({ note, variant = 'light' }) {
   return (
     <div
       onClick={() => setActiveNote(note.id)}
-      onMouseEnter={() => setShowDelete(true)}
-      onMouseLeave={() => setShowDelete(false)}
       className={`
-        relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 group
+        group relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
         ${isActive
           ? isDark
             ? 'bg-white/10 border border-violet-400/30 shadow-lg shadow-violet-500/10'
@@ -58,7 +56,7 @@ export default function NoteCard({ note, variant = 'light' }) {
         ${isActive ? 'animate-scaleIn' : ''}
       `}
     >
-      <p className={`text-sm font-semibold truncate pr-7 transition-colors ${
+      <p className={`text-sm font-semibold truncate pr-8 transition-colors ${
         isActive
           ? isDark ? 'text-white' : 'text-violet-700'
           : isDark ? 'text-slate-200' : 'text-slate-700'
@@ -83,14 +81,16 @@ export default function NoteCard({ note, variant = 'light' }) {
         </span>
       </div>
 
-      {showDelete && !deleting && (
+      {/* Visible always on mobile, hover-only on desktop */}
+      {!deleting && (
         <button
-          onClick={handleDelete}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200 ${
-            isDark
+          onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200
+            sm:opacity-0 sm:group-hover:opacity-100
+            ${isDark
               ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10'
               : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-          }`}
+            }`}
           title="Borrar nota"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,6 +98,16 @@ export default function NoteCard({ note, variant = 'light' }) {
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
+      )}
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Borrar nota"
+          message={`¿Borrar "${note.title || 'Sin título'}"? Esta acción no se puede deshacer.`}
+          confirmLabel="Borrar"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
     </div>
   )

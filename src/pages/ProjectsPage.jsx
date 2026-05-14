@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getProjects, createProject, updateProject, deleteProject, getProjectTaskCounts } from '../lib/projectsApi'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 
 const PROJECT_COLORS = [
   '#6366f1','#8b5cf6','#ec4899','#ef4444',
@@ -146,6 +147,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
+  const [confirmProject, setConfirmProject] = useState(null)
 
   const fetchProjects = useCallback(async () => {
     if (!user) return
@@ -175,10 +177,10 @@ export default function ProjectsPage() {
     setEditingProject(null)
   }
 
-  const handleDelete = async (project) => {
-    if (!confirm(`¿Eliminar el proyecto "${project.name}" y todas sus tareas?`)) return
-    await deleteProject(project.id)
-    setProjects(prev => prev.filter(p => p.id !== project.id))
+  const handleDelete = async () => {
+    await deleteProject(confirmProject.id)
+    setProjects(prev => prev.filter(p => p.id !== confirmProject.id))
+    setConfirmProject(null)
   }
 
   const handleEdit = (project) => {
@@ -266,7 +268,7 @@ export default function ProjectsPage() {
                 project={project}
                 taskCount={taskCounts[project.id]}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
+                onDelete={setConfirmProject}
               />
             ))}
             <button
@@ -288,6 +290,15 @@ export default function ProjectsPage() {
           position={projects.length}
           onClose={handleCloseModal}
           onSave={handleSave}
+        />
+      )}
+
+      {confirmProject && (
+        <ConfirmDialog
+          title="Eliminar proyecto"
+          message={`¿Eliminar "${confirmProject.name}" y todas sus tareas? Esta acción no se puede deshacer.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmProject(null)}
         />
       )}
     </div>
