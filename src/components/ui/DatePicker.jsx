@@ -101,12 +101,12 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
     selected.getFullYear() === year && selected.getMonth() === month && selected.getDate() === day
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div className={`relative block ${className}`}>
       <button
         ref={btnRef}
         type="button"
         onClick={handleToggle}
-        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
+        className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
           value
             ? 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'
             : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-slate-500'

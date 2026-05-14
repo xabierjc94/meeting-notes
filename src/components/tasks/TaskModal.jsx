@@ -189,6 +189,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
               value={form.due_date}
               onChange={val => setForm({ ...form, due_date: val })}
               placeholder="Sin fecha límite"
+              className="w-full"
             />
           </div>
 
