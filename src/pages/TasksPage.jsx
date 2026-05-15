@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { TasksProvider, useTasks } from '../context/TasksContext'
+import { GestionProvider } from '../context/GestionContext'
 import KanbanBoard from '../components/tasks/KanbanBoard'
 import ListView from '../components/tasks/ListView'
 import TaskModal from '../components/tasks/TaskModal'
+import GestionPanel from '../components/gestion/GestionPanel'
 import { supabase } from '../lib/supabaseClient'
 
 function TasksContent({ project }) {
@@ -105,6 +107,17 @@ function TasksContent({ project }) {
               </svg>
               <span className="hidden sm:inline">Lista</span>
             </button>
+            <button
+              onClick={() => setView('gestion')}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                view === 'gestion' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden sm:inline">Gestión</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -119,21 +132,25 @@ function TasksContent({ project }) {
                 <span className="hidden sm:inline">Nueva columna</span>
               </button>
             )}
-            <button
-              onClick={() => setShowNewTask(true)}
-              className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20"
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span className="hidden sm:inline">Nueva tarea</span>
-            </button>
+            {view !== 'gestion' && (
+              <button
+                onClick={() => setShowNewTask(true)}
+                className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span className="hidden sm:inline">Nueva tarea</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-hidden">
-        {view === 'kanban' ? <KanbanBoard /> : <ListView />}
+        {view === 'kanban' && <KanbanBoard />}
+        {view === 'list' && <ListView />}
+        {view === 'gestion' && <GestionPanel />}
       </div>
 
       {showNewTask && (
@@ -186,7 +203,9 @@ export default function TasksPage() {
 
   return (
     <TasksProvider projectId={projectId}>
-      <TasksContent project={project} />
+      <GestionProvider projectId={projectId}>
+        <TasksContent project={project} />
+      </GestionProvider>
     </TasksProvider>
   )
 }
