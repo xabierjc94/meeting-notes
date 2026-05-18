@@ -1,7 +1,23 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, Component } from 'react'
+
+class ErrorBoundary extends Component {
+  state = { error: null }
+  static getDerivedStateFromError(error) { return { error } }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 32, fontFamily: 'monospace', background: '#fff' }}>
+        <h2 style={{ color: 'red' }}>Error de renderizado</h2>
+        <pre style={{ whiteSpace: 'pre-wrap', color: '#333', fontSize: 13 }}>{this.state.error?.message}</pre>
+        <pre style={{ whiteSpace: 'pre-wrap', color: '#999', fontSize: 11 }}>{this.state.error?.stack}</pre>
+      </div>
+    )
+    return this.props.children
+  }
+}
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
+import { BibliotecaProvider } from './context/BibliotecaContext'
 import { AdminProvider } from './context/AdminContext'
 
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -9,6 +25,7 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'))
 const TasksPage = lazy(() => import('./pages/TasksPage'))
+const BibliotecaPage = lazy(() => import('./pages/BibliotecaPage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const UsersPanel = lazy(() => import('./pages/admin/UsersPanel'))
 const ActivityLog = lazy(() => import('./pages/admin/ActivityLog'))
@@ -56,6 +73,7 @@ if (loading || !profileLoaded) return <LoadingScreen />
 
 function AppRoutes() {
   return (
+    <ErrorBoundary>
     <Suspense fallback={<LoadingScreen />}>
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -68,6 +86,16 @@ function AppRoutes() {
             <NotesProvider>
               <DashboardPage />
             </NotesProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/biblioteca"
+        element={
+          <ProtectedRoute>
+            <BibliotecaProvider>
+              <BibliotecaPage />
+            </BibliotecaProvider>
           </ProtectedRoute>
         }
       />
@@ -112,6 +140,7 @@ function AppRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }
 
