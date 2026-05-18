@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const PRIORITY_CONFIG = {
   low:    { label: 'Baja',    dot: 'bg-emerald-400', text: 'text-emerald-400', border: 'border-l-emerald-400', glow: '#10b981' },
   medium: { label: 'Media',   dot: 'bg-amber-400',   text: 'text-amber-400',   border: 'border-l-amber-400',   glow: '#f59e0b' },
@@ -38,6 +40,7 @@ function GripHandle({ dragHandleProps }) {
 }
 
 export default function TaskCard({ task, onClick, onDelete, overlay, compact = false, stretch = false, dragHandleProps = null }) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const overdue = isOverdue(task.due_date)
   const dueSoon = isDueSoon(task.due_date)
@@ -58,15 +61,22 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             </span>
           )}
           {onDelete && (
-            <button
-              onClick={e => { e.stopPropagation(); onDelete() }}
-              className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-              title="Eliminar tarea"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+            confirmingDelete ? (
+              <div className="ml-auto flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                <button onClick={() => onDelete()} className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-400 text-white rounded transition-colors">Sí</button>
+                <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-slate-200 hover:bg-slate-300 text-slate-600 rounded transition-colors">No</button>
+              </div>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmingDelete(true) }}
+                className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Eliminar tarea"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            )
           )}
         </div>
         <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{task.title}</p>
@@ -91,17 +101,24 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
             <span className={`text-[10px] font-bold uppercase tracking-wide ${priority.text}`}>{priority.label}</span>
           </div>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
             {onDelete && (
-              <button
-                onClick={e => { e.stopPropagation(); onDelete() }}
-                className="w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                title="Eliminar tarea"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              confirmingDelete ? (
+                <div className="flex items-center gap-1">
+                  <button onClick={() => onDelete()} className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-400 text-white rounded transition-colors">Sí</button>
+                  <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-slate-200 hover:bg-slate-300 text-slate-600 rounded transition-colors">No</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title="Eliminar tarea"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )
             )}
             {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
           </div>
