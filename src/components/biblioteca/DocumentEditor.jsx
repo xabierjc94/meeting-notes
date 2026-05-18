@@ -163,25 +163,52 @@ function DocumentEditorInner({ initialData, onBack }) {
 
   const handlePrint = () => window.print()
 
+  const buildWordHtml = (content) => {
+    return `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+<style>
+  body { font-family: Calibri, sans-serif; font-size: 12pt; line-height: 1.5; color: #000; margin: 2.54cm; }
+  h1 { font-size: 22pt; font-weight: bold; margin: 12pt 0 6pt; }
+  h2 { font-size: 16pt; font-weight: bold; margin: 10pt 0 6pt; }
+  h3 { font-size: 13pt; font-weight: bold; margin: 8pt 0 4pt; }
+  h4 { font-size: 12pt; font-weight: bold; margin: 6pt 0 4pt; }
+  p  { margin: 0 0 6pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  td, th { border: 1px solid #999; padding: 4pt 6pt; vertical-align: top; }
+  th { background: #f0f0f0; font-weight: bold; }
+  blockquote { border-left: 3px solid #4472c4; padding-left: 12pt; color: #555; font-style: italic; margin: 8pt 0; }
+  pre, code { font-family: "Courier New", monospace; font-size: 10pt; background: #f5f5f5; }
+  pre { padding: 6pt; margin: 6pt 0; }
+  a { color: #2563eb; text-decoration: underline; }
+  ul, ol { padding-left: 18pt; margin: 4pt 0; }
+  li { margin: 2pt 0; }
+</style>
+</head>
+<body>${content}</body>
+</html>`
+  }
+
   const handleExportWord = async () => {
     if (!editor) return
     setExportingWord(true)
+    setWordError(null)
     try {
-      const HTMLtoDOCX = (await import('html-to-docx')).default
-      const html = `<!DOCTYPE html><html><body>${editor.getHTML()}</body></html>`
-      const blob = await HTMLtoDOCX(html, null, {
-        table: { row: { cantSplit: true } },
-        footer: false,
-        pageNumber: false,
-      })
+      const html = buildWordHtml(editor.getHTML())
+      const blob = new Blob(['\uFEFF' + html], { type: 'application/msword;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${title || 'documento'}.docx`
+      a.download = `${title || 'documento'}.doc`
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Error exportando Word:', err)
+      setWordError('Error al exportar. Inténtalo de nuevo.')
     } finally {
       setExportingWord(false)
     }
@@ -189,12 +216,22 @@ function DocumentEditorInner({ initialData, onBack }) {
 
   const handleExportPdf = async () => {
     setExporting(true)
+    setWordError(null)
     try {
       const { jsPDF } = await import('jspdf')
       const html2canvas = (await import('html2canvas')).default
       const pageEl = printAreaRef.current
-      if (!pageEl) return
-      const canvas = await html2canvas(pageEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+      if (!pageEl) { setWordError('No se encontró el área del documento.'); return }
+      const canvas = await html2canvas(pageEl, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: pageEl.scrollWidth,
+        windowHeight: pageEl.scrollHeight,
+      })
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const pdfW = pdf.internal.pageSize.getWidth()
@@ -209,6 +246,7 @@ function DocumentEditorInner({ initialData, onBack }) {
       pdf.save(`${title || 'documento'}.pdf`)
     } catch (err) {
       console.error('Error exportando PDF:', err)
+      setWordError('Error al generar el PDF. Prueba con Imprimir → Guardar como PDF.')
     } finally {
       setExporting(false)
     }
@@ -227,14 +265,13 @@ function DocumentEditorInner({ initialData, onBack }) {
     setOpeningWord(true)
     setWordError(null)
     try {
-      const HTMLtoDOCX = (await import('html-to-docx')).default
-      const html = `<!DOCTYPE html><html><body>${editor.getHTML()}</body></html>`
-      const blob = await HTMLtoDOCX(html, null, { table: { row: { cantSplit: true } }, footer: false, pageNumber: false })
-      const fileName = `${docId}.docx`
+      const html = buildWordHtml(editor.getHTML())
+      const blob = new Blob(['\uFEFF' + html], { type: 'application/msword;charset=utf-8' })
+      const fileName = `${docId}.doc`
       const { error: uploadError } = await supabase.storage
         .from('biblioteca-docs')
         .upload(fileName, blob, {
-          contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          contentType: 'application/msword',
           upsert: true,
         })
       if (uploadError) throw uploadError
@@ -243,7 +280,7 @@ function DocumentEditorInner({ initialData, onBack }) {
       window.location.href = `ms-word:ofe|u|${publicUrl}`
     } catch (err) {
       console.error('Error abriendo en Word:', err)
-      setWordError(err.message || 'Error al abrir en Word.')
+      setWordError(err.message || 'Error al abrir en Word. Asegúrate de que Microsoft Word está instalado.')
     } finally {
       setOpeningWord(false)
     }

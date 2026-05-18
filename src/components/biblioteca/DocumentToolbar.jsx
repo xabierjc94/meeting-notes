@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 const FONT_FAMILIES = [
   { label: 'Calibri', value: 'Calibri, sans-serif' },
@@ -27,54 +28,25 @@ const LINE_HEIGHTS = [
 ]
 
 const TEXT_COLORS = [
-  // Row 1: Negros / Grises
   '#000000', '#1a1a1a', '#404040', '#595959', '#737373', '#8c8c8c', '#a6a6a6', '#bfbfbf', '#d9d9d9', '#f2f2f2',
-  // Row 2: Rojos / Naranjas / Amarillos
   '#7f0000', '#c00000', '#ff0000', '#ff4d00', '#ff9900', '#ffbf00', '#ffd966', '#fffe00', '#e6ff00', '#ccff00',
-  // Row 3: Verdes
   '#004d00', '#00802b', '#00b050', '#00cc44', '#70ad47', '#92d050', '#b8f0a0', '#ccffcc', '#d9ead3', '#e6ffe6',
-  // Row 4: Azules / Violetas
   '#003366', '#0070c0', '#2563eb', '#4472c4', '#00b0f0', '#00b0f0', '#7030a0', '#9966ff', '#cc66ff', '#f4ccff',
-  // Row 5: Marrones / Pinks
   '#7f3300', '#c55a11', '#ed7d31', '#f4a261', '#e63946', '#c9184a', '#a8dadc', '#457b9d', '#1d3557', '#6c757d',
 ]
 
 const HIGHLIGHT_COLORS = [
-  '#FEF08A', // amarillo
-  '#BBF7D0', // verde
-  '#BAE6FD', // azul
-  '#DDD6FE', // violeta
-  '#FED7AA', // naranja
-  '#FECACA', // rojo
-  '#F0ABFC', // rosa
-  '#E2E8F0', // gris
-  '#FFF9C4', // amarillo pálido
-  '#C8E6C9', // verde pálido
-  '#B3E5FC', // azul pálido
-  '#E1BEE7', // violeta pálido
+  '#FEF08A', '#BBF7D0', '#BAE6FD', '#DDD6FE',
+  '#FED7AA', '#FECACA', '#F0ABFC', '#E2E8F0',
+  '#FFF9C4', '#C8E6C9', '#B3E5FC', '#E1BEE7',
 ]
 
 const EMOJI_CATEGORIES = [
-  {
-    label: '😊 Emociones',
-    emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','🥲','😭','😤','😠','🤔','🤫','🤐','😴','😷','🤒']
-  },
-  {
-    label: '👋 Gestos',
-    emojis: ['👍','👎','👋','🙏','💪','🤝','✌️','🤞','🤟','👏','🤦','🤷','👌','🤌','🫡','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯','⭐','🌟','✨','🎯']
-  },
-  {
-    label: '🔥 Símbolos',
-    emojis: ['🔥','⚡','💥','✅','❌','⚠️','❓','❗','💡','🎉','🎊','🏆','🥇','🎁','🔔','🔕','📢','📣','🔇','🚀','💻','📱','🖥️','⌨️','🖨️','🖱️','📷','🎥','📹','🎬']
-  },
-  {
-    label: '📝 Trabajo',
-    emojis: ['📌','📍','🔗','📎','🖊️','✏️','📝','📋','📄','📃','📜','📂','📁','🗂️','💼','📊','📈','📉','🗓️','📅','⏰','⏱️','🕐','🕑','🔍','🔎','💰','💵','💴','💶']
-  },
-  {
-    label: '🌍 Naturaleza',
-    emojis: ['🌍','🌎','🌏','🗺️','🌐','☀️','🌤️','⛅','🌥️','☁️','🌧️','⛈️','🌩️','🌨️','❄️','🌬️','💨','🌊','🌙','⭐','🌈','🌸','🌺','🌻','🌹','🍀','🌿','🍃','🌱','🌲']
-  },
+  { label: '😊 Emociones', emojis: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','🥲','😭','😤','😠','🤔','🤫','🤐','😴','😷','🤒'] },
+  { label: '👋 Gestos', emojis: ['👍','👎','👋','🙏','💪','🤝','✌️','🤞','🤟','👏','🤦','🤷','👌','🤌','🫡','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯','⭐','🌟','✨','🎯'] },
+  { label: '🔥 Símbolos', emojis: ['🔥','⚡','💥','✅','❌','⚠️','❓','❗','💡','🎉','🎊','🏆','🥇','🎁','🔔','🔕','📢','📣','🔇','🚀','💻','📱','🖥️','⌨️','🖨️','🖱️','📷','🎥','📹','🎬'] },
+  { label: '📝 Trabajo', emojis: ['📌','📍','🔗','📎','🖊️','✏️','📝','📋','📄','📃','📜','📂','📁','🗂️','💼','📊','📈','📉','🗓️','📅','⏰','⏱️','🕐','🕑','🔍','🔎','💰','💵','💴','💶'] },
+  { label: '🌍 Naturaleza', emojis: ['🌍','🌎','🌏','🗺️','🌐','☀️','🌤️','⛅','🌥️','☁️','🌧️','⛈️','🌩️','🌨️','❄️','🌬️','💨','🌊','🌙','⭐','🌈','🌸','🌺','🌻','🌹','🍀','🌿','🍃','🌱','🌲'] },
 ]
 
 export default function DocumentToolbar({
@@ -100,8 +72,20 @@ export default function DocumentToolbar({
   const [textColorHex, setTextColorHex] = useState('')
   const [highlightHex, setHighlightHex] = useState('')
   const [emojiCategory, setEmojiCategory] = useState(0)
-  const linkRef = useRef(null)
-  const imageRef = useRef(null)
+
+  // Refs for input fields inside dropdowns
+  const linkInputRef = useRef(null)
+  const imageInputRef = useRef(null)
+
+  // Refs for dropdown trigger containers (needed for portal positioning)
+  const fontFamilyRef = useRef(null)
+  const fontSizeRef = useRef(null)
+  const lineHeightRef = useRef(null)
+  const textColorRef = useRef(null)
+  const highlightRef = useRef(null)
+  const linkTriggerRef = useRef(null)
+  const imageTriggerRef = useRef(null)
+  const emojiRef = useRef(null)
 
   useEffect(() => {
     if (editor) {
@@ -161,9 +145,7 @@ export default function DocumentToolbar({
     : editor.isActive('heading', { level: 4 }) ? 'H4'
     : 'Normal'
 
-  const insertEmoji = (emoji) => {
-    editor.chain().focus().insertContent(emoji).run()
-  }
+  const insertEmoji = (emoji) => editor.chain().focus().insertContent(emoji).run()
 
   const applyCustomTextColor = (hex) => {
     const clean = hex.startsWith('#') ? hex : '#' + hex
@@ -190,7 +172,7 @@ export default function DocumentToolbar({
       <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-gray-200 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
         {/* Font Family */}
-        <div className="relative">
+        <div ref={fontFamilyRef}>
           <button
             onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontFamily(v => !v) }}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-700 hover:bg-gray-200 border border-transparent hover:border-gray-300 min-w-[100px] justify-between"
@@ -200,7 +182,7 @@ export default function DocumentToolbar({
             <ChevronDown />
           </button>
           {showFontFamily && (
-            <Dropdown onClose={() => setShowFontFamily(false)} className="w-52">
+            <Dropdown onClose={() => setShowFontFamily(false)} triggerRef={fontFamilyRef} className="w-52">
               {FONT_FAMILIES.map(f => (
                 <button
                   key={f.value}
@@ -215,8 +197,8 @@ export default function DocumentToolbar({
           )}
         </div>
 
-        {/* Font Size con + / - */}
-        <div className="relative flex items-center">
+        {/* Font Size */}
+        <div ref={fontSizeRef} className="flex items-center">
           <button
             onMouseDown={e => { e.preventDefault(); changeFontSize(-1) }}
             className="px-1 py-1 border border-r-0 border-gray-300 rounded-l bg-white hover:bg-gray-100 text-gray-600 text-xs font-bold leading-none"
@@ -242,7 +224,7 @@ export default function DocumentToolbar({
             title="Aumentar tamaño"
           >A<sup className="text-[7px]">+</sup></button>
           {showFontSize && (
-            <Dropdown onClose={() => setShowFontSize(false)} className="w-16 max-h-48 overflow-y-auto" style={{ left: '100%', top: 0, marginLeft: 4 }}>
+            <Dropdown onClose={() => setShowFontSize(false)} triggerRef={fontSizeRef} className="w-16 max-h-48 overflow-y-auto">
               {FONT_SIZES.map(s => (
                 <button
                   key={s}
@@ -275,10 +257,7 @@ export default function DocumentToolbar({
         </Btn>
 
         {/* Limpiar formato */}
-        <Btn
-          onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
-          title="Limpiar formato"
-        >
+        <Btn onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} title="Limpiar formato">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 20h4l10.5-10.5a2 2 0 000-2.83l-1.17-1.17a2 2 0 00-2.83 0L4 16v4z"/>
             <line x1="16" y1="6" x2="20" y2="10"/>
@@ -289,7 +268,7 @@ export default function DocumentToolbar({
         <Sep />
 
         {/* Color de texto */}
-        <div className="relative">
+        <div ref={textColorRef}>
           <Btn onClick={() => { closeAll(); setShowTextColor(v => !v) }} active={showTextColor} title="Color de texto">
             <span className="flex flex-col items-center gap-0">
               <span className="text-xs font-bold leading-none">A</span>
@@ -297,7 +276,7 @@ export default function DocumentToolbar({
             </span>
           </Btn>
           {showTextColor && (
-            <Dropdown onClose={() => setShowTextColor(false)} className="w-56 p-2">
+            <Dropdown onClose={() => setShowTextColor(false)} triggerRef={textColorRef} className="w-56 p-2">
               <div className="grid grid-cols-10 gap-0.5 mb-2">
                 {TEXT_COLORS.map(c => (
                   <button
@@ -338,7 +317,7 @@ export default function DocumentToolbar({
         </div>
 
         {/* Resaltado */}
-        <div className="relative">
+        <div ref={highlightRef}>
           <Btn onClick={() => { closeAll(); setShowHighlight(v => !v) }} active={editor.isActive('highlight') || showHighlight} title="Color de resaltado">
             <span className="flex flex-col items-center gap-0">
               <span className="text-xs leading-none">✎</span>
@@ -346,7 +325,7 @@ export default function DocumentToolbar({
             </span>
           </Btn>
           {showHighlight && (
-            <Dropdown onClose={() => setShowHighlight(false)} className="w-48 p-2">
+            <Dropdown onClose={() => setShowHighlight(false)} triggerRef={highlightRef} className="w-48 p-2">
               <div className="grid grid-cols-6 gap-1 mb-2">
                 {HIGHLIGHT_COLORS.map(c => (
                   <button
@@ -390,12 +369,12 @@ export default function DocumentToolbar({
         <Btn onClick={() => editor.chain().focus().setTextAlign('justify').run()} active={editor.isActive({ textAlign: 'justify' })} title="Justificado"><AlignJ /></Btn>
 
         {/* Interlineado */}
-        <div className="relative">
+        <div ref={lineHeightRef}>
           <Btn onClick={() => { closeAll(); setShowLineHeight(v => !v) }} active={showLineHeight} title="Interlineado">
             <LineHeightIcon />
           </Btn>
           {showLineHeight && (
-            <Dropdown onClose={() => setShowLineHeight(false)} className="w-40">
+            <Dropdown onClose={() => setShowLineHeight(false)} triggerRef={lineHeightRef} className="w-40">
               {LINE_HEIGHTS.map(lh => (
                 <button
                   key={lh.value}
@@ -467,7 +446,7 @@ export default function DocumentToolbar({
         <Sep />
 
         {/* Link */}
-        <div className="relative">
+        <div ref={linkTriggerRef}>
           <Btn
             onClick={() => { closeAll(); const prev = editor.getAttributes('link').href || ''; setLinkUrl(prev); setShowLinkInput(v => !v) }}
             active={editor.isActive('link')}
@@ -476,9 +455,9 @@ export default function DocumentToolbar({
             <LinkIcon />
           </Btn>
           {showLinkInput && (
-            <Dropdown onClose={() => setShowLinkInput(false)} className="w-72 p-2 flex gap-1.5">
+            <Dropdown onClose={() => setShowLinkInput(false)} triggerRef={linkTriggerRef} className="w-72 p-2 flex gap-1.5">
               <input
-                ref={linkRef}
+                ref={linkInputRef}
                 autoFocus
                 type="url"
                 value={linkUrl}
@@ -493,8 +472,8 @@ export default function DocumentToolbar({
           )}
         </div>
 
-        {/* Imagen por URL */}
-        <div className="relative">
+        {/* Imagen */}
+        <div ref={imageTriggerRef}>
           <Btn
             onClick={() => { closeAll(); setShowImageUrl(v => !v) }}
             title="Insertar imagen"
@@ -502,11 +481,11 @@ export default function DocumentToolbar({
             <ImageIcon />
           </Btn>
           {showImageUrl && (
-            <Dropdown onClose={() => setShowImageUrl(false)} className="w-80 p-2">
+            <Dropdown onClose={() => setShowImageUrl(false)} triggerRef={imageTriggerRef} className="w-80 p-2">
               <div className="text-xs text-gray-500 mb-1.5 font-medium">URL de la imagen</div>
               <div className="flex gap-1.5">
                 <input
-                  ref={imageRef}
+                  ref={imageInputRef}
                   autoFocus
                   type="url"
                   value={imageUrl}
@@ -563,13 +542,12 @@ export default function DocumentToolbar({
         <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Línea separadora"><HRIcon /></Btn>
 
         {/* Emoji */}
-        <div className="relative">
+        <div ref={emojiRef}>
           <Btn onClick={() => { closeAll(); setShowEmoji(v => !v) }} active={showEmoji} title="Insertar emoji">
             <span className="text-sm leading-none">😊</span>
           </Btn>
           {showEmoji && (
-            <Dropdown onClose={() => setShowEmoji(false)} className="w-72 p-2" style={{ left: 'auto', right: 0 }}>
-              {/* Category tabs */}
+            <Dropdown onClose={() => setShowEmoji(false)} triggerRef={emojiRef} className="w-72 p-2" alignRight>
               <div className="flex gap-0.5 mb-2 overflow-x-auto">
                 {EMOJI_CATEGORIES.map((cat, i) => (
                   <button
@@ -629,7 +607,7 @@ export default function DocumentToolbar({
           onMouseDown={e => { e.preventDefault(); onExportPdf?.() }}
           disabled={exporting}
           title="Exportar como PDF"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-600 hover:bg-gray-200 border border-transparent hover:border-gray-300 disabled:opacity-40 transition-all"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-600 hover:bg-gray-200 border border-transparent hover:border-gray-300 disabled:opacity-40 transition-all shrink-0"
         >
           {exporting
             ? <span className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
@@ -641,21 +619,21 @@ export default function DocumentToolbar({
         <button
           onMouseDown={e => { e.preventDefault(); onExportWord?.() }}
           disabled={exportingWord}
-          title="Descargar como Word (.docx)"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 disabled:opacity-40 transition-all"
+          title="Descargar como Word"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 disabled:opacity-40 transition-all shrink-0"
         >
           {exportingWord
             ? <span className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin" />
             : <WordIcon />
           }
-          <span>.docx</span>
+          <span>.doc</span>
         </button>
 
         <button
           onMouseDown={e => { e.preventDefault(); onOpenInWord?.() }}
           disabled={openingWord}
           title="Abrir en Microsoft Word"
-          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all"
+          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all shrink-0"
         >
           {openingWord
             ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
@@ -668,21 +646,48 @@ export default function DocumentToolbar({
   )
 }
 
-/* ─── Sub-componentes ─── */
-
-function Dropdown({ children, onClose, className = '', style = {} }) {
+/* ─── Portal Dropdown ─── */
+function Dropdown({ children, onClose, className = '', style = {}, triggerRef, alignRight = false }) {
   const ref = useRef(null)
+  // Capture position once when the dropdown mounts (trigger ref is already mounted)
+  const [rect] = useState(() => triggerRef?.current?.getBoundingClientRect() ?? null)
+
+  // Keep latest onClose without re-registering the listener
+  const onCloseRef = useRef(onClose)
+  useEffect(() => { onCloseRef.current = onClose })
+
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose() }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-  return (
-    <div ref={ref} style={style} className={`absolute top-full left-0 mt-0.5 z-[100] bg-white border border-gray-200 rounded-lg shadow-xl ${className}`}>
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onCloseRef.current?.()
+    }
+    // Delay so the opening mousedown event doesn't immediately close the dropdown
+    const id = setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => { clearTimeout(id); document.removeEventListener('mousedown', handler) }
+  }, []) // Only on mount / unmount
+
+  if (!rect) return null
+
+  // Estimate dropdown width from Tailwind w-* class
+  const wMatch = className.match(/\bw-(\d+)\b/)
+  const estWidth = wMatch ? parseInt(wMatch[1]) * 4 : 200
+
+  let left = alignRight ? rect.right - estWidth : rect.left
+  // Prevent overflow off right edge of viewport
+  left = Math.max(4, Math.min(left, window.innerWidth - estWidth - 4))
+
+  return createPortal(
+    <div
+      ref={ref}
+      style={{ position: 'fixed', top: rect.bottom + 2, left, zIndex: 9999, ...style }}
+      className={`bg-white border border-gray-200 rounded-lg shadow-xl ${className}`}
+    >
       {children}
-    </div>
+    </div>,
+    document.body
   )
 }
+
+/* ─── Sub-componentes ─── */
 
 function Btn({ onClick, active, disabled, title, children }) {
   return (
