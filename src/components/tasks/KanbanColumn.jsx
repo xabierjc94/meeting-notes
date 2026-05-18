@@ -29,7 +29,7 @@ function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = f
   )
 }
 
-export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProps = {}, isDragging = false, overlay = false }) {
+export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProps = {}, isDragging = false, overlay = false, onTaskDeleted }) {
   const { editColumn, removeColumn, addTask, removeTask } = useTasks()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
@@ -237,13 +237,13 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 style={{ gridTemplateRows: `repeat(${visibleTasks.length}, 1fr)` }}
               >
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={() => removeTask(task.id)} compact stretch />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact stretch />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={() => removeTask(task.id)} compact={isCompleted} />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact={isCompleted} />
                 ))}
               </div>
             )}

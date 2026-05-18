@@ -13,6 +13,8 @@ import { useTasks } from '../../context/TasksContext'
 import KanbanColumn from './KanbanColumn'
 import TaskCard from './TaskCard'
 import TaskModal from './TaskModal'
+import { Toast } from '../ui/Toast'
+import { useToast } from '../../hooks/useToast'
 
 function SortableColumn({ col, onOpenTask }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -47,6 +49,7 @@ export default function KanbanBoard() {
   const [activeTask, setActiveTask] = useState(null)
   const [activeColumn, setActiveColumn] = useState(null)
   const [editingTask, setEditingTask] = useState(null)
+  const { toasts, addToast, removeToast } = useToast()
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -132,6 +135,7 @@ export default function KanbanBoard() {
                   tasks={tasksByColumn[col.id] || []}
                   onOpenTask={setEditingTask}
                   activeTaskId={activeTask?.id}
+                  onTaskDeleted={(title) => addToast(`Tarea "${title}" eliminada`, 'success')}
                 />
               ))}
 
@@ -157,12 +161,14 @@ export default function KanbanBoard() {
       {editingTask && (
         <TaskModal task={editingTask} onClose={() => setEditingTask(null)} />
       )}
+
+      <Toast toasts={toasts} onRemove={removeToast} />
     </div>
   )
 }
 
 // Wrapper que combina sortable de columna + droppable de tareas
-function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId }) {
+function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId, onTaskDeleted }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `col-${col.id}`,
     data: { type: 'column' }
@@ -184,6 +190,7 @@ function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId }) {
         onOpenTask={onOpenTask}
         dragHandleProps={{ ...attributes, ...listeners }}
         isDragging={isDragging}
+        onTaskDeleted={onTaskDeleted}
       />
     </div>
   )

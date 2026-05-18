@@ -51,6 +51,11 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   33% { transform: translateY(-10px) rotate(2deg); }
@@ -71,6 +76,7 @@ body {
 .animate-slideInLeft { animation: slideInLeft 0.3s ease-out; }
 .animate-slideInRight { animation: slideInRight 0.3s ease-out; }
 .animate-scaleIn { animation: scaleIn 0.25s ease-out; }
+.animate-slideUp { animation: slideUp 0.25s ease-out; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-delay { animation: float 6s ease-in-out 2s infinite; }
 .animate-float-slow { animation: float 8s ease-in-out 1s infinite; }
