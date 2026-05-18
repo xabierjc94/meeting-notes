@@ -21,7 +21,23 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
-export default function TaskCard({ task, onClick, overlay, compact = false, stretch = false }) {
+function GripHandle({ dragHandleProps }) {
+  return (
+    <div
+      {...dragHandleProps}
+      className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+      title="Arrastrar"
+    >
+      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+        <circle cx="9"  cy="5"  r="1.5"/><circle cx="15" cy="5"  r="1.5"/>
+        <circle cx="9"  cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+        <circle cx="9"  cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+      </svg>
+    </div>
+  )
+}
+
+export default function TaskCard({ task, onClick, overlay, compact = false, stretch = false, dragHandleProps = null }) {
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const overdue = isOverdue(task.due_date)
   const dueSoon = isDueSoon(task.due_date)
@@ -33,6 +49,7 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
         className={`${stretch ? 'h-full' : ''} flex flex-col justify-center gap-1 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/0 hover:border-white/60 hover:shadow-md active:scale-[0.98]`}
       >
         <div className="flex items-center gap-2">
+          {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
           <div className={`w-2 h-2 rounded-full shrink-0 ${priority.dot}`} style={{ boxShadow: `0 0 5px ${priority.glow}` }} />
           <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${priority.text}`}>{priority.label}</span>
           {task.due_date && (
@@ -63,6 +80,11 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
             <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
             <span className={`text-[10px] font-bold uppercase tracking-wide ${priority.text}`}>{priority.label}</span>
           </div>
+          {dragHandleProps && (
+            <div className="ml-auto">
+              <GripHandle dragHandleProps={dragHandleProps} />
+            </div>
+          )}
         </div>
 
         <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-2">

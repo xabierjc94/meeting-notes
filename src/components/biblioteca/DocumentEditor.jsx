@@ -312,12 +312,12 @@ function DocumentEditorInner({ initialData, onBack }) {
                 <span className="hidden sm:inline">Enfocar</span>
               </button>
               {/* Zoom */}
-              <div className="flex items-center gap-1">
+              <div className="hidden sm:flex items-center gap-1">
                 <button onClick={() => setZoom(z => Math.max(50, z - 10))}
-                  className="text-white/60 hover:text-white text-xs w-5 h-5 flex items-center justify-center rounded hover:bg-white/10">−</button>
+                  className="text-white/60 hover:text-white text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-white/10">−</button>
                 <span className="text-white/70 text-xs w-10 text-center">{zoom}%</span>
                 <button onClick={() => setZoom(z => Math.min(200, z + 10))}
-                  className="text-white/60 hover:text-white text-xs w-5 h-5 flex items-center justify-center rounded hover:bg-white/10">+</button>
+                  className="text-white/60 hover:text-white text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-white/10">+</button>
               </div>
             </div>
           </div>
@@ -380,11 +380,11 @@ function DocumentEditorInner({ initialData, onBack }) {
             <span className="text-xs font-semibold text-yellow-800">Buscar:</span>
             <input value={findText} onChange={e => setFindText(e.target.value)}
               placeholder="Texto a buscar..." autoFocus
-              className="text-xs border border-yellow-300 rounded px-2 py-1 outline-none focus:border-yellow-500 w-36" />
+              className="text-xs border border-yellow-300 rounded px-2 py-1 outline-none focus:border-yellow-500 flex-1 min-w-[120px]" />
             <span className="text-xs font-semibold text-yellow-800">Reemplazar:</span>
             <input value={replaceText} onChange={e => setReplaceText(e.target.value)}
               placeholder="Reemplazar por..."
-              className="text-xs border border-yellow-300 rounded px-2 py-1 outline-none focus:border-yellow-500 w-36" />
+              className="text-xs border border-yellow-300 rounded px-2 py-1 outline-none focus:border-yellow-500 flex-1 min-w-[120px]" />
             <button onClick={handleReplace}
               className="text-xs bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 font-medium">
               Reemplazar todo
@@ -425,7 +425,7 @@ function DocumentEditorInner({ initialData, onBack }) {
               width: '794px',
               maxWidth: '98%',
               minHeight: '1123px',
-              padding: '96px',
+              padding: 'clamp(20px, 8vw, 96px)',
               transform: `scale(${zoom / 100})`,
               transformOrigin: 'top center',
               marginBottom: zoom < 100 ? `${(1 - zoom / 100) * -1123}px` : '40px',

@@ -50,10 +50,12 @@ function EditModal({ user, onClose, onSave }) {
     is_active: user.is_active ?? true,
   })
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
+    setSaveError(null)
     try {
       const updates = {
         ...form,
@@ -61,6 +63,8 @@ function EditModal({ user, onClose, onSave }) {
       }
       await onSave(user.id, updates)
       onClose()
+    } catch (err) {
+      setSaveError(err.message || 'Error al guardar')
     } finally {
       setSaving(false)
     }
@@ -144,6 +148,9 @@ function EditModal({ user, onClose, onSave }) {
             />
             <label htmlFor="is_active" className="text-sm text-slate-700 cursor-pointer">Cuenta activa</label>
           </div>
+          {saveError && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{saveError}</p>
+          )}
           <div className="flex gap-3 pt-2">
             <button
               type="button"

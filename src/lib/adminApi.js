@@ -10,14 +10,23 @@ export async function getAllProfiles() {
 }
 
 export async function updateProfile(userId, updates) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId)
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-email`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId, updates }),
+    }
+  )
+  const result = await res.json()
+  console.log('[updateProfile] status:', res.status, '| body:', result)
+  if (!res.ok) throw new Error(result.error || `Error ${res.status} al actualizar usuario`)
+  return result.data
 }
 
 export async function deleteProfile(userId) {

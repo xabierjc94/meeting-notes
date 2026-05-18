@@ -86,7 +86,6 @@ export default function NoteCard({ note, variant = 'light' }) {
         <button
           onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200
-            sm:opacity-0 sm:group-hover:opacity-100
             ${isDark
               ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10'
               : 'text-slate-400 hover:text-red-500 hover:bg-red-50'

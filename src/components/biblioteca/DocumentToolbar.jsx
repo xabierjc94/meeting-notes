@@ -187,7 +187,7 @@ export default function DocumentToolbar({
     <div className="bg-[#f3f3f3] border-b border-gray-300 select-none" onClick={e => e.stopPropagation()}>
 
       {/* ── FILA 1: Fuente, tamaño, formato básico ── */}
-      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-gray-200 flex-wrap">
+      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-gray-200 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
         {/* Font Family */}
         <div className="relative">
@@ -433,7 +433,7 @@ export default function DocumentToolbar({
       </div>
 
       {/* ── FILA 2: Párrafo, listas, insertar ── */}
-      <div className="flex items-center gap-0.5 px-3 py-1 flex-wrap">
+      <div className="flex items-center gap-0.5 px-3 py-1 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
         {/* Estilos de párrafo */}
         <div className="flex gap-0.5">

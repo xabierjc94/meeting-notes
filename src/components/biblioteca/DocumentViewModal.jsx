@@ -191,7 +191,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
       onClick={e => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 shrink-0">
@@ -207,14 +207,14 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           </div>
           <button
             onClick={() => { onOpen(docId); onClose() }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+            className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold
                        bg-emerald-600 hover:bg-emerald-500 text-white transition-all shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </button>
           <button
             onClick={onClose}
@@ -229,7 +229,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
         {/* Contenido */}
         <div
           className="overflow-auto bg-gray-50"
-          style={{ flex: 1, minHeight: 0, height: (preview?.type === 'pdf' || preview?.type === 'html') ? '640px' : undefined }}
+          style={{ flex: 1, minHeight: 0 }}
         >
 
           {loading && (
@@ -259,7 +259,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
             <embed
               src={preview.src}
               type="application/pdf"
-              className="w-full h-full min-h-[600px]"
+              className="w-full h-full min-h-[200px] sm:min-h-[500px]"
             />
           )}
 
@@ -267,7 +267,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           {preview?.type === 'html' && (
             <iframe
               title="Vista previa documento"
-              style={{ width: '100%', height: '100%', minHeight: '560px', border: 'none', display: 'block' }}
+              style={{ width: '100%', height: '100%', minHeight: 'clamp(200px, 55vh, 560px)', border: 'none', display: 'block' }}
               srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
                 *, *::before, *::after { box-sizing: border-box; }
                 html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1e293b; line-height: 1.6; }
@@ -302,8 +302,8 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
 
           {/* Texto plano */}
           {preview?.type === 'text' && (
-            <div className="p-8">
-              <pre className="bg-white shadow-sm rounded-xl mx-auto max-w-2xl p-8 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+            <div className="p-4 md:p-8">
+              <pre className="bg-white shadow-sm rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                 {preview.text || '(vacío)'}
               </pre>
             </div>

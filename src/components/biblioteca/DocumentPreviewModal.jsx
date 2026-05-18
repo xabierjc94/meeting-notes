@@ -66,14 +66,14 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
         {/* Preview Area */}
         <div
           className="overflow-auto bg-gray-50"
-          style={{ flex: 1, minHeight: 0, height: isPdfPreview ? '640px' : undefined }}
+          style={{ flex: 1, minHeight: 0 }}
         >
           {/* PDF — iframe con blob URL (más compatible que embed) */}
           {previewData?.type === 'pdf' && (
             <iframe
               src={previewData.objectUrl}
               title="Vista previa PDF"
-              style={{ width: '100%', height: '100%', minHeight: '600px', border: 'none', display: 'block' }}
+              style={{ width: '100%', height: '100%', minHeight: 'clamp(200px, 60vh, 600px)', border: 'none', display: 'block' }}
             />
           )}
 
@@ -81,7 +81,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
           {previewData?.type === 'html' && (
             <iframe
               title="Vista previa Word"
-              style={{ width: '100%', height: '100%', minHeight: '560px', border: 'none', display: 'block' }}
+              style={{ width: '100%', height: '100%', minHeight: 'clamp(200px, 55vh, 560px)', border: 'none', display: 'block' }}
               srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
                 *, *::before, *::after { box-sizing: border-box; }
                 html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1e293b; line-height: 1.6; }
@@ -113,8 +113,8 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
 
           {/* TXT / MD */}
           {previewData?.type === 'text' && (
-            <div className="p-8">
-              <pre className="bg-white shadow-sm rounded-xl mx-auto max-w-2xl p-8 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+            <div className="p-4 md:p-8">
+              <pre className="bg-white shadow-sm rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                 {previewData.text}
               </pre>
             </div>
@@ -147,7 +147,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-white shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-t border-gray-100 bg-white shrink-0">
           <p className="text-xs text-gray-400">
             {previewData?.type === 'pdf'
               ? 'El texto del PDF se extraerá para edición'
@@ -155,7 +155,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
               ? 'El formato Word se conservará en el editor'
               : 'El contenido se cargará como texto'}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 ml-auto">
             <button
               onClick={onCancel}
               className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"

@@ -13,12 +13,17 @@ function SortableTaskCard({ task, onOpen, compact = false, stretch = false }) {
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1, touchAction: 'none' }}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1 }}
       className={stretch ? 'h-full' : undefined}
       {...attributes}
-      {...listeners}
     >
-      <TaskCard task={task} onClick={() => onOpen(task)} compact={compact} stretch={stretch} />
+      <TaskCard
+        task={task}
+        onClick={() => onOpen(task)}
+        compact={compact}
+        stretch={stretch}
+        dragHandleProps={{ ...listeners, style: { touchAction: 'none' } }}
+      />
     </div>
   )
 }
