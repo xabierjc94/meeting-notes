@@ -8,7 +8,7 @@ import TaskModal from './TaskModal'
 
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#64748b']
 
-function SortableTaskCard({ task, onOpen, compact = false, stretch = false }) {
+function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
   return (
     <div
@@ -20,6 +20,7 @@ function SortableTaskCard({ task, onOpen, compact = false, stretch = false }) {
       <TaskCard
         task={task}
         onClick={() => onOpen(task)}
+        onDelete={onDelete}
         compact={compact}
         stretch={stretch}
         dragHandleProps={{ ...listeners, style: { touchAction: 'none' } }}
@@ -29,7 +30,7 @@ function SortableTaskCard({ task, onOpen, compact = false, stretch = false }) {
 }
 
 export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProps = {}, isDragging = false, overlay = false }) {
-  const { editColumn, removeColumn, addTask } = useTasks()
+  const { editColumn, removeColumn, addTask, removeTask } = useTasks()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
   const [color, setColor] = useState(column.color)
@@ -236,13 +237,13 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 style={{ gridTemplateRows: `repeat(${visibleTasks.length}, 1fr)` }}
               >
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} compact stretch />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={() => removeTask(task.id)} compact stretch />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} compact={isCompleted} />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={() => removeTask(task.id)} compact={isCompleted} />
                 ))}
               </div>
             )}

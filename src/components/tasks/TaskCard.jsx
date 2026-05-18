@@ -37,7 +37,7 @@ function GripHandle({ dragHandleProps }) {
   )
 }
 
-export default function TaskCard({ task, onClick, overlay, compact = false, stretch = false, dragHandleProps = null }) {
+export default function TaskCard({ task, onClick, onDelete, overlay, compact = false, stretch = false, dragHandleProps = null }) {
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const overdue = isOverdue(task.due_date)
   const dueSoon = isDueSoon(task.due_date)
@@ -46,7 +46,7 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
     return (
       <div
         onClick={onClick}
-        className={`${stretch ? 'h-full' : ''} flex flex-col justify-center gap-1 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/0 hover:border-white/60 hover:shadow-md active:scale-[0.98]`}
+        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/0 hover:border-white/60 hover:shadow-md active:scale-[0.98] relative`}
       >
         <div className="flex items-center gap-2">
           {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
@@ -57,6 +57,17 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
               {overdue ? '⚠ ' : ''}{formatDate(task.due_date)}
             </span>
           )}
+          {onDelete && (
+            <button
+              onClick={e => { e.stopPropagation(); onDelete() }}
+              className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="Eliminar tarea"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
         </div>
         <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{task.title}</p>
       </div>
@@ -66,7 +77,7 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
   return (
     <div
       onClick={onClick}
-      className={`group relative bg-white/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
+      className={`group/card relative bg-white/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
         transition-all duration-200
         ${priority.border}
         ${overlay
@@ -80,11 +91,20 @@ export default function TaskCard({ task, onClick, overlay, compact = false, stre
             <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
             <span className={`text-[10px] font-bold uppercase tracking-wide ${priority.text}`}>{priority.label}</span>
           </div>
-          {dragHandleProps && (
-            <div className="ml-auto">
-              <GripHandle dragHandleProps={dragHandleProps} />
-            </div>
-          )}
+          <div className="ml-auto flex items-center gap-1">
+            {onDelete && (
+              <button
+                onClick={e => { e.stopPropagation(); onDelete() }}
+                className="w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Eliminar tarea"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            )}
+            {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
+          </div>
         </div>
 
         <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-2">
