@@ -32,8 +32,10 @@ export default function LoginPage() {
       <meta name="description" content="Accede a tu cuenta de MeetingNotes y continúa organizando tus reuniones." />
       <link rel="canonical" href="https://meetingnotes.es/login" />
     </Helmet>
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900">
-      <div className="flex-1 hidden lg:flex items-center justify-center p-12">
+    <div className="min-h-screen flex bg-slate-950 relative overflow-hidden">
+      <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 w-[32rem] h-[32rem] bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex-1 hidden lg:flex items-center justify-center p-12 relative z-10">
         <div className="max-w-lg animate-fadeIn">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/25">
@@ -69,7 +71,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="w-full max-w-md animate-scaleIn">
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="lg:hidden flex items-center gap-3 mb-6">
