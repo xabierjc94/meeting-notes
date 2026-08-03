@@ -101,8 +101,10 @@ function ProjectModal({ project, onClose, onSave, position }) {
 
 function ProjectCard({ project, taskCount, onEdit, onDelete }) {
   return (
-    <div className="group relative flex flex-col bg-white/6 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 hover:bg-white/10 transition-all duration-200">
-      <div className="h-1.5 w-full" style={{ backgroundColor: project.color }} />
+    <div
+      className="group relative flex flex-col bg-white/6 backdrop-blur-md border border-white/10 border-l-4 rounded-2xl overflow-hidden hover:border-white/20 hover:bg-white/10 transition-all duration-200"
+      style={{ borderLeftColor: project.color }}
+    >
       <Link to={`/tasks/${project.id}`} state={{ project }} className="flex-1 p-5 block">
         <div className="flex items-start gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md" style={{ backgroundColor: `${project.color}25`, border: `1px solid ${project.color}40` }}>
@@ -206,28 +208,20 @@ export default function ProjectsPage() {
       {/* Header */}
       <header className="bg-black/20 backdrop-blur-sm border-b border-white/10 px-3 sm:px-6 py-3 shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link
-            to="/dashboard"
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-white/40 hover:text-white/70 hover:bg-white/10 active:bg-white/20 transition-all shrink-0"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-
-          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
               </svg>
             </div>
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-white leading-tight">Proyectos</h1>
-              {projects.length > 0 && (
-                <p className="text-xs text-white/40 truncate">{projects.length} {projects.length === 1 ? 'proyecto' : 'proyectos'}</p>
-              )}
-            </div>
+            <span className="font-bold text-white text-sm sm:text-base hidden sm:inline">MeetingNotes</span>
           </div>
+
+          <nav className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto">
+            <Link to="/tasks" className="px-3 py-2 rounded-lg text-sm font-semibold text-white bg-white/10 shrink-0">Proyectos</Link>
+            <Link to="/dashboard" className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/10 transition-all shrink-0">Notas</Link>
+            <Link to="/biblioteca" className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/10 transition-all shrink-0">Biblioteca</Link>
+          </nav>
 
           <button
             onClick={() => setShowModal(true)}
