@@ -37,7 +37,7 @@ export default function NoteEditor({ noteId }) {
 
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
-    <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 via-white to-violet-50/30">
+    <div className="flex items-center justify-center h-full bg-slate-950">
       <div className="text-center animate-scaleIn">
         <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
           <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +112,7 @@ function EditorInner({ initialData }) {
   return (
     <div className="animate-fadeIn">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+      <div className="sticky top-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-3xl mx-auto px-4 sm:px-10 py-3 sm:py-4">
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
@@ -124,9 +124,9 @@ function EditorInner({ initialData }) {
                 onInput={autoResize}
                 placeholder="Sin título"
                 rows={1}
-                className="w-full text-xl sm:text-[1.75rem] font-bold text-slate-900 bg-transparent
+                className="w-full text-xl sm:text-[1.75rem] font-bold text-white bg-transparent
                            border-none outline-none resize-none leading-tight
-                           placeholder-slate-200 transition-colors duration-200"
+                           placeholder-white/20 transition-colors duration-200"
               />
             </div>
             <div className="shrink-0 pt-1 sm:pt-2">
@@ -146,15 +146,15 @@ function EditorInner({ initialData }) {
       </div>
 
       {/* Editor area */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8 bg-slate-950 min-h-[calc(100%-6rem)]">
         <EditorToolbar editor={editor} />
 
         <EditorContent
           editor={editor}
-          className="prose prose-slate prose-sm max-w-none min-h-[400px]
+          className="prose prose-invert prose-sm max-w-none min-h-[400px]
                      focus:outline-none
                      [&_.tiptap]:outline-none
-                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-slate-300
+                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-white/30
                      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
                      [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
                      [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
@@ -195,17 +195,17 @@ function SaveIndicator({ status }) {
 
 function EditorSkeleton() {
   return (
-    <div className="animate-pulse">
-      <div className="sticky top-0 bg-white border-b border-slate-100 px-4 sm:px-10 py-3 sm:py-4">
-        <div className="h-8 sm:h-10 bg-slate-100 rounded-xl w-2/3 mb-3" />
-        <div className="h-8 sm:h-9 bg-slate-50 rounded-xl w-1/4" />
+    <div className="animate-pulse bg-slate-950 h-full">
+      <div className="sticky top-0 bg-slate-950 border-b border-white/10 px-4 sm:px-10 py-3 sm:py-4">
+        <div className="h-8 sm:h-10 bg-white/5 rounded-xl w-2/3 mb-3" />
+        <div className="h-8 sm:h-9 bg-white/5 rounded-xl w-1/4" />
       </div>
       <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8">
-        <div className="h-10 bg-slate-50 rounded-xl mb-6" />
+        <div className="h-10 bg-white/5 rounded-xl mb-6" />
         <div className="space-y-3">
-          <div className="h-4 bg-slate-50 rounded-lg w-full" />
-          <div className="h-4 bg-slate-50 rounded-lg w-5/6" />
-          <div className="h-4 bg-slate-50 rounded-lg w-4/6" />
+          <div className="h-4 bg-white/5 rounded-lg w-full" />
+          <div className="h-4 bg-white/5 rounded-lg w-5/6" />
+          <div className="h-4 bg-white/5 rounded-lg w-4/6" />
         </div>
       </div>
     </div>

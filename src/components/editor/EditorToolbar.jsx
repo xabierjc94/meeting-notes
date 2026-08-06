@@ -2,7 +2,7 @@ export default function EditorToolbar({ editor }) {
   if (!editor) return null
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 mb-4 border border-slate-200/60 rounded-xl bg-white/80 backdrop-blur-sm flex-wrap overflow-x-auto shadow-sm">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 mb-4 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm flex-wrap overflow-x-auto">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         active={editor.isActive('heading', { level: 1 })}
@@ -113,8 +113,8 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
         w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-medium
         transition-all duration-150
         ${active
-          ? 'bg-violet-100 text-violet-700 shadow-sm'
-          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+          ? 'bg-violet-500/20 text-violet-300'
+          : 'text-slate-400 hover:bg-white/10 hover:text-white'
         }
         ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
       `}
@@ -125,7 +125,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
 }
 
 function Divider() {
-  return <div className="w-px h-5 bg-slate-200/60 mx-0.5" />
+  return <div className="w-px h-5 bg-white/10 mx-0.5" />
 }
 
 const iconClass = 'w-3.5 h-3.5'
