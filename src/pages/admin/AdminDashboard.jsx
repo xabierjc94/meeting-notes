@@ -13,7 +13,7 @@ function timeAgo(iso) {
 }
 
 const subLabels = { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }
-const subColors = { free: 'bg-slate-100 text-slate-600', pro: 'bg-amber-100 text-amber-700', enterprise: 'bg-violet-100 text-violet-700' }
+const subColors = { free: 'bg-slate-500/15 text-slate-300', pro: 'bg-amber-500/15 text-amber-300', enterprise: 'bg-violet-500/15 text-violet-300' }
 
 export default function AdminDashboard() {
   const { stats, profiles, logs, loading, error } = useAdmin()
@@ -24,9 +24,9 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="p-6 sm:p-8">
+      <div className="p-6 sm:p-8 min-h-full bg-slate-950">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
           <p className="text-slate-500 mt-1">Resumen general de la plataforma</p>
         </div>
 
@@ -72,21 +72,21 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Users */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-800">Usuarios recientes</h2>
-              <Link to="/admin/users" className="text-sm text-violet-600 hover:text-violet-500 font-medium">Ver todos</Link>
+          <div className="bg-white/5 rounded-2xl border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h2 className="font-semibold text-white">Usuarios recientes</h2>
+              <Link to="/admin/users" className="text-sm text-violet-400 hover:text-violet-300 font-medium">Ver todos</Link>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-white/10">
               {recentUsers.length === 0 ? (
                 <p className="px-6 py-8 text-center text-sm text-slate-400">No hay usuarios todavía</p>
               ) : recentUsers.map(u => (
                 <div key={u.id} className="px-6 py-3 flex items-center gap-3">
                   <div className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-violet-600">{(u.full_name || u.email || '').slice(0, 2).toUpperCase()}</span>
+                    <span className="text-xs font-bold text-violet-300">{(u.full_name || u.email || '').slice(0, 2).toUpperCase()}</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-700 truncate">{u.full_name || 'Sin nombre'}</p>
+                    <p className="text-sm font-medium text-slate-200 truncate">{u.full_name || 'Sin nombre'}</p>
                     <p className="text-xs text-slate-400 truncate">{u.email}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${subColors[u.subscription] || subColors.free}`}>
@@ -98,19 +98,19 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="font-semibold text-slate-800">Actividad reciente</h2>
-              <Link to="/admin/activity" className="text-sm text-violet-600 hover:text-violet-500 font-medium">Ver todo</Link>
+          <div className="bg-white/5 rounded-2xl border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h2 className="font-semibold text-white">Actividad reciente</h2>
+              <Link to="/admin/activity" className="text-sm text-violet-400 hover:text-violet-300 font-medium">Ver todo</Link>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-white/10">
               {logs.length === 0 ? (
                 <p className="px-6 py-8 text-center text-sm text-slate-400">No hay actividad registrada</p>
               ) : logs.slice(0, 6).map(log => (
                 <div key={log.id} className="px-6 py-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
-                    <span className="text-sm text-slate-700 font-medium">{log.action}</span>
+                    <span className="text-sm text-slate-200 font-medium">{log.action}</span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5 ml-4">
                     {log.profiles?.email || 'Desconocido'} · {timeAgo(log.created_at)}
@@ -127,22 +127,22 @@ export default function AdminDashboard() {
 
 function StatCard({ icon, label, value, color }) {
   const colorMap = {
-    violet: 'bg-violet-50 text-violet-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    blue: 'bg-blue-50 text-blue-600',
-    purple: 'bg-purple-50 text-purple-600',
-    red: 'bg-red-50 text-red-600',
-    slate: 'bg-slate-50 text-slate-400',
+    violet: 'bg-violet-500/10 text-violet-400',
+    emerald: 'bg-emerald-500/10 text-emerald-400',
+    amber: 'bg-amber-500/10 text-amber-400',
+    blue: 'bg-blue-500/10 text-blue-400',
+    purple: 'bg-purple-500/10 text-purple-400',
+    red: 'bg-red-500/10 text-red-400',
+    slate: 'bg-slate-500/10 text-slate-400',
   }
   return (
-    <div className="bg-white rounded-2xl p-4 border border-slate-200/60 shadow-sm">
+    <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
       <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${colorMap[color]}`}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
         </svg>
       </div>
-      <p className="text-2xl font-bold text-slate-900">{value ?? '—'}</p>
+      <p className="text-2xl font-bold text-white">{value ?? '—'}</p>
       <p className="text-xs text-slate-400 mt-0.5">{label}</p>
     </div>
   )
@@ -151,15 +151,15 @@ function StatCard({ icon, label, value, color }) {
 function AdminSkeleton() {
   return (
     <AdminLayout>
-      <div className="p-6 sm:p-8 animate-pulse">
-        <div className="h-8 bg-slate-200 rounded-xl w-48 mb-2" />
-        <div className="h-4 bg-slate-100 rounded-lg w-64 mb-8" />
+      <div className="p-6 sm:p-8 min-h-full bg-slate-950 animate-pulse">
+        <div className="h-8 bg-white/10 rounded-xl w-48 mb-2" />
+        <div className="h-4 bg-white/5 rounded-lg w-64 mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {[1,2,3,4,5].map(i => <div key={i} className="h-28 bg-slate-100 rounded-2xl" />)}
+          {[1,2,3,4,5].map(i => <div key={i} className="h-28 bg-white/5 rounded-2xl" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 bg-slate-100 rounded-2xl" />
-          <div className="h-80 bg-slate-100 rounded-2xl" />
+          <div className="h-80 bg-white/5 rounded-2xl" />
+          <div className="h-80 bg-white/5 rounded-2xl" />
         </div>
       </div>
     </AdminLayout>
