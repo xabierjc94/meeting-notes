@@ -4,10 +4,10 @@ import ConfirmDialog from '../ui/ConfirmDialog'
 import DatePicker from '../ui/DatePicker'
 
 const PRIORITY_OPTIONS = [
-  { value: 'low',    label: 'Baja',    color: 'text-emerald-600 bg-emerald-50' },
-  { value: 'medium', label: 'Media',   color: 'text-amber-600 bg-amber-50' },
-  { value: 'high',   label: 'Alta',    color: 'text-orange-600 bg-orange-50' },
-  { value: 'urgent', label: 'Urgente', color: 'text-red-600 bg-red-50' },
+  { value: 'low',    label: 'Baja',    color: 'text-emerald-300 bg-emerald-500/15' },
+  { value: 'medium', label: 'Media',   color: 'text-amber-300 bg-amber-500/15' },
+  { value: 'high',   label: 'Alta',    color: 'text-orange-300 bg-orange-500/15' },
+  { value: 'urgent', label: 'Urgente', color: 'text-red-300 bg-red-500/15' },
 ]
 
 export default function TaskModal({ task, defaultColumnId, onClose }) {
@@ -105,19 +105,19 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
     <>
     {/* Bottom sheet on mobile, centered modal on desktop */}
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
+      <div className="bg-slate-900 border border-white/10 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
 
         {/* Handle bar (mobile only) */}
         <div className="sm:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-slate-200 rounded-full" />
+          <div className="w-10 h-1 bg-white/10 rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 sm:py-4 border-b border-slate-100 shrink-0">
-          <h3 className="font-semibold text-slate-800">{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h3>
+        <div className="flex items-center justify-between px-5 py-3 sm:py-4 border-b border-white/10 shrink-0">
+          <h3 className="font-semibold text-white">{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h3>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 active:bg-slate-200 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10 active:bg-white/20 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -141,7 +141,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
             autoFocus
             required
             rows={1}
-            className="w-full text-lg font-semibold text-slate-800 placeholder-slate-300 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
+            className="w-full text-lg font-semibold text-white placeholder-white/30 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
           />
 
           {/* Description */}
@@ -151,17 +151,17 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
             value={form.description}
             onChange={e => { setForm({ ...form, description: e.target.value }); resizeDesc(e.target) }}
             rows={3}
-            className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all overflow-hidden"
+            className="w-full text-sm text-slate-300 placeholder-white/30 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
           />
 
           {/* Column + Priority — stack on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Columna</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Columna</label>
               <select
                 value={form.column_id}
                 onChange={e => setForm({ ...form, column_id: e.target.value })}
-                className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
+                className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               >
                 {columns.map(col => (
                   <option key={col.id} value={col.id}>{col.name}</option>
@@ -169,11 +169,11 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Prioridad</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Prioridad</label>
               <select
                 value={form.priority}
                 onChange={e => setForm({ ...form, priority: e.target.value })}
-                className="w-full border border-slate-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all bg-white"
+                className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               >
                 {PRIORITY_OPTIONS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -184,7 +184,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
 
           {/* Due date */}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Fecha límite</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Fecha límite</label>
             <DatePicker
               value={form.due_date}
               onChange={val => setForm({ ...form, due_date: val })}
@@ -195,15 +195,15 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
 
           {/* Tags */}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Etiquetas</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Etiquetas</label>
             <div
-              className="flex flex-wrap gap-1.5 p-3 border border-slate-200 rounded-xl cursor-text min-h-[48px] focus-within:ring-2 focus-within:ring-violet-500/30 focus-within:border-violet-400 transition-all"
+              className="flex flex-wrap gap-1.5 p-3 bg-white/5 border border-white/10 rounded-xl cursor-text min-h-[48px] focus-within:ring-2 focus-within:ring-violet-500/50 focus-within:border-violet-500/50 transition-all"
               onClick={() => tagInputRef.current?.focus()}
             >
               {form.tags.map(tag => (
-                <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-violet-100 text-violet-700 text-xs font-medium rounded-lg">
+                <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-violet-500/15 text-violet-300 text-xs font-medium rounded-lg">
                   {tag}
-                  <button type="button" onClick={() => removeTag(tag)} className="w-4 h-4 flex items-center justify-center text-violet-400 hover:text-violet-700 transition-colors">×</button>
+                  <button type="button" onClick={() => removeTag(tag)} className="w-4 h-4 flex items-center justify-center text-violet-400 hover:text-violet-200 transition-colors">×</button>
                 </span>
               ))}
               <input
@@ -214,26 +214,26 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
                 onKeyDown={handleTagKeyDown}
                 onBlur={() => tagInput && addTag(tagInput)}
                 placeholder={form.tags.length === 0 ? 'Escribe y pulsa Enter...' : ''}
-                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-slate-700 placeholder-slate-300"
+                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-white placeholder-white/30"
               />
             </div>
           </div>
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Notas</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">Notas</label>
             <textarea
               ref={notesRef}
               placeholder="Escribe un comentario o nota..."
               value={form.notes}
               onChange={e => { setForm({ ...form, notes: e.target.value }); resizeDesc(e.target) }}
               rows={2}
-              className="w-full text-sm text-slate-600 placeholder-slate-300 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all overflow-hidden"
+              className="w-full text-sm text-slate-300 placeholder-white/30 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col gap-2 px-5 py-4 border-t border-slate-100 shrink-0 pb-safe">
+        <div className="flex flex-col gap-2 px-5 py-4 border-t border-white/10 shrink-0 pb-safe">
           {error && <p className="text-xs text-red-500 text-center">{error}</p>}
           <div className="flex gap-3">
             {isEditing && (
@@ -241,7 +241,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
                 type="button"
                 onClick={() => setConfirmDelete(true)}
                 disabled={deleting}
-                className="px-4 py-3.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-60"
+                className="px-4 py-3.5 border border-red-500/30 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/10 active:bg-red-500/20 transition-colors disabled:opacity-60"
               >
                 {deleting ? '...' : 'Eliminar'}
               </button>
@@ -249,7 +249,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+              className="flex-1 px-4 py-3.5 border border-white/10 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 active:bg-white/15 transition-colors"
             >
               Cancelar
             </button>

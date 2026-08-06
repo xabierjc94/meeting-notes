@@ -34,7 +34,7 @@ function TasksContent({ project }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-dvh bg-slate-50">
+      <div className="flex items-center justify-center h-dvh bg-slate-950">
         <div className="text-center">
           <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,12 +50,12 @@ function TasksContent({ project }) {
   const projectColor = project?.color || '#6366f1'
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 shrink-0">
+    <div className="flex flex-col h-dvh bg-slate-950">
+      <header className="bg-black/20 backdrop-blur-sm border-b border-white/10 px-3 sm:px-6 py-3 shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
           <Link
             to="/tasks"
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-all shrink-0"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 active:bg-white/20 transition-all shrink-0"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -72,7 +72,7 @@ function TasksContent({ project }) {
               </svg>
             </div>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-slate-800 leading-tight truncate">
+              <h1 className="text-base sm:text-lg font-bold text-white leading-tight truncate">
                 {project?.name || 'Proyecto'}
               </h1>
               {totalTasks > 0 && (
@@ -84,11 +84,11 @@ function TasksContent({ project }) {
             </div>
           </div>
 
-          <div className="flex bg-slate-100 rounded-xl p-1 shrink-0">
+          <div className="flex bg-white/5 rounded-xl p-1 shrink-0">
             <button
               onClick={() => setView('kanban')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                view === 'kanban' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                view === 'kanban' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@ function TasksContent({ project }) {
             <button
               onClick={() => setView('list')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                view === 'list' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                view === 'list' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ function TasksContent({ project }) {
             <button
               onClick={() => setView('gestion')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                view === 'gestion' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                view === 'gestion' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@ function TasksContent({ project }) {
             {view === 'kanban' && (
               <button
                 onClick={() => setShowNewColumn(true)}
-                className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 active:scale-95 transition-all"
+                className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 border border-white/10 text-slate-300 rounded-xl text-sm font-semibold hover:bg-white/10 active:scale-95 transition-all"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
@@ -162,8 +162,8 @@ function TasksContent({ project }) {
 
       {showNewColumn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowNewColumn(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-5" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-semibold text-slate-800 mb-3">Nueva columna</h3>
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-semibold text-white mb-3">Nueva columna</h3>
             <form onSubmit={handleAddColumn} className="flex flex-col gap-3">
               <input
                 type="text"
@@ -171,13 +171,13 @@ function TasksContent({ project }) {
                 onChange={e => setNewColName(e.target.value)}
                 placeholder="Nombre de la columna..."
                 autoFocus
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
               <div className="flex gap-2">
                 <button type="submit" disabled={savingCol || !newColName.trim()} className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50">
                   {savingCol ? 'Creando...' : 'Crear'}
                 </button>
-                <button type="button" onClick={() => { setShowNewColumn(false); setNewColName('') }} className="flex-1 py-3 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-colors">
+                <button type="button" onClick={() => { setShowNewColumn(false); setNewColName('') }} className="flex-1 py-3 border border-white/10 text-slate-300 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors">
                   Cancelar
                 </button>
               </div>

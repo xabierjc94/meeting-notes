@@ -27,7 +27,7 @@ function GripHandle({ dragHandleProps }) {
   return (
     <div
       {...dragHandleProps}
-      className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+      className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 transition-colors"
       title="Arrastrar"
     >
       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -64,12 +64,12 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             confirmingDelete ? (
               <div className="ml-auto flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                 <button onClick={() => onDelete()} className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-400 text-white rounded transition-colors">Sí</button>
-                <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-slate-200 hover:bg-slate-300 text-slate-600 rounded transition-colors">No</button>
+                <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-slate-300 rounded transition-colors">No</button>
               </div>
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmingDelete(true) }}
-                className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Eliminar tarea"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +79,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             )
           )}
         </div>
-        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{task.title}</p>
+        <p className="text-sm font-semibold text-white leading-snug line-clamp-2">{task.title}</p>
       </div>
     )
   }
@@ -106,12 +106,12 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
               confirmingDelete ? (
                 <div className="flex items-center gap-1">
                   <button onClick={() => onDelete()} className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-400 text-white rounded transition-colors">Sí</button>
-                  <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-slate-200 hover:bg-slate-300 text-slate-600 rounded transition-colors">No</button>
+                  <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-slate-300 rounded transition-colors">No</button>
                 </div>
               ) : (
                 <button
                   onClick={() => setConfirmingDelete(true)}
-                  className="w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   title="Eliminar tarea"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
           </div>
         </div>
 
-        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-2">
+        <p className="text-sm font-semibold text-white leading-snug line-clamp-2 mb-2">
           {task.title}
         </p>
 
@@ -135,12 +135,12 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
         {task.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2.5">
             {task.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="px-2 py-0.5 bg-violet-50 text-violet-600 text-[10px] rounded-md font-semibold border border-violet-100">
+              <span key={tag} className="px-2 py-0.5 bg-violet-500/15 text-violet-300 text-[10px] rounded-md font-semibold border border-violet-500/20">
                 #{tag}
               </span>
             ))}
             {task.tags.length > 3 && (
-              <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-[10px] rounded-md border border-slate-100">+{task.tags.length - 3}</span>
+              <span className="px-2 py-0.5 bg-white/5 text-slate-400 text-[10px] rounded-md border border-white/10">+{task.tags.length - 3}</span>
             )}
           </div>
         )}
