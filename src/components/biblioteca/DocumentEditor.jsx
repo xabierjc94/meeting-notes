@@ -57,9 +57,9 @@ export default function DocumentEditor({ docId, onBack }) {
 
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
-    <div className="flex items-center justify-center h-full bg-[#f0f0f0]">
-      <div className="text-center bg-white p-8 rounded-xl shadow">
-        <p className="text-sm text-red-500 font-medium">Error al cargar el documento</p>
+    <div className="flex items-center justify-center h-full bg-slate-950">
+      <div className="text-center bg-white/5 border border-white/10 p-8 rounded-xl">
+        <p className="text-sm text-red-400 font-medium">Error al cargar el documento</p>
         <p className="text-xs text-slate-400 mt-1">{fetchError}</p>
       </div>
     </div>

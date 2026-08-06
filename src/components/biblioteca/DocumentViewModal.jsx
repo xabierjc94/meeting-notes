@@ -191,10 +191,10 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
       onClick={e => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
             style={{ backgroundColor: badge.iconColor }}
@@ -202,8 +202,8 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
             {badge.label}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900 truncate text-sm">{docMeta?.title || 'Sin título'}</p>
-            <p className="text-xs text-gray-400">{formatDate(docMeta?.updated_at)}</p>
+            <p className="font-semibold text-white truncate text-sm">{docMeta?.title || 'Sin título'}</p>
+            <p className="text-xs text-slate-400">{formatDate(docMeta?.updated_at)}</p>
           </div>
           <button
             onClick={() => { onOpen(docId); onClose() }}
@@ -218,7 +218,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           </button>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -228,7 +228,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
 
         {/* Contenido */}
         <div
-          className="overflow-auto bg-gray-50"
+          className="overflow-auto bg-slate-950"
           style={{ flex: 1, minHeight: 0 }}
         >
 
@@ -240,17 +240,17 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
 
           {error && (
             <div className="flex items-center justify-center h-64">
-              <p className="text-sm text-red-500 text-center px-8">{error}</p>
+              <p className="text-sm text-red-400 text-center px-8">{error}</p>
             </div>
           )}
 
           {isEmpty && (
             <div className="flex flex-col items-center justify-center h-64 gap-2">
-              <svg className="w-10 h-10 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm text-gray-400">Documento vacío</p>
+              <p className="text-sm text-slate-400">Documento vacío</p>
             </div>
           )}
 
@@ -311,13 +311,13 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-white shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-white/10 bg-slate-900 shrink-0">
+          <p className="text-xs text-slate-400">
             {docMeta?.file_path ? 'Archivo original' : 'Contenido guardado'} · Solo lectura
           </p>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all"
           >
             Cerrar
           </button>

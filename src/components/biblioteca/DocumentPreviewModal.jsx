@@ -38,11 +38,11 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
       onClick={e => { if (e.target === overlayRef.current) onCancel() }}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         style={{ width: '100%', maxWidth: '860px', maxHeight: '92vh' }}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
             style={{ backgroundColor: icon.color }}
@@ -50,12 +50,12 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
             {icon.label}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900 truncate">{file?.name}</p>
-            <p className="text-xs text-gray-400">{formatSize(file?.size || 0)} · {icon.label}</p>
+            <p className="font-semibold text-white truncate">{file?.name}</p>
+            <p className="text-xs text-slate-400">{formatSize(file?.size || 0)} · {icon.label}</p>
           </div>
           <button
             onClick={onCancel}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -65,7 +65,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
 
         {/* Preview Area */}
         <div
-          className="overflow-auto bg-gray-50"
+          className="overflow-auto bg-slate-950"
           style={{ flex: 1, minHeight: 0 }}
         >
           {/* PDF — iframe con blob URL (más compatible que embed) */}
@@ -125,7 +125,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="w-10 h-10 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-gray-400">Procesando documento...</p>
+                <p className="text-sm text-slate-400">Procesando documento...</p>
               </div>
             </div>
           )}
@@ -134,21 +134,21 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
           {previewData?.type === 'error' && (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <p className="text-sm text-red-500">{previewData.message}</p>
+                <p className="text-sm text-red-400">{previewData.message}</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-t border-gray-100 bg-white shrink-0">
-          <p className="text-xs text-gray-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-t border-white/10 bg-slate-900 shrink-0">
+          <p className="text-xs text-slate-400">
             {previewData?.type === 'pdf'
               ? 'El texto del PDF se extraerá para edición'
               : previewData?.type === 'html'
@@ -158,7 +158,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
           <div className="flex gap-2 ml-auto">
             <button
               onClick={onCancel}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all"
             >
               Cancelar
             </button>

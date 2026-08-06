@@ -45,49 +45,49 @@ function FolderModal({ initial, onConfirm, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100">
-          <h3 className="text-base font-bold text-slate-800">
+      <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-white/10">
+          <h3 className="text-base font-bold text-white">
             {initial ? 'Renombrar carpeta' : 'Nueva carpeta'}
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Nombre</label>
+            <label className="text-xs font-semibold text-slate-400 mb-1.5 block">Nombre</label>
             <input
               ref={inputRef}
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Ej: Contratos, Marketing, Proyectos..."
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Color</label>
+            <label className="text-xs font-semibold text-slate-400 mb-1.5 block">Color</label>
             <div className="flex gap-2 flex-wrap">
               {FOLDER_COLORS.map(c => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-lg transition-all ${color === c ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : 'hover:scale-110'}`}
+                  className={`w-7 h-7 rounded-lg transition-all ${color === c ? 'ring-2 ring-offset-2 ring-offset-slate-900 ring-slate-400 scale-110' : 'hover:scale-110'}`}
                   style={{ backgroundColor: c }}
                 />
               ))}
             </div>
           </div>
           {/* Preview */}
-          <div className="flex items-center gap-2.5 bg-slate-50 rounded-xl px-3 py-2.5">
+          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '22' }}>
               <svg className="w-4 h-4" fill="none" stroke={color} strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-slate-700">{name || 'Sin nombre'}</span>
+            <span className="text-sm font-semibold text-white">{name || 'Sin nombre'}</span>
           </div>
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all">
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-all">
               Cancelar
             </button>
             <button type="submit" disabled={!name.trim() || saving}
@@ -115,8 +115,8 @@ function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
   return (
     <div
       onClick={onClick}
-      className="group relative flex flex-col text-left bg-white border border-slate-200 rounded-2xl p-5 cursor-pointer
-                 hover:shadow-lg transition-all duration-200 select-none overflow-hidden"
+      className="group relative flex flex-col text-left bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer
+                 hover:bg-white/10 hover:shadow-lg transition-all duration-200 select-none overflow-hidden"
       style={{ opacity: deleting ? 0.5 : 1, borderTopColor: carpeta.color, borderTopWidth: 3 }}
     >
       {/* Fondo sutil */}
@@ -130,7 +130,7 @@ function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
           </svg>
         </div>
 
-        <p className="text-sm font-bold text-slate-800 truncate w-full mb-1">{carpeta.name}</p>
+        <p className="text-sm font-bold text-white truncate w-full mb-1">{carpeta.name}</p>
         <p className="text-xs text-slate-400">{docCount} documento{docCount !== 1 ? 's' : ''}</p>
       </div>
 
@@ -138,7 +138,7 @@ function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
       <div className="absolute top-3 right-3 flex gap-1 transition-all duration-150">
         <button
           onClick={e => { e.stopPropagation(); onRename(carpeta) }}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-all shadow-sm"
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:text-emerald-400 hover:border-emerald-400/30 hover:bg-emerald-500/10 transition-all shadow-sm"
           title="Renombrar"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,11 +147,11 @@ function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
         </button>
         <button
           onClick={handleDelete}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm"
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:text-red-400 hover:border-red-400/30 hover:bg-red-500/10 transition-all shadow-sm"
           title="Eliminar carpeta"
         >
           {deleting
-            ? <span className="w-3 h-3 border border-slate-300 border-t-transparent rounded-full animate-spin" />
+            ? <span className="w-3 h-3 border border-white/30 border-t-transparent rounded-full animate-spin" />
             : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -376,7 +376,7 @@ function DocumentsGrid({
   if (loading) return (
     <div className="p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {[1,2,3,4,5,6].map(i => (
-        <div key={i} className="animate-pulse bg-white rounded-2xl border border-slate-200 h-40" />
+        <div key={i} className="animate-pulse bg-white/5 rounded-2xl border border-white/10 h-40" />
       ))}
     </div>
   )
@@ -394,13 +394,13 @@ function DocumentsGrid({
 
   if (isEmpty && !searchQuery) return (
     <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
-      <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl flex items-center justify-center border border-emerald-200/50 shadow-inner">
+      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-3xl flex items-center justify-center border border-emerald-500/20 shadow-inner">
         <svg className="w-12 h-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
         </svg>
       </div>
       <div className="text-center">
-        <h3 className="text-lg font-bold text-slate-700 mb-1">Biblioteca vacía</h3>
+        <h3 className="text-lg font-bold text-white mb-1">Biblioteca vacía</h3>
         <p className="text-sm text-slate-400 mb-5">Crea tu primer documento, una carpeta o importa un archivo</p>
         <div className="flex gap-3 justify-center flex-wrap">
           <button onClick={onCreateDoc}
@@ -409,12 +409,12 @@ function DocumentsGrid({
             Nuevo documento
           </button>
           <button onClick={onCreateFolder}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-white/10 text-slate-300 hover:bg-white/10 transition-all">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
             Nueva carpeta
           </button>
           <button onClick={onImport}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 text-slate-600 hover:bg-slate-50 transition-all">
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-white/10 text-slate-300 hover:bg-white/10 transition-all">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             Importar
           </button>
@@ -431,22 +431,22 @@ function DocumentsGrid({
         <div className="flex items-center gap-2 mb-5">
           <button
             onClick={() => setCurrentFolderId(null)}
-            className="text-xs text-slate-400 hover:text-slate-700 transition-colors font-medium"
+            className="text-xs text-slate-400 hover:text-white transition-colors font-medium"
           >
             Biblioteca
           </button>
-          <svg className="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: currentFolder.color }} />
-            <span className="text-xs font-bold text-slate-700">{currentFolder.name}</span>
+            <span className="text-xs font-bold text-white">{currentFolder.name}</span>
           </div>
           <span className="text-xs text-slate-400 ml-auto">{visibleDocs.length} documento{visibleDocs.length !== 1 ? 's' : ''}</span>
         </div>
       ) : searchQuery ? (
         <p className="text-xs text-slate-400 mb-4">
-          {visibleDocs.length} resultado{visibleDocs.length !== 1 ? 's' : ''} para "<span className="font-medium text-slate-600">{searchQuery}</span>"
+          {visibleDocs.length} resultado{visibleDocs.length !== 1 ? 's' : ''} para "<span className="font-medium text-slate-300">{searchQuery}</span>"
         </p>
       ) : null}
 
@@ -479,7 +479,7 @@ function DocumentsGrid({
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-600">Carpeta vacía</p>
+          <p className="text-sm font-semibold text-slate-300">Carpeta vacía</p>
           <p className="text-xs text-slate-400">Crea un documento o mueve uno existente aquí</p>
         </div>
       )}
@@ -635,7 +635,7 @@ export default function BibliotecaPage() {
   )
 
   return (
-    <div className="flex h-dvh bg-slate-50 overflow-hidden">
+    <div className="flex h-dvh bg-slate-950 overflow-hidden">
 
       {/* Modal carpeta */}
       {folderModal === 'create' && (
@@ -668,9 +668,9 @@ export default function BibliotecaPage() {
 
       {/* Error de importación */}
       {importError && (
-        <div className="fixed top-4 right-4 z-50 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2 shadow-lg">
-          <span className="text-sm text-red-600">{importError}</span>
-          <button onClick={() => setImportError(null)} className="text-red-400 hover:text-red-600 ml-1">✕</button>
+        <div className="fixed top-4 right-4 z-50 bg-red-500/15 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2 shadow-lg">
+          <span className="text-sm text-red-300">{importError}</span>
+          <button onClick={() => setImportError(null)} className="text-red-400 hover:text-red-300 ml-1">✕</button>
         </div>
       )}
 
@@ -688,16 +688,16 @@ export default function BibliotecaPage() {
       {/* Área principal */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile top bar */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 shrink-0">
-          <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100">
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-black/20 backdrop-blur-sm border-b border-white/10 shrink-0">
+          <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           {activeDocId
-            ? <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-emerald-600">
+            ? <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-emerald-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Documentos
               </button>
-            : <span className="font-bold text-slate-800 text-sm">
+            : <span className="font-bold text-white text-sm">
                 {carpetas.find(c => c.id === currentFolderId)?.name || 'Biblioteca'}
               </span>
           }
@@ -707,7 +707,7 @@ export default function BibliotecaPage() {
         </header>
 
         {/* Contenido */}
-        <div className="flex-1 min-h-0 overflow-hidden bg-slate-50">
+        <div className="flex-1 min-h-0 overflow-hidden bg-slate-950">
           {activeDocId ? (
             <div className="h-full animate-fadeIn">
               <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />
