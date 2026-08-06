@@ -303,7 +303,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           {/* Texto plano */}
           {preview?.type === 'text' && (
             <div className="p-4 md:p-8">
-              <pre className="bg-white shadow-sm rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+              <pre className="bg-white/5 border border-white/10 rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
                 {preview.text || '(vacío)'}
               </pre>
             </div>
