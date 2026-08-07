@@ -49,6 +49,57 @@ const EMOJI_CATEGORIES = [
   { label: '🌍 Naturaleza', emojis: ['🌍','🌎','🌏','🗺️','🌐','☀️','🌤️','⛅','🌥️','☁️','🌧️','⛈️','🌩️','🌨️','❄️','🌬️','💨','🌊','🌙','⭐','🌈','🌸','🌺','🌻','🌹','🍀','🌿','🍃','🌱','🌲'] },
 ]
 
+// Atajos reales de las extensiones cargadas en este editor (TipTap v3)
+const SHORTCUT_GROUPS = [
+  {
+    label: 'Formato',
+    items: [
+      ['Negrita', 'Ctrl+B'],
+      ['Cursiva', 'Ctrl+I'],
+      ['Subrayado', 'Ctrl+U'],
+      ['Tachado', 'Ctrl+Shift+S'],
+      ['Subíndice', 'Ctrl+,'],
+      ['Superíndice', 'Ctrl+.'],
+      ['Resaltar', 'Ctrl+Shift+H'],
+      ['Código inline', 'Ctrl+E'],
+    ],
+  },
+  {
+    label: 'Párrafo',
+    items: [
+      ['Texto normal', 'Ctrl+Alt+0'],
+      ['Título 1–4', 'Ctrl+Alt+1…4'],
+      ['Alinear a la izquierda', 'Ctrl+Shift+L'],
+      ['Centrar', 'Ctrl+Shift+E'],
+      ['Alinear a la derecha', 'Ctrl+Shift+R'],
+      ['Justificar', 'Ctrl+Shift+J'],
+      ['Lista con viñetas', 'Ctrl+Shift+8'],
+      ['Lista numerada', 'Ctrl+Shift+7'],
+      ['Lista de tareas', 'Ctrl+Shift+9'],
+      ['Cita', 'Ctrl+Shift+B'],
+      ['Aumentar sangría (en listas)', 'Tab'],
+      ['Reducir sangría (en listas)', 'Shift+Tab'],
+    ],
+  },
+  {
+    label: 'Insertar',
+    items: [
+      ['Bloque de código', 'Ctrl+Alt+C'],
+      ['Salto de línea', 'Shift+Enter'],
+    ],
+  },
+  {
+    label: 'General',
+    items: [
+      ['Deshacer', 'Ctrl+Z'],
+      ['Rehacer', 'Ctrl+Y / Ctrl+Shift+Z'],
+      ['Imprimir', 'Ctrl+P'],
+      ['Buscar y reemplazar', 'Ctrl+F'],
+      ['Modo enfoque', 'F11'],
+    ],
+  },
+]
+
 export default function DocumentToolbar({
   editor,
   onExportPdf, exporting,
@@ -58,6 +109,8 @@ export default function DocumentToolbar({
   spellCheck, onToggleSpellCheck,
   focusMode, onToggleFocusMode,
 }) {
+  const [activeTab, setActiveTab] = useState('inicio')
+  const [showShortcuts, setShowShortcuts] = useState(false)
   const [showFontFamily, setShowFontFamily] = useState(false)
   const [showFontSize, setShowFontSize] = useState(false)
   const [showLineHeight, setShowLineHeight] = useState(false)
@@ -105,6 +158,11 @@ export default function DocumentToolbar({
     setShowLinkInput(false)
     setShowEmoji(false)
     setShowImageUrl(false)
+  }
+
+  const switchTab = (tab) => {
+    closeAll()
+    setActiveTab(tab)
   }
 
   const currentFontFamily = editor.getAttributes('textStyle').fontFamily || 'Calibri, sans-serif'
@@ -168,481 +226,564 @@ export default function DocumentToolbar({
   return (
     <div className="bg-slate-900 border-b border-white/10 select-none" onClick={e => e.stopPropagation()}>
 
-      {/* ── FILA 1: Fuente, tamaño, formato básico ── */}
-      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-white/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+      {/* ── FILA 1: Pestañas + acciones siempre visibles ── */}
+      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-white/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
-        {/* Font Family */}
-        <div ref={fontFamilyRef}>
-          <button
-            onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontFamily(v => !v) }}
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 min-w-[100px] justify-between"
-            style={{ fontFamily: currentFontFamily }}
+        {/* Pestañas */}
+        <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5 shrink-0">
+          <TabBtn label="Inicio" active={activeTab === 'inicio'} onClick={() => switchTab('inicio')} />
+          <TabBtn label="Insertar" active={activeTab === 'insertar'} onClick={() => switchTab('insertar')} />
+        </div>
+
+        {/* Siempre visibles */}
+        <div className="flex items-center gap-0.5 shrink-0">
+
+          {/* Ortografía */}
+          <Btn
+            onClick={onToggleSpellCheck}
+            active={spellCheck}
+            title={spellCheck ? 'Desactivar corrector ortográfico' : 'Activar corrector ortográfico'}
           >
-            <span className="truncate max-w-[80px]">{currentFontLabel}</span>
-            <ChevronDown />
-          </button>
-          {showFontFamily && (
-            <Dropdown onClose={() => setShowFontFamily(false)} triggerRef={fontFamilyRef} className="w-52">
-              {FONT_FAMILIES.map(f => (
-                <button
-                  key={f.value}
-                  onMouseDown={e => { e.preventDefault(); editor.chain().focus().setFontFamily(f.value).run(); setShowFontFamily(false) }}
-                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 hover:text-white rounded ${currentFontFamily === f.value ? 'bg-violet-500/20 text-violet-300 font-semibold' : 'text-slate-300'}`}
-                  style={{ fontFamily: f.value }}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </Dropdown>
-          )}
-        </div>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 13l4 4L19 7"/>
+              <path d="M3 19h18" strokeDasharray={spellCheck ? undefined : '3 2'} opacity={spellCheck ? 1 : 0.4}/>
+              <path d="M7 15l-2 3" opacity={spellCheck ? 1 : 0.3}/>
+            </svg>
+          </Btn>
 
-        {/* Font Size */}
-        <div ref={fontSizeRef} className="flex items-center">
+          {/* Modo enfoque */}
+          <Btn onClick={onToggleFocusMode} active={focusMode} title="Modo enfoque (F11)">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
+            </svg>
+          </Btn>
+
+          <Sep />
+
+          {/* Deshacer / Rehacer */}
+          <Btn onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Deshacer (Ctrl+Z)"><UndoIcon /></Btn>
+          <Btn onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Rehacer (Ctrl+Y)"><RedoIcon /></Btn>
+
+          <Sep />
+
+          {/* Exportar */}
+          <Btn onClick={onPrint} title="Imprimir (Ctrl+P)"><PrintIcon /></Btn>
+
           <button
-            onMouseDown={e => { e.preventDefault(); changeFontSize(-1) }}
-            className="px-1 py-1 border border-r-0 border-white/10 rounded-l bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
-            title="Reducir tamaño"
-          >A<sub className="text-[7px]">−</sub></button>
-          <input
-            type="number"
-            value={fontSizeInput}
-            onChange={handleFontSizeInput}
-            onBlur={handleFontSizeBlur}
-            onKeyDown={e => { if (e.key === 'Enter') { handleFontSizeBlur(); editor.commands.focus() } }}
-            className="w-10 text-center text-xs border-t border-b border-white/10 py-1 bg-white/5 text-white focus:outline-none focus:border-violet-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
-          <button
-            onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontSize(v => !v) }}
-            className="px-1 py-1 border border-l-0 border-r-0 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
+            onMouseDown={e => { e.preventDefault(); onExportPdf?.() }}
+            disabled={exporting}
+            title="Exportar como PDF"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
           >
-            <ChevronDown />
+            {exporting
+              ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
+              : <PdfIcon />
+            }
+            <span>PDF</span>
           </button>
+
           <button
-            onMouseDown={e => { e.preventDefault(); changeFontSize(1) }}
-            className="px-1 py-1 border border-l-0 border-white/10 rounded-r bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
-            title="Aumentar tamaño"
-          >A<sup className="text-[7px]">+</sup></button>
-          {showFontSize && (
-            <Dropdown onClose={() => setShowFontSize(false)} triggerRef={fontSizeRef} className="w-16 max-h-48 overflow-y-auto">
-              {FONT_SIZES.map(s => (
-                <button
-                  key={s}
-                  onMouseDown={e => { e.preventDefault(); applyFontSize(s) }}
-                  className="w-full text-center px-2 py-1 text-xs hover:bg-white/10 hover:text-white text-slate-300"
-                >
-                  {s}
-                </button>
-              ))}
-            </Dropdown>
-          )}
-        </div>
+            onMouseDown={e => { e.preventDefault(); onExportWord?.() }}
+            disabled={exportingWord}
+            title="Descargar como Word"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
+          >
+            {exportingWord
+              ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
+              : <WordIcon />
+            }
+            <span>.doc</span>
+          </button>
 
-        <Sep />
+          <button
+            onMouseDown={e => { e.preventDefault(); onOpenInWord?.() }}
+            disabled={openingWord}
+            title="Abrir en Microsoft Word"
+            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all shrink-0"
+          >
+            {openingWord
+              ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
+              : <WordIcon />
+            }
+            <span>{openingWord ? 'Abriendo...' : 'Abrir en Word'}</span>
+          </button>
 
-        {/* Negrita, Cursiva, Subrayado, Tachado, Sub, Sup */}
-        <Btn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Negrita (Ctrl+B)"><b className="text-xs">N</b></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Cursiva (Ctrl+I)"><i className="text-xs not-italic font-serif font-bold">K</i></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Subrayado (Ctrl+U)">
-          <span className="text-xs font-bold underline">S</span>
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="Tachado">
-          <span className="text-xs font-bold line-through">T</span>
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive('subscript')} title="Subíndice">
-          <span className="text-[10px] font-bold">X<sub>2</sub></span>
-        </Btn>
-        <Btn onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive('superscript')} title="Superíndice">
-          <span className="text-[10px] font-bold">X<sup>2</sup></span>
-        </Btn>
+          <Sep />
 
-        {/* Limpiar formato */}
-        <Btn onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} title="Limpiar formato">
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 20h4l10.5-10.5a2 2 0 000-2.83l-1.17-1.17a2 2 0 00-2.83 0L4 16v4z"/>
-            <line x1="16" y1="6" x2="20" y2="10"/>
-            <line x1="2" y1="22" x2="8" y2="22"/>
-          </svg>
-        </Btn>
-
-        <Sep />
-
-        {/* Color de texto */}
-        <div ref={textColorRef}>
-          <Btn onClick={() => { closeAll(); setShowTextColor(v => !v) }} active={showTextColor} title="Color de texto">
-            <span className="flex flex-col items-center gap-0">
-              <span className="text-xs font-bold leading-none">A</span>
-              <span className="w-3.5 h-1 rounded-sm mt-0.5" style={{ backgroundColor: editor.getAttributes('textStyle').color || '#000' }} />
-            </span>
+          {/* Atajos de teclado */}
+          <Btn onClick={() => setShowShortcuts(true)} active={showShortcuts} title="Atajos de teclado">
+            <span className="text-xs font-bold">?</span>
           </Btn>
-          {showTextColor && (
-            <Dropdown onClose={() => setShowTextColor(false)} triggerRef={textColorRef} className="w-56 p-2">
-              <div className="grid grid-cols-10 gap-0.5 mb-2">
-                {TEXT_COLORS.map(c => (
-                  <button
-                    key={c}
-                    onMouseDown={e => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setShowTextColor(false) }}
-                    className="w-5 h-5 rounded-sm border border-white/10 hover:scale-125 transition-transform"
-                    style={{ backgroundColor: c }}
-                    title={c}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 mt-1 border-t border-white/10 pt-2">
-                <span className="text-[10px] text-slate-400">Hex:</span>
-                <input
-                  type="text"
-                  value={textColorHex}
-                  onChange={e => setTextColorHex(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') applyCustomTextColor(textColorHex) }}
-                  placeholder="#000000"
-                  maxLength={7}
-                  className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
-                />
-                {textColorHex && (
-                  <div className="w-5 h-5 rounded border border-white/10 shrink-0"
-                    style={{ backgroundColor: (textColorHex.startsWith('#') ? textColorHex : '#' + textColorHex) }} />
-                )}
-                <button
-                  onMouseDown={e => { e.preventDefault(); applyCustomTextColor(textColorHex) }}
-                  className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
-                >OK</button>
-              </div>
-              <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setShowTextColor(false) }}
-                className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
-                Sin color
-              </button>
-            </Dropdown>
-          )}
         </div>
-
-        {/* Resaltado */}
-        <div ref={highlightRef}>
-          <Btn onClick={() => { closeAll(); setShowHighlight(v => !v) }} active={editor.isActive('highlight') || showHighlight} title="Color de resaltado">
-            <span className="flex flex-col items-center gap-0">
-              <span className="text-xs leading-none">✎</span>
-              <span className="w-3.5 h-1 rounded-sm mt-0.5 bg-yellow-300" />
-            </span>
-          </Btn>
-          {showHighlight && (
-            <Dropdown onClose={() => setShowHighlight(false)} triggerRef={highlightRef} className="w-48 p-2">
-              <div className="grid grid-cols-6 gap-1 mb-2">
-                {HIGHLIGHT_COLORS.map(c => (
-                  <button
-                    key={c}
-                    onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHighlight({ color: c }).run(); setShowHighlight(false) }}
-                    className="w-6 h-6 rounded border border-white/10 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 border-t border-white/10 pt-2">
-                <span className="text-[10px] text-slate-400">Hex:</span>
-                <input
-                  type="text"
-                  value={highlightHex}
-                  onChange={e => setHighlightHex(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') applyCustomHighlight(highlightHex) }}
-                  placeholder="#FEF08A"
-                  maxLength={7}
-                  className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
-                />
-                <button
-                  onMouseDown={e => { e.preventDefault(); applyCustomHighlight(highlightHex) }}
-                  className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
-                >OK</button>
-              </div>
-              <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetHighlight().run(); setShowHighlight(false) }}
-                className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
-                Sin resaltado
-              </button>
-            </Dropdown>
-          )}
-        </div>
-
-        <Sep />
-
-        {/* Alineación */}
-        <Btn onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="Izquierda"><AlignL /></Btn>
-        <Btn onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} title="Centrar"><AlignC /></Btn>
-        <Btn onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} title="Derecha"><AlignR /></Btn>
-        <Btn onClick={() => editor.chain().focus().setTextAlign('justify').run()} active={editor.isActive({ textAlign: 'justify' })} title="Justificado"><AlignJ /></Btn>
-
-        {/* Interlineado */}
-        <div ref={lineHeightRef}>
-          <Btn onClick={() => { closeAll(); setShowLineHeight(v => !v) }} active={showLineHeight} title="Interlineado">
-            <LineHeightIcon />
-          </Btn>
-          {showLineHeight && (
-            <Dropdown onClose={() => setShowLineHeight(false)} triggerRef={lineHeightRef} className="w-40">
-              {LINE_HEIGHTS.map(lh => (
-                <button
-                  key={lh.value}
-                  onMouseDown={e => { e.preventDefault(); editor.chain().focus().setLineHeight(lh.value).run(); setShowLineHeight(false) }}
-                  className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
-                >
-                  {lh.label}
-                </button>
-              ))}
-            </Dropdown>
-          )}
-        </div>
-
-        <Sep />
-
-        {/* Ortografía */}
-        <Btn
-          onClick={onToggleSpellCheck}
-          active={spellCheck}
-          title={spellCheck ? 'Desactivar corrector ortográfico' : 'Activar corrector ortográfico'}
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 13l4 4L19 7"/>
-            <path d="M3 19h18" strokeDasharray={spellCheck ? undefined : '3 2'} opacity={spellCheck ? 1 : 0.4}/>
-            <path d="M7 15l-2 3" opacity={spellCheck ? 1 : 0.3}/>
-          </svg>
-        </Btn>
-
-        {/* Modo enfoque */}
-        <Btn onClick={onToggleFocusMode} active={focusMode} title="Modo enfoque (F11)">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
-          </svg>
-        </Btn>
       </div>
 
-      {/* ── FILA 2: Párrafo, listas, insertar ── */}
+      {/* ── FILA 2: Controles de la pestaña activa ── */}
       <div className="flex items-center gap-0.5 px-3 py-1 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
-        {/* Estilos de párrafo */}
-        <div className="flex gap-0.5">
-          <ParagraphBtn label="Normal" active={currentHeading === 'Normal'} onClick={() => editor.chain().focus().setParagraph().run()} />
-          <ParagraphBtn label="T1" active={currentHeading === 'H1'} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="font-bold text-[13px]" />
-          <ParagraphBtn label="T2" active={currentHeading === 'H2'} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="font-semibold" />
-          <ParagraphBtn label="T3" active={currentHeading === 'H3'} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
-          <ParagraphBtn label="T4" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-slate-400" />
-        </div>
-
-        <Sep />
-
-        {/* Listas */}
-        <Btn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Lista con viñetas"><BulletIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Lista numerada"><OrderedIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive('taskList')} title="Lista de tareas"><TaskIcon /></Btn>
-
-        <Sep />
-
-        {/* Sangría */}
-        <Btn onClick={() => editor.chain().focus().sinkListItem('listItem').run()} title="Aumentar sangría"><IndentIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().liftListItem('listItem').run()} title="Reducir sangría"><OutdentIcon /></Btn>
-
-        <Sep />
-
-        {/* Cita y código */}
-        <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="Cita"><QuoteIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive('code')} title="Código inline"><CodeIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="Bloque de código"><CodeBlockIcon /></Btn>
-
-        <Sep />
-
-        {/* Link */}
-        <div ref={linkTriggerRef}>
-          <Btn
-            onClick={() => { closeAll(); const prev = editor.getAttributes('link').href || ''; setLinkUrl(prev); setShowLinkInput(v => !v) }}
-            active={editor.isActive('link')}
-            title="Insertar enlace"
-          >
-            <LinkIcon />
-          </Btn>
-          {showLinkInput && (
-            <Dropdown onClose={() => setShowLinkInput(false)} triggerRef={linkTriggerRef} className="w-72 p-2 flex gap-1.5">
-              <input
-                ref={linkInputRef}
-                autoFocus
-                type="url"
-                value={linkUrl}
-                onChange={e => setLinkUrl(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') setLink(); if (e.key === 'Escape') closeAll() }}
-                placeholder="https://..."
-                className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
-              />
-              <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500">OK</button>
-              <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-white/5 text-slate-400 rounded hover:bg-white/10 hover:text-white">✕</button>
-            </Dropdown>
-          )}
-        </div>
-
-        {/* Imagen */}
-        <div ref={imageTriggerRef}>
-          <Btn
-            onClick={() => { closeAll(); setShowImageUrl(v => !v) }}
-            title="Insertar imagen"
-          >
-            <ImageIcon />
-          </Btn>
-          {showImageUrl && (
-            <Dropdown onClose={() => setShowImageUrl(false)} triggerRef={imageTriggerRef} className="w-80 p-2">
-              <div className="text-xs text-slate-400 mb-1.5 font-medium">URL de la imagen</div>
-              <div className="flex gap-1.5">
-                <input
-                  ref={imageInputRef}
-                  autoFocus
-                  type="url"
-                  value={imageUrl}
-                  onChange={e => setImageUrl(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && imageUrl) {
-                      editor.chain().focus().setImage({ src: imageUrl }).run()
-                      setImageUrl('')
-                      closeAll()
-                    }
-                    if (e.key === 'Escape') closeAll()
-                  }}
-                  placeholder="https://ejemplo.com/imagen.png"
-                  className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
-                />
-                <button
-                  onMouseDown={e => {
-                    e.preventDefault()
-                    if (imageUrl) {
-                      editor.chain().focus().setImage({ src: imageUrl }).run()
-                      setImageUrl('')
-                      closeAll()
-                    }
-                  }}
-                  className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500"
-                >OK</button>
-              </div>
-              <div className="mt-2 border-t border-white/10 pt-2">
-                <label className="text-xs text-slate-400 font-medium block mb-1">O desde archivo:</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (!file) return
-                    const reader = new FileReader()
-                    reader.onload = (ev) => {
-                      editor.chain().focus().setImage({ src: ev.target.result }).run()
-                      closeAll()
-                    }
-                    reader.readAsDataURL(file)
-                  }}
-                  className="text-xs text-slate-400 file:mr-2 file:text-xs file:bg-violet-500/20 file:text-violet-300 file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-violet-500/30"
-                />
-              </div>
-            </Dropdown>
-          )}
-        </div>
-
-        {/* Tabla */}
-        <Btn onClick={insertTable} active={editor.isActive('table')} title="Insertar tabla"><TableIcon /></Btn>
-
-        {/* HR */}
-        <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Línea separadora"><HRIcon /></Btn>
-
-        {/* Emoji */}
-        <div ref={emojiRef}>
-          <Btn onClick={() => { closeAll(); setShowEmoji(v => !v) }} active={showEmoji} title="Insertar emoji">
-            <span className="text-sm leading-none">😊</span>
-          </Btn>
-          {showEmoji && (
-            <Dropdown onClose={() => setShowEmoji(false)} triggerRef={emojiRef} className="w-72 p-2" alignRight>
-              <div className="flex gap-0.5 mb-2 overflow-x-auto">
-                {EMOJI_CATEGORIES.map((cat, i) => (
-                  <button
-                    key={i}
-                    onMouseDown={e => { e.preventDefault(); setEmojiCategory(i) }}
-                    className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-violet-500/20 ring-1 ring-violet-400/30' : 'hover:bg-white/10'}`}
-                    title={cat.label}
-                  >
-                    {cat.emojis[0]}
-                  </button>
-                ))}
-              </div>
-              <div className="text-[10px] text-slate-400 mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
-              <div className="grid grid-cols-10 gap-0.5 max-h-32 overflow-y-auto">
-                {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
-                  <button
-                    key={i}
-                    onMouseDown={e => { e.preventDefault(); insertEmoji(emoji) }}
-                    className="w-6 h-6 flex items-center justify-center text-base hover:bg-white/10 rounded transition-all hover:scale-125"
-                    title={emoji}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </Dropdown>
-          )}
-        </div>
-
-        <Sep />
-
-        {/* Controles de tabla contextuales */}
-        {editor.isActive('table') && (
+        {activeTab === 'inicio' && (
           <>
-            <span className="text-[10px] text-slate-400 font-medium px-1">Tabla:</span>
-            <SmallBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Añadir columna">+Col</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().deleteColumn().run()} title="Eliminar columna" danger>-Col</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().addRowAfter().run()} title="Añadir fila">+Fila</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().deleteRow().run()} title="Eliminar fila" danger>-Fila</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().mergeCells().run()} title="Combinar celdas">⊞</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().splitCell().run()} title="Dividir celda">⊟</SmallBtn>
-            <SmallBtn onClick={() => editor.chain().focus().deleteTable().run()} title="Eliminar tabla" danger>✕ Tabla</SmallBtn>
+            {/* Estilos de párrafo */}
+            <div className="flex gap-0.5">
+              <ParagraphBtn label="Normal" title="Texto normal (Ctrl+Alt+0)" active={currentHeading === 'Normal'} onClick={() => editor.chain().focus().setParagraph().run()} />
+              <ParagraphBtn label="T1" title="Título 1 (Ctrl+Alt+1)" active={currentHeading === 'H1'} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="font-bold text-[13px]" />
+              <ParagraphBtn label="T2" title="Título 2 (Ctrl+Alt+2)" active={currentHeading === 'H2'} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="font-semibold" />
+              <ParagraphBtn label="T3" title="Título 3 (Ctrl+Alt+3)" active={currentHeading === 'H3'} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
+              <ParagraphBtn label="T4" title="Título 4 (Ctrl+Alt+4)" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-slate-400" />
+            </div>
+
             <Sep />
+
+            {/* Font Family */}
+            <div ref={fontFamilyRef}>
+              <button
+                onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontFamily(v => !v) }}
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 min-w-[100px] justify-between"
+                style={{ fontFamily: currentFontFamily }}
+                title="Fuente"
+              >
+                <span className="truncate max-w-[80px]">{currentFontLabel}</span>
+                <ChevronDown />
+              </button>
+              {showFontFamily && (
+                <Dropdown onClose={() => setShowFontFamily(false)} triggerRef={fontFamilyRef} className="w-52">
+                  {FONT_FAMILIES.map(f => (
+                    <button
+                      key={f.value}
+                      onMouseDown={e => { e.preventDefault(); editor.chain().focus().setFontFamily(f.value).run(); setShowFontFamily(false) }}
+                      className={`w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 hover:text-white rounded ${currentFontFamily === f.value ? 'bg-violet-500/20 text-violet-300 font-semibold' : 'text-slate-300'}`}
+                      style={{ fontFamily: f.value }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </Dropdown>
+              )}
+            </div>
+
+            {/* Font Size */}
+            <div ref={fontSizeRef} className="flex items-center">
+              <button
+                onMouseDown={e => { e.preventDefault(); changeFontSize(-1) }}
+                className="px-1 py-1 border border-r-0 border-white/10 rounded-l bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
+                title="Reducir tamaño"
+              >A<sub className="text-[7px]">−</sub></button>
+              <input
+                type="number"
+                value={fontSizeInput}
+                onChange={handleFontSizeInput}
+                onBlur={handleFontSizeBlur}
+                onKeyDown={e => { if (e.key === 'Enter') { handleFontSizeBlur(); editor.commands.focus() } }}
+                className="w-10 text-center text-xs border-t border-b border-white/10 py-1 bg-white/5 text-white focus:outline-none focus:border-violet-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontSize(v => !v) }}
+                className="px-1 py-1 border border-l-0 border-r-0 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
+              >
+                <ChevronDown />
+              </button>
+              <button
+                onMouseDown={e => { e.preventDefault(); changeFontSize(1) }}
+                className="px-1 py-1 border border-l-0 border-white/10 rounded-r bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
+                title="Aumentar tamaño"
+              >A<sup className="text-[7px]">+</sup></button>
+              {showFontSize && (
+                <Dropdown onClose={() => setShowFontSize(false)} triggerRef={fontSizeRef} className="w-16 max-h-48 overflow-y-auto">
+                  {FONT_SIZES.map(s => (
+                    <button
+                      key={s}
+                      onMouseDown={e => { e.preventDefault(); applyFontSize(s) }}
+                      className="w-full text-center px-2 py-1 text-xs hover:bg-white/10 hover:text-white text-slate-300"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </Dropdown>
+              )}
+            </div>
+
+            <Sep />
+
+            {/* Negrita, Cursiva, Subrayado, Tachado, Sub, Sup */}
+            <Btn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Negrita (Ctrl+B)"><b className="text-xs">N</b></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Cursiva (Ctrl+I)"><i className="text-xs not-italic font-serif font-bold">K</i></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Subrayado (Ctrl+U)">
+              <span className="text-xs font-bold underline">S</span>
+            </Btn>
+            <Btn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="Tachado (Ctrl+Shift+S)">
+              <span className="text-xs font-bold line-through">T</span>
+            </Btn>
+            <Btn onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive('subscript')} title="Subíndice (Ctrl+,)">
+              <span className="text-[10px] font-bold">X<sub>2</sub></span>
+            </Btn>
+            <Btn onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive('superscript')} title="Superíndice (Ctrl+.)">
+              <span className="text-[10px] font-bold">X<sup>2</sup></span>
+            </Btn>
+
+            {/* Limpiar formato */}
+            <Btn onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} title="Limpiar formato">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 20h4l10.5-10.5a2 2 0 000-2.83l-1.17-1.17a2 2 0 00-2.83 0L4 16v4z"/>
+                <line x1="16" y1="6" x2="20" y2="10"/>
+                <line x1="2" y1="22" x2="8" y2="22"/>
+              </svg>
+            </Btn>
+
+            <Sep />
+
+            {/* Color de texto */}
+            <div ref={textColorRef}>
+              <Btn onClick={() => { closeAll(); setShowTextColor(v => !v) }} active={showTextColor} title="Color de texto">
+                <span className="flex flex-col items-center gap-0">
+                  <span className="text-xs font-bold leading-none">A</span>
+                  <span className="w-3.5 h-1 rounded-sm mt-0.5" style={{ backgroundColor: editor.getAttributes('textStyle').color || '#000' }} />
+                </span>
+              </Btn>
+              {showTextColor && (
+                <Dropdown onClose={() => setShowTextColor(false)} triggerRef={textColorRef} className="w-56 p-2">
+                  <div className="grid grid-cols-10 gap-0.5 mb-2">
+                    {TEXT_COLORS.map(c => (
+                      <button
+                        key={c}
+                        onMouseDown={e => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setShowTextColor(false) }}
+                        className="w-5 h-5 rounded-sm border border-white/10 hover:scale-125 transition-transform"
+                        style={{ backgroundColor: c }}
+                        title={c}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1 border-t border-white/10 pt-2">
+                    <span className="text-[10px] text-slate-400">Hex:</span>
+                    <input
+                      type="text"
+                      value={textColorHex}
+                      onChange={e => setTextColorHex(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') applyCustomTextColor(textColorHex) }}
+                      placeholder="#000000"
+                      maxLength={7}
+                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                    />
+                    {textColorHex && (
+                      <div className="w-5 h-5 rounded border border-white/10 shrink-0"
+                        style={{ backgroundColor: (textColorHex.startsWith('#') ? textColorHex : '#' + textColorHex) }} />
+                    )}
+                    <button
+                      onMouseDown={e => { e.preventDefault(); applyCustomTextColor(textColorHex) }}
+                      className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
+                    >OK</button>
+                  </div>
+                  <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setShowTextColor(false) }}
+                    className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
+                    Sin color
+                  </button>
+                </Dropdown>
+              )}
+            </div>
+
+            {/* Resaltado */}
+            <div ref={highlightRef}>
+              <Btn onClick={() => { closeAll(); setShowHighlight(v => !v) }} active={editor.isActive('highlight') || showHighlight} title="Color de resaltado (Ctrl+Shift+H)">
+                <span className="flex flex-col items-center gap-0">
+                  <span className="text-xs leading-none">✎</span>
+                  <span className="w-3.5 h-1 rounded-sm mt-0.5 bg-yellow-300" />
+                </span>
+              </Btn>
+              {showHighlight && (
+                <Dropdown onClose={() => setShowHighlight(false)} triggerRef={highlightRef} className="w-48 p-2">
+                  <div className="grid grid-cols-6 gap-1 mb-2">
+                    {HIGHLIGHT_COLORS.map(c => (
+                      <button
+                        key={c}
+                        onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHighlight({ color: c }).run(); setShowHighlight(false) }}
+                        className="w-6 h-6 rounded border border-white/10 hover:scale-110 transition-transform"
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 border-t border-white/10 pt-2">
+                    <span className="text-[10px] text-slate-400">Hex:</span>
+                    <input
+                      type="text"
+                      value={highlightHex}
+                      onChange={e => setHighlightHex(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') applyCustomHighlight(highlightHex) }}
+                      placeholder="#FEF08A"
+                      maxLength={7}
+                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                    />
+                    <button
+                      onMouseDown={e => { e.preventDefault(); applyCustomHighlight(highlightHex) }}
+                      className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
+                    >OK</button>
+                  </div>
+                  <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetHighlight().run(); setShowHighlight(false) }}
+                    className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
+                    Sin resaltado
+                  </button>
+                </Dropdown>
+              )}
+            </div>
+
+            <Sep />
+
+            {/* Alineación */}
+            <Btn onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="Izquierda (Ctrl+Shift+L)"><AlignL /></Btn>
+            <Btn onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} title="Centrar (Ctrl+Shift+E)"><AlignC /></Btn>
+            <Btn onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} title="Derecha (Ctrl+Shift+R)"><AlignR /></Btn>
+            <Btn onClick={() => editor.chain().focus().setTextAlign('justify').run()} active={editor.isActive({ textAlign: 'justify' })} title="Justificado (Ctrl+Shift+J)"><AlignJ /></Btn>
+
+            {/* Interlineado */}
+            <div ref={lineHeightRef}>
+              <Btn onClick={() => { closeAll(); setShowLineHeight(v => !v) }} active={showLineHeight} title="Interlineado">
+                <LineHeightIcon />
+              </Btn>
+              {showLineHeight && (
+                <Dropdown onClose={() => setShowLineHeight(false)} triggerRef={lineHeightRef} className="w-40">
+                  {LINE_HEIGHTS.map(lh => (
+                    <button
+                      key={lh.value}
+                      onMouseDown={e => { e.preventDefault(); editor.chain().focus().setLineHeight(lh.value).run(); setShowLineHeight(false) }}
+                      className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
+                    >
+                      {lh.label}
+                    </button>
+                  ))}
+                </Dropdown>
+              )}
+            </div>
+
+            <Sep />
+
+            {/* Listas */}
+            <Btn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Lista con viñetas (Ctrl+Shift+8)"><BulletIcon /></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Lista numerada (Ctrl+Shift+7)"><OrderedIcon /></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive('taskList')} title="Lista de tareas (Ctrl+Shift+9)"><TaskIcon /></Btn>
+
+            <Sep />
+
+            {/* Sangría */}
+            <Btn onClick={() => editor.chain().focus().sinkListItem('listItem').run()} title="Aumentar sangría (Tab)"><IndentIcon /></Btn>
+            <Btn onClick={() => editor.chain().focus().liftListItem('listItem').run()} title="Reducir sangría (Shift+Tab)"><OutdentIcon /></Btn>
           </>
         )}
 
-        {/* Deshacer / Rehacer */}
-        <Btn onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Deshacer (Ctrl+Z)"><UndoIcon /></Btn>
-        <Btn onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Rehacer (Ctrl+Y)"><RedoIcon /></Btn>
+        {activeTab === 'insertar' && (
+          <>
+            {/* Cita y código */}
+            <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="Cita (Ctrl+Shift+B)"><QuoteIcon /></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive('code')} title="Código inline (Ctrl+E)"><CodeIcon /></Btn>
+            <Btn onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="Bloque de código (Ctrl+Alt+C)"><CodeBlockIcon /></Btn>
 
-        <Sep />
+            <Sep />
 
-        {/* Exportar */}
-        <Btn onClick={onPrint} title="Imprimir (Ctrl+P)"><PrintIcon /></Btn>
+            {/* Link */}
+            <div ref={linkTriggerRef}>
+              <Btn
+                onClick={() => { closeAll(); const prev = editor.getAttributes('link').href || ''; setLinkUrl(prev); setShowLinkInput(v => !v) }}
+                active={editor.isActive('link')}
+                title="Insertar enlace"
+              >
+                <LinkIcon />
+              </Btn>
+              {showLinkInput && (
+                <Dropdown onClose={() => setShowLinkInput(false)} triggerRef={linkTriggerRef} className="w-72 p-2 flex gap-1.5">
+                  <input
+                    ref={linkInputRef}
+                    autoFocus
+                    type="url"
+                    value={linkUrl}
+                    onChange={e => setLinkUrl(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') setLink(); if (e.key === 'Escape') closeAll() }}
+                    placeholder="https://..."
+                    className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
+                  />
+                  <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500">OK</button>
+                  <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-white/5 text-slate-400 rounded hover:bg-white/10 hover:text-white">✕</button>
+                </Dropdown>
+              )}
+            </div>
 
-        <button
-          onMouseDown={e => { e.preventDefault(); onExportPdf?.() }}
-          disabled={exporting}
-          title="Exportar como PDF"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
-        >
-          {exporting
-            ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
-            : <PdfIcon />
-          }
-          <span>PDF</span>
-        </button>
+            {/* Imagen */}
+            <div ref={imageTriggerRef}>
+              <Btn
+                onClick={() => { closeAll(); setShowImageUrl(v => !v) }}
+                title="Insertar imagen"
+              >
+                <ImageIcon />
+              </Btn>
+              {showImageUrl && (
+                <Dropdown onClose={() => setShowImageUrl(false)} triggerRef={imageTriggerRef} className="w-80 p-2">
+                  <div className="text-xs text-slate-400 mb-1.5 font-medium">URL de la imagen</div>
+                  <div className="flex gap-1.5">
+                    <input
+                      ref={imageInputRef}
+                      autoFocus
+                      type="url"
+                      value={imageUrl}
+                      onChange={e => setImageUrl(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && imageUrl) {
+                          editor.chain().focus().setImage({ src: imageUrl }).run()
+                          setImageUrl('')
+                          closeAll()
+                        }
+                        if (e.key === 'Escape') closeAll()
+                      }}
+                      placeholder="https://ejemplo.com/imagen.png"
+                      className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
+                    />
+                    <button
+                      onMouseDown={e => {
+                        e.preventDefault()
+                        if (imageUrl) {
+                          editor.chain().focus().setImage({ src: imageUrl }).run()
+                          setImageUrl('')
+                          closeAll()
+                        }
+                      }}
+                      className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500"
+                    >OK</button>
+                  </div>
+                  <div className="mt-2 border-t border-white/10 pt-2">
+                    <label className="text-xs text-slate-400 font-medium block mb-1">O desde archivo:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        const reader = new FileReader()
+                        reader.onload = (ev) => {
+                          editor.chain().focus().setImage({ src: ev.target.result }).run()
+                          closeAll()
+                        }
+                        reader.readAsDataURL(file)
+                      }}
+                      className="text-xs text-slate-400 file:mr-2 file:text-xs file:bg-violet-500/20 file:text-violet-300 file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-violet-500/30"
+                    />
+                  </div>
+                </Dropdown>
+              )}
+            </div>
 
-        <button
-          onMouseDown={e => { e.preventDefault(); onExportWord?.() }}
-          disabled={exportingWord}
-          title="Descargar como Word"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
-        >
-          {exportingWord
-            ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
-            : <WordIcon />
-          }
-          <span>.doc</span>
-        </button>
+            {/* Tabla */}
+            <Btn onClick={insertTable} active={editor.isActive('table')} title="Insertar tabla"><TableIcon /></Btn>
 
-        <button
-          onMouseDown={e => { e.preventDefault(); onOpenInWord?.() }}
-          disabled={openingWord}
-          title="Abrir en Microsoft Word"
-          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all shrink-0"
-        >
-          {openingWord
-            ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
-            : <WordIcon />
-          }
-          <span>{openingWord ? 'Abriendo...' : 'Abrir en Word'}</span>
-        </button>
+            {/* HR */}
+            <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Línea separadora"><HRIcon /></Btn>
+
+            {/* Emoji */}
+            <div ref={emojiRef}>
+              <Btn onClick={() => { closeAll(); setShowEmoji(v => !v) }} active={showEmoji} title="Insertar emoji">
+                <span className="text-sm leading-none">😊</span>
+              </Btn>
+              {showEmoji && (
+                <Dropdown onClose={() => setShowEmoji(false)} triggerRef={emojiRef} className="w-72 p-2" alignRight>
+                  <div className="flex gap-0.5 mb-2 overflow-x-auto">
+                    {EMOJI_CATEGORIES.map((cat, i) => (
+                      <button
+                        key={i}
+                        onMouseDown={e => { e.preventDefault(); setEmojiCategory(i) }}
+                        className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-violet-500/20 ring-1 ring-violet-400/30' : 'hover:bg-white/10'}`}
+                        title={cat.label}
+                      >
+                        {cat.emojis[0]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
+                  <div className="grid grid-cols-10 gap-0.5 max-h-32 overflow-y-auto">
+                    {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
+                      <button
+                        key={i}
+                        onMouseDown={e => { e.preventDefault(); insertEmoji(emoji) }}
+                        className="w-6 h-6 flex items-center justify-center text-base hover:bg-white/10 rounded transition-all hover:scale-125"
+                        title={emoji}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </Dropdown>
+              )}
+            </div>
+
+            {/* Controles de tabla contextuales */}
+            {editor.isActive('table') && (
+              <>
+                <Sep />
+                <span className="text-[10px] text-slate-400 font-medium px-1">Tabla:</span>
+                <SmallBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Añadir columna">+Col</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().deleteColumn().run()} title="Eliminar columna" danger>-Col</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().addRowAfter().run()} title="Añadir fila">+Fila</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().deleteRow().run()} title="Eliminar fila" danger>-Fila</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().mergeCells().run()} title="Combinar celdas">⊞</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().splitCell().run()} title="Dividir celda">⊟</SmallBtn>
+                <SmallBtn onClick={() => editor.chain().focus().deleteTable().run()} title="Eliminar tabla" danger>✕ Tabla</SmallBtn>
+              </>
+            )}
+          </>
+        )}
       </div>
+
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
     </div>
+  )
+}
+
+/* ─── Modal de atajos de teclado ─── */
+function ShortcutsModal({ onClose }) {
+  // Keep latest onClose without re-registering the listener
+  const onCloseRef = useRef(onClose)
+  useEffect(() => { onCloseRef.current = onClose })
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onCloseRef.current?.()
+      }
+    }
+    document.addEventListener('keydown', handler, true)
+    return () => document.removeEventListener('keydown', handler, true)
+  }, [])
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onMouseDown={onClose}
+    >
+      <div
+        className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5"
+        onMouseDown={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-white">Atajos de teclado</h2>
+          <button
+            onMouseDown={e => { e.preventDefault(); onClose() }}
+            className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+            title="Cerrar (Esc)"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
+          {SHORTCUT_GROUPS.map(group => (
+            <div key={group.label}>
+              <h3 className="text-[11px] font-semibold text-violet-300 uppercase tracking-wider mb-2">{group.label}</h3>
+              <ul className="space-y-1">
+                {group.items.map(([label, keys]) => (
+                  <li key={label} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="text-slate-300">{label}</span>
+                    <kbd className="shrink-0 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-slate-400">{keys}</kbd>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body
   )
 }
 
@@ -689,6 +830,18 @@ function Dropdown({ children, onClose, className = '', style = {}, triggerRef, a
 
 /* ─── Sub-componentes ─── */
 
+function TabBtn({ label, active, onClick }) {
+  return (
+    <button
+      onMouseDown={e => { e.preventDefault(); onClick() }}
+      className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-100
+        ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+    >
+      {label}
+    </button>
+  )
+}
+
 function Btn({ onClick, active, disabled, title, children }) {
   return (
     <button
@@ -704,10 +857,11 @@ function Btn({ onClick, active, disabled, title, children }) {
   )
 }
 
-function ParagraphBtn({ label, active, onClick, className = '' }) {
+function ParagraphBtn({ label, active, onClick, title, className = '' }) {
   return (
     <button
       onMouseDown={e => { e.preventDefault(); onClick() }}
+      title={title}
       className={`px-2 py-1 rounded text-xs transition-all duration-100 ${className}
         ${active ? 'bg-violet-500/20 text-violet-300' : 'text-slate-300 hover:bg-white/10'}`}
     >
