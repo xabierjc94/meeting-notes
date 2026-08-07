@@ -166,16 +166,16 @@ export default function DocumentToolbar({
   }
 
   return (
-    <div className="bg-[#f3f3f3] border-b border-gray-300 select-none" onClick={e => e.stopPropagation()}>
+    <div className="bg-slate-900 border-b border-white/10 select-none" onClick={e => e.stopPropagation()}>
 
       {/* ── FILA 1: Fuente, tamaño, formato básico ── */}
-      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-gray-200 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-white/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
         {/* Font Family */}
         <div ref={fontFamilyRef}>
           <button
             onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontFamily(v => !v) }}
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-700 hover:bg-gray-200 border border-transparent hover:border-gray-300 min-w-[100px] justify-between"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 min-w-[100px] justify-between"
             style={{ fontFamily: currentFontFamily }}
           >
             <span className="truncate max-w-[80px]">{currentFontLabel}</span>
@@ -187,7 +187,7 @@ export default function DocumentToolbar({
                 <button
                   key={f.value}
                   onMouseDown={e => { e.preventDefault(); editor.chain().focus().setFontFamily(f.value).run(); setShowFontFamily(false) }}
-                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-blue-50 hover:text-blue-700 rounded ${currentFontFamily === f.value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'}`}
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 hover:text-white rounded ${currentFontFamily === f.value ? 'bg-violet-500/20 text-violet-300 font-semibold' : 'text-slate-300'}`}
                   style={{ fontFamily: f.value }}
                 >
                   {f.label}
@@ -201,7 +201,7 @@ export default function DocumentToolbar({
         <div ref={fontSizeRef} className="flex items-center">
           <button
             onMouseDown={e => { e.preventDefault(); changeFontSize(-1) }}
-            className="px-1 py-1 border border-r-0 border-gray-300 rounded-l bg-white hover:bg-gray-100 text-gray-600 text-xs font-bold leading-none"
+            className="px-1 py-1 border border-r-0 border-white/10 rounded-l bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
             title="Reducir tamaño"
           >A<sub className="text-[7px]">−</sub></button>
           <input
@@ -210,17 +210,17 @@ export default function DocumentToolbar({
             onChange={handleFontSizeInput}
             onBlur={handleFontSizeBlur}
             onKeyDown={e => { if (e.key === 'Enter') { handleFontSizeBlur(); editor.commands.focus() } }}
-            className="w-10 text-center text-xs border-t border-b border-gray-300 py-1 bg-white text-gray-700 focus:outline-none focus:border-blue-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className="w-10 text-center text-xs border-t border-b border-white/10 py-1 bg-white/5 text-white focus:outline-none focus:border-violet-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <button
             onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontSize(v => !v) }}
-            className="px-1 py-1 border border-l-0 border-r-0 border-gray-300 bg-white hover:bg-gray-100"
+            className="px-1 py-1 border border-l-0 border-r-0 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
           >
             <ChevronDown />
           </button>
           <button
             onMouseDown={e => { e.preventDefault(); changeFontSize(1) }}
-            className="px-1 py-1 border border-l-0 border-gray-300 rounded-r bg-white hover:bg-gray-100 text-gray-600 text-xs font-bold leading-none"
+            className="px-1 py-1 border border-l-0 border-white/10 rounded-r bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
             title="Aumentar tamaño"
           >A<sup className="text-[7px]">+</sup></button>
           {showFontSize && (
@@ -229,7 +229,7 @@ export default function DocumentToolbar({
                 <button
                   key={s}
                   onMouseDown={e => { e.preventDefault(); applyFontSize(s) }}
-                  className="w-full text-center px-2 py-1 text-xs hover:bg-blue-50 hover:text-blue-700 text-gray-700"
+                  className="w-full text-center px-2 py-1 text-xs hover:bg-white/10 hover:text-white text-slate-300"
                 >
                   {s}
                 </button>
@@ -282,14 +282,14 @@ export default function DocumentToolbar({
                   <button
                     key={c}
                     onMouseDown={e => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setShowTextColor(false) }}
-                    className="w-5 h-5 rounded-sm border border-gray-200 hover:scale-125 transition-transform"
+                    className="w-5 h-5 rounded-sm border border-white/10 hover:scale-125 transition-transform"
                     style={{ backgroundColor: c }}
                     title={c}
                   />
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 mt-1 border-t border-gray-100 pt-2">
-                <span className="text-[10px] text-gray-500">Hex:</span>
+              <div className="flex items-center gap-1.5 mt-1 border-t border-white/10 pt-2">
+                <span className="text-[10px] text-slate-400">Hex:</span>
                 <input
                   type="text"
                   value={textColorHex}
@@ -297,19 +297,19 @@ export default function DocumentToolbar({
                   onKeyDown={e => { if (e.key === 'Enter') applyCustomTextColor(textColorHex) }}
                   placeholder="#000000"
                   maxLength={7}
-                  className="flex-1 text-[10px] border border-gray-200 rounded px-1.5 py-1 outline-none focus:border-blue-400 font-mono"
+                  className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
                 />
                 {textColorHex && (
-                  <div className="w-5 h-5 rounded border border-gray-200 shrink-0"
+                  <div className="w-5 h-5 rounded border border-white/10 shrink-0"
                     style={{ backgroundColor: (textColorHex.startsWith('#') ? textColorHex : '#' + textColorHex) }} />
                 )}
                 <button
                   onMouseDown={e => { e.preventDefault(); applyCustomTextColor(textColorHex) }}
-                  className="text-[10px] bg-blue-600 text-white px-1.5 py-1 rounded hover:bg-blue-700"
+                  className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
                 >OK</button>
               </div>
               <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setShowTextColor(false) }}
-                className="w-full mt-1 text-xs text-gray-500 hover:text-gray-700 py-1 text-left">
+                className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
                 Sin color
               </button>
             </Dropdown>
@@ -331,13 +331,13 @@ export default function DocumentToolbar({
                   <button
                     key={c}
                     onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHighlight({ color: c }).run(); setShowHighlight(false) }}
-                    className="w-6 h-6 rounded border border-gray-200 hover:scale-110 transition-transform"
+                    className="w-6 h-6 rounded border border-white/10 hover:scale-110 transition-transform"
                     style={{ backgroundColor: c }}
                   />
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 border-t border-gray-100 pt-2">
-                <span className="text-[10px] text-gray-500">Hex:</span>
+              <div className="flex items-center gap-1.5 border-t border-white/10 pt-2">
+                <span className="text-[10px] text-slate-400">Hex:</span>
                 <input
                   type="text"
                   value={highlightHex}
@@ -345,15 +345,15 @@ export default function DocumentToolbar({
                   onKeyDown={e => { if (e.key === 'Enter') applyCustomHighlight(highlightHex) }}
                   placeholder="#FEF08A"
                   maxLength={7}
-                  className="flex-1 text-[10px] border border-gray-200 rounded px-1.5 py-1 outline-none focus:border-blue-400 font-mono"
+                  className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
                 />
                 <button
                   onMouseDown={e => { e.preventDefault(); applyCustomHighlight(highlightHex) }}
-                  className="text-[10px] bg-yellow-500 text-white px-1.5 py-1 rounded hover:bg-yellow-600"
+                  className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
                 >OK</button>
               </div>
               <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetHighlight().run(); setShowHighlight(false) }}
-                className="w-full mt-1 text-xs text-gray-500 hover:text-gray-700 py-1 text-left">
+                className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
                 Sin resaltado
               </button>
             </Dropdown>
@@ -379,7 +379,7 @@ export default function DocumentToolbar({
                 <button
                   key={lh.value}
                   onMouseDown={e => { e.preventDefault(); editor.chain().focus().setLineHeight(lh.value).run(); setShowLineHeight(false) }}
-                  className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
                 >
                   {lh.label}
                 </button>
@@ -420,7 +420,7 @@ export default function DocumentToolbar({
           <ParagraphBtn label="T1" active={currentHeading === 'H1'} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="font-bold text-[13px]" />
           <ParagraphBtn label="T2" active={currentHeading === 'H2'} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="font-semibold" />
           <ParagraphBtn label="T3" active={currentHeading === 'H3'} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
-          <ParagraphBtn label="T4" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-gray-500" />
+          <ParagraphBtn label="T4" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-slate-400" />
         </div>
 
         <Sep />
@@ -464,10 +464,10 @@ export default function DocumentToolbar({
                 onChange={e => setLinkUrl(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') setLink(); if (e.key === 'Escape') closeAll() }}
                 placeholder="https://..."
-                className="flex-1 text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:border-blue-400"
+                className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
               />
-              <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">OK</button>
-              <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-gray-100 text-gray-500 rounded hover:bg-gray-200">✕</button>
+              <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500">OK</button>
+              <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-white/5 text-slate-400 rounded hover:bg-white/10 hover:text-white">✕</button>
             </Dropdown>
           )}
         </div>
@@ -482,7 +482,7 @@ export default function DocumentToolbar({
           </Btn>
           {showImageUrl && (
             <Dropdown onClose={() => setShowImageUrl(false)} triggerRef={imageTriggerRef} className="w-80 p-2">
-              <div className="text-xs text-gray-500 mb-1.5 font-medium">URL de la imagen</div>
+              <div className="text-xs text-slate-400 mb-1.5 font-medium">URL de la imagen</div>
               <div className="flex gap-1.5">
                 <input
                   ref={imageInputRef}
@@ -499,7 +499,7 @@ export default function DocumentToolbar({
                     if (e.key === 'Escape') closeAll()
                   }}
                   placeholder="https://ejemplo.com/imagen.png"
-                  className="flex-1 text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:border-blue-400"
+                  className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
                 />
                 <button
                   onMouseDown={e => {
@@ -510,11 +510,11 @@ export default function DocumentToolbar({
                       closeAll()
                     }
                   }}
-                  className="text-xs px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500"
                 >OK</button>
               </div>
-              <div className="mt-2 border-t border-gray-100 pt-2">
-                <label className="text-xs text-gray-500 font-medium block mb-1">O desde archivo:</label>
+              <div className="mt-2 border-t border-white/10 pt-2">
+                <label className="text-xs text-slate-400 font-medium block mb-1">O desde archivo:</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -528,7 +528,7 @@ export default function DocumentToolbar({
                     }
                     reader.readAsDataURL(file)
                   }}
-                  className="text-xs text-gray-600 file:mr-2 file:text-xs file:bg-blue-50 file:text-blue-700 file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-blue-100"
+                  className="text-xs text-slate-400 file:mr-2 file:text-xs file:bg-violet-500/20 file:text-violet-300 file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-violet-500/30"
                 />
               </div>
             </Dropdown>
@@ -553,20 +553,20 @@ export default function DocumentToolbar({
                   <button
                     key={i}
                     onMouseDown={e => { e.preventDefault(); setEmojiCategory(i) }}
-                    className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-blue-100 ring-1 ring-blue-300' : 'hover:bg-gray-100'}`}
+                    className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-violet-500/20 ring-1 ring-violet-400/30' : 'hover:bg-white/10'}`}
                     title={cat.label}
                   >
                     {cat.emojis[0]}
                   </button>
                 ))}
               </div>
-              <div className="text-[10px] text-gray-400 mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
+              <div className="text-[10px] text-slate-400 mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
               <div className="grid grid-cols-10 gap-0.5 max-h-32 overflow-y-auto">
                 {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
                   <button
                     key={i}
                     onMouseDown={e => { e.preventDefault(); insertEmoji(emoji) }}
-                    className="w-6 h-6 flex items-center justify-center text-base hover:bg-gray-100 rounded transition-all hover:scale-125"
+                    className="w-6 h-6 flex items-center justify-center text-base hover:bg-white/10 rounded transition-all hover:scale-125"
                     title={emoji}
                   >
                     {emoji}
@@ -582,7 +582,7 @@ export default function DocumentToolbar({
         {/* Controles de tabla contextuales */}
         {editor.isActive('table') && (
           <>
-            <span className="text-[10px] text-gray-400 font-medium px-1">Tabla:</span>
+            <span className="text-[10px] text-slate-400 font-medium px-1">Tabla:</span>
             <SmallBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Añadir columna">+Col</SmallBtn>
             <SmallBtn onClick={() => editor.chain().focus().deleteColumn().run()} title="Eliminar columna" danger>-Col</SmallBtn>
             <SmallBtn onClick={() => editor.chain().focus().addRowAfter().run()} title="Añadir fila">+Fila</SmallBtn>
@@ -607,10 +607,10 @@ export default function DocumentToolbar({
           onMouseDown={e => { e.preventDefault(); onExportPdf?.() }}
           disabled={exporting}
           title="Exportar como PDF"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-600 hover:bg-gray-200 border border-transparent hover:border-gray-300 disabled:opacity-40 transition-all shrink-0"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
         >
           {exporting
-            ? <span className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+            ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
             : <PdfIcon />
           }
           <span>PDF</span>
@@ -620,10 +620,10 @@ export default function DocumentToolbar({
           onMouseDown={e => { e.preventDefault(); onExportWord?.() }}
           disabled={exportingWord}
           title="Descargar como Word"
-          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 disabled:opacity-40 transition-all shrink-0"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
         >
           {exportingWord
-            ? <span className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin" />
+            ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
             : <WordIcon />
           }
           <span>.doc</span>
@@ -679,7 +679,7 @@ function Dropdown({ children, onClose, className = '', style = {}, triggerRef, a
     <div
       ref={ref}
       style={{ position: 'fixed', top: rect.bottom + 2, left, zIndex: 9999, ...style }}
-      className={`bg-white border border-gray-200 rounded-lg shadow-xl ${className}`}
+      className={`bg-slate-900 border border-white/10 rounded-lg shadow-xl ${className}`}
     >
       {children}
     </div>,
@@ -696,7 +696,7 @@ function Btn({ onClick, active, disabled, title, children }) {
       disabled={disabled}
       title={title}
       className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-all duration-100 shrink-0
-        ${active ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-800'}
+        ${active ? 'bg-violet-500/20 text-violet-300' : 'text-slate-300 hover:bg-white/10 hover:text-white'}
         ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       {children}
@@ -709,7 +709,7 @@ function ParagraphBtn({ label, active, onClick, className = '' }) {
     <button
       onMouseDown={e => { e.preventDefault(); onClick() }}
       className={`px-2 py-1 rounded text-xs transition-all duration-100 ${className}
-        ${active ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'text-gray-600 hover:bg-gray-200'}`}
+        ${active ? 'bg-violet-500/20 text-violet-300' : 'text-slate-300 hover:bg-white/10'}`}
     >
       {label}
     </button>
@@ -722,14 +722,14 @@ function SmallBtn({ children, onClick, title, danger }) {
       onMouseDown={e => { e.preventDefault(); onClick() }}
       title={title}
       className={`px-1.5 py-1 rounded text-[10px] font-semibold transition-all
-        ${danger ? 'text-red-500 hover:bg-red-50' : 'text-gray-600 hover:bg-gray-200'}`}
+        ${danger ? 'text-red-400 hover:bg-red-500/10' : 'text-slate-300 hover:bg-white/10'}`}
     >
       {children}
     </button>
   )
 }
 
-function Sep() { return <div className="w-px h-5 bg-gray-300 mx-1 shrink-0" /> }
+function Sep() { return <div className="w-px h-5 bg-white/10 mx-1 shrink-0" /> }
 function ChevronDown() { return <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg> }
 
 const ic = 'w-3.5 h-3.5'
