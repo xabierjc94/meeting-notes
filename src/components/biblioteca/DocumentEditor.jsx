@@ -75,7 +75,14 @@ function DocumentEditorInner({ initialData, onBack }) {
   const printAreaRef = useRef(null)
 
   const [title, setTitle] = useState(initialData.title || '')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
+  const titleCommittedRef = useRef(false)
   const [saveStatus, setSaveStatus] = useState('saved')
+  const [lastSavedAt, setLastSavedAt] = useState(null)
+  const [nowTick, setNowTick] = useState(0)
+  const [showOutline, setShowOutline] = useState(false)
+  const [outline, setOutline] = useState([])
   const [exporting, setExporting] = useState(false)
   const [exportingWord, setExportingWord] = useState(false)
   const [openingWord, setOpeningWord] = useState(false)
@@ -94,6 +101,7 @@ function DocumentEditorInner({ initialData, onBack }) {
     try {
       await updateDocumento(docId, changes)
       setSaveStatus('saved')
+      setLastSavedAt(Date.now())
     } catch {
       setSaveStatus('error')
     }
@@ -160,6 +168,58 @@ function DocumentEditorInner({ initialData, onBack }) {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [focusMode])
+
+  // Refresco periódico de la etiqueta "hace X min" (cada 60s)
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  const savedAgo = (() => {
+    if (!lastSavedAt) return null
+    const seconds = Math.floor(Math.max(0, nowTick - lastSavedAt) / 1000)
+    if (seconds < 60) return 'ahora mismo'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `hace ${minutes} min`
+    return `hace ${Math.floor(minutes / 60)} h`
+  })()
+
+  // ── Esquema: extracción de encabezados del documento ──
+  const refreshOutline = useCallback(() => {
+    if (!editor) return
+    const items = []
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'heading' && node.attrs.level >= 1 && node.attrs.level <= 4) {
+        items.push({ level: node.attrs.level, text: node.textContent, pos })
+      }
+    })
+    setOutline(items)
+  }, [editor])
+
+  const debouncedRefreshOutline = useDebounce(refreshOutline, 300)
+
+  useEffect(() => {
+    if (!editor) return
+    // Carga inicial diferida (mismo debounce que las actualizaciones)
+    debouncedRefreshOutline()
+    const handler = () => debouncedRefreshOutline()
+    editor.on('update', handler)
+    return () => { editor.off('update', handler) }
+  }, [editor, debouncedRefreshOutline])
+
+  const scrollToHeading = (pos) => {
+    if (!editor) return
+    try {
+      let dom = editor.view.nodeDOM(pos)
+      if (!(dom instanceof HTMLElement)) {
+        const resolved = editor.view.domAtPos(pos + 1)
+        dom = resolved.node instanceof HTMLElement ? resolved.node : resolved.node.parentElement
+      }
+      dom?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } catch (err) {
+      console.warn('No se pudo desplazar al encabezado:', err)
+    }
+  }
 
   const handlePrint = () => window.print()
 
@@ -252,12 +312,27 @@ xmlns="http://www.w3.org/TR/REC-html40">
     }
   }
 
-  const handleTitleChange = (e) => {
-    const val = e.target.value
-    setTitle(val)
-    updateDocumentoLocal(docId, { title: val })
-    setSaveStatus('unsaved')
-    debouncedSave({ title: val })
+  // ── Renombrado inline del título ──
+  const startTitleEdit = () => {
+    titleCommittedRef.current = false
+    setTitleDraft(title)
+    setEditingTitle(true)
+  }
+
+  const commitTitle = () => {
+    if (titleCommittedRef.current) return
+    titleCommittedRef.current = true
+    setEditingTitle(false)
+    const finalTitle = titleDraft.trim() || 'Sin título'
+    if (finalTitle === title) return
+    setTitle(finalTitle)
+    updateDocumentoLocal(docId, { title: finalTitle })
+    save({ title: finalTitle })
+  }
+
+  const cancelTitleEdit = () => {
+    titleCommittedRef.current = true
+    setEditingTitle(false)
   }
 
   const handleOpenInWord = async () => {
@@ -325,18 +400,47 @@ xmlns="http://www.w3.org/TR/REC-html40">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <input
-                value={title}
-                onChange={handleTitleChange}
-                placeholder="Sin título"
-                className="bg-transparent text-white text-sm font-medium outline-none placeholder-white/40 flex-1 min-w-0"
-              />
+              {editingTitle ? (
+                <input
+                  value={titleDraft}
+                  onChange={e => setTitleDraft(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { e.preventDefault(); commitTitle() }
+                    if (e.key === 'Escape') { e.stopPropagation(); cancelTitleEdit() }
+                  }}
+                  onBlur={commitTitle}
+                  onFocus={e => e.target.select()}
+                  autoFocus
+                  placeholder="Sin título"
+                  className="bg-white/10 border border-white/20 text-white rounded px-2 py-0.5 text-sm font-medium outline-none focus:border-white/40 placeholder-white/40 flex-1 min-w-0"
+                />
+              ) : (
+                <button
+                  onClick={startTitleEdit}
+                  title="Renombrar documento"
+                  className="text-white text-sm font-medium text-left truncate flex-1 min-w-0 hover:bg-white/10 rounded px-2 py-0.5 transition-colors cursor-text"
+                >
+                  {title || 'Sin título'}
+                </button>
+              )}
               {initialData.file_name && (
                 <span className="text-white/40 text-xs truncate hidden sm:block">({initialData.file_name})</span>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <SaveIndicator status={saveStatus} />
+              <SaveIndicator status={saveStatus} savedAgo={savedAgo} />
+              {/* Outline panel toggle */}
+              <button
+                onClick={() => setShowOutline(v => !v)}
+                title="Esquema del documento"
+                className={`text-xs px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${showOutline ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                <span className="hidden sm:inline">Esquema</span>
+              </button>
               {/* Focus mode toggle */}
               <button
                 onClick={() => setFocusMode(true)}
@@ -363,7 +467,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
           <div className="bg-black/50 backdrop-blur px-6 py-2 flex items-center justify-between shrink-0 border-b border-white/5">
             <span className="text-white/50 text-sm font-medium truncate">{title || 'Sin título'}</span>
             <div className="flex items-center gap-3">
-              <SaveIndicator status={saveStatus} />
+              <SaveIndicator status={saveStatus} savedAgo={savedAgo} />
               <button
                 onClick={() => setFocusMode(false)}
                 title="Salir del modo enfoque (ESC)"
@@ -453,8 +557,9 @@ xmlns="http://www.w3.org/TR/REC-html40">
           </BubbleMenu>
         )}
 
-        {/* ── Área del documento ── */}
-        <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-[#111827]' : 'bg-slate-950'}`}>
+        {/* ── Área del documento + panel de esquema ── */}
+        <div className="flex-1 flex overflow-hidden">
+          <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-[#111827]' : 'bg-slate-950'}`}>
           <div
             ref={printAreaRef}
             className="doc-print-area mx-auto bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-white/10"
@@ -498,6 +603,40 @@ xmlns="http://www.w3.org/TR/REC-html40">
               "
             />
           </div>
+          </div>
+
+          {/* ── Panel de esquema (fuera del área de captura/impresión) ── */}
+          {showOutline && !focusMode && (
+            <aside className="w-64 shrink-0 bg-slate-900 border-l border-white/10 flex flex-col">
+              <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
+                <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Esquema</h3>
+                <button
+                  onClick={() => setShowOutline(false)}
+                  title="Cerrar esquema"
+                  className="text-slate-400 hover:text-white w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2">
+                {outline.length === 0 ? (
+                  <p className="text-slate-500 text-sm px-2 py-3">Sin encabezados todavía</p>
+                ) : (
+                  outline.map((item, i) => (
+                    <button
+                      key={`${item.pos}-${i}`}
+                      onClick={() => scrollToHeading(item.pos)}
+                      className={`block w-full text-left py-1.5 pr-2 text-slate-300 hover:text-white hover:bg-white/10 rounded cursor-pointer text-sm truncate ${
+                        { 1: 'pl-2', 2: 'pl-4', 3: 'pl-6', 4: 'pl-8' }[item.level] || 'pl-2'
+                      }`}
+                    >
+                      {item.text || '(sin texto)'}
+                    </button>
+                  ))
+                )}
+              </div>
+            </aside>
+          )}
         </div>
 
         {/* ── Barra de estado inferior ── */}
@@ -704,9 +843,14 @@ function Ruler() {
 }
 
 /* ─── Save Indicator ─── */
-function SaveIndicator({ status }) {
+function SaveIndicator({ status, savedAgo }) {
   const base = 'flex items-center gap-1.5 text-xs font-medium'
-  if (status === 'saved') return <span className={`${base} text-white/60`}><span className="w-1.5 h-1.5 rounded-full bg-green-400" />Guardado</span>
+  if (status === 'saved') return (
+    <span className={`${base} text-white/60`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+      Guardado{savedAgo && <span className="text-white/40 hidden sm:inline">· {savedAgo}</span>}
+    </span>
+  )
   if (status === 'saving') return <span className={`${base} text-white/60`}><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Guardando...</span>
   if (status === 'unsaved') return <span className={`${base} text-yellow-300/80`}><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Sin guardar</span>
   if (status === 'error') return <span className={`${base} text-red-300`}><span className="w-1.5 h-1.5 rounded-full bg-red-400" />Error</span>
