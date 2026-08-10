@@ -108,8 +108,8 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
         onClick={handleToggle}
         className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
           value
-            ? 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'
-            : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-slate-500'
+            ? 'border-violet-500/30 bg-violet-500/15 text-violet-300 hover:bg-violet-500/25'
+            : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-300'
         }`}
       >
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
           <span
             role="button"
             onClick={e => { e.stopPropagation(); onChange('') }}
-            className="ml-0.5 text-violet-400 hover:text-violet-700 transition-colors leading-none"
+            className="ml-0.5 text-violet-400 hover:text-violet-200 transition-colors leading-none"
           >
             ×
           </span>
@@ -132,24 +132,24 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
         <div
           ref={popupRef}
           style={{ position: 'fixed', top: popupPos.top, left: popupPos.left, width: popupPos.width, zIndex: 9999 }}
-          className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-4"
+          className="bg-slate-900 rounded-2xl shadow-2xl border border-white/10 p-4"
         >
           {/* Month/year nav */}
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
               onClick={prevMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-slate-400"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className="text-sm font-semibold text-slate-800">{MONTHS[month]} {year}</span>
+            <span className="text-sm font-semibold text-white">{MONTHS[month]} {year}</span>
             <button
               type="button"
               onClick={nextMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-slate-400"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -178,8 +178,8 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
                     : isSelected(day)
                     ? 'bg-violet-600 text-white shadow-md shadow-violet-500/30 hover:bg-violet-500'
                     : isToday(day)
-                    ? 'bg-violet-50 text-violet-700 hover:bg-violet-100'
-                    : 'text-slate-700 hover:bg-slate-100'
+                    ? 'bg-violet-500/15 text-violet-300 hover:bg-violet-500/25'
+                    : 'text-slate-300 hover:bg-white/10'
                 }`}
               >
                 {day ?? ''}
@@ -188,11 +188,11 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
           </div>
 
           {/* Today shortcut */}
-          <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="mt-3 pt-3 border-t border-white/10">
             <button
               type="button"
               onClick={() => { onChange(toYMD(today)); setOpen(false) }}
-              className="w-full text-xs font-medium text-violet-600 hover:text-violet-700 py-1 rounded-lg hover:bg-violet-50 transition-colors"
+              className="w-full text-xs font-medium text-violet-400 hover:text-violet-300 py-1 rounded-lg hover:bg-violet-500/10 transition-colors"
             >
               Hoy — {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
             </button>
