@@ -49,14 +49,14 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
     return (
       <div
         onClick={onClick}
-        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/0 hover:border-white/60 hover:shadow-md active:scale-[0.98] relative`}
+        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-slate-900/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/10 hover:border-white/30 hover:shadow-md active:scale-[0.98] relative`}
       >
         <div className="flex items-center gap-2">
           {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
           <div className={`w-2 h-2 rounded-full shrink-0 ${priority.dot}`} style={{ boxShadow: `0 0 5px ${priority.glow}` }} />
           <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${priority.text}`}>{priority.label}</span>
           {task.due_date && (
-            <span className={`ml-auto text-[10px] font-medium shrink-0 ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
+            <span className={`ml-auto text-[10px] font-medium shrink-0 ${overdue ? 'text-red-400' : dueSoon ? 'text-orange-400' : 'text-slate-400'}`}>
               {overdue ? '⚠ ' : ''}{formatDate(task.due_date)}
             </span>
           )}
@@ -87,12 +87,12 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
   return (
     <div
       onClick={onClick}
-      className={`group/card relative bg-white/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
+      className={`group/card relative bg-slate-900/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
         transition-all duration-200
         ${priority.border}
         ${overlay
-          ? 'rotate-2 shadow-2xl shadow-black/40 scale-105 border border-white/50'
-          : 'border border-white/0 hover:border-white/60 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm'
+          ? 'rotate-2 shadow-2xl shadow-black/40 scale-105 border border-white/40'
+          : 'border border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm'
         }`}
     >
       <div className="p-3.5">
@@ -146,7 +146,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
         )}
 
         {task.due_date && (
-          <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-500' : dueSoon ? 'text-orange-500' : 'text-slate-400'}`}>
+          <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-400' : dueSoon ? 'text-orange-400' : 'text-slate-400'}`}>
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
