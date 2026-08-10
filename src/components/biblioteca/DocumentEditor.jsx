@@ -16,6 +16,7 @@ import { Superscript } from '@tiptap/extension-superscript'
 import { Image } from '@tiptap/extension-image'
 import { CharacterCount } from '@tiptap/extension-character-count'
 import Typography from '@tiptap/extension-typography'
+import { Focus } from '@tiptap/extension-focus'
 import { supabase } from '../../lib/supabaseClient'
 import { useBiblioteca } from '../../context/BibliotecaContext'
 import { useDebounce } from '../../hooks/useDebounce'
@@ -26,6 +27,18 @@ const PRINT_STYLES = `
   body > * { display: none !important; }
   .doc-print-area { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
   .doc-print-area .ProseMirror { padding: 2cm !important; }
+}
+`
+
+/* Atenuación "máquina de escribir" del modo enfoque: solo activa cuando el
+   contenedor lleva .doc-focus-dim (es decir, solo con Enfocar activo).
+   El guard de @media print evita que la atenuación llegue a una impresión
+   lanzada con Ctrl+P estando en modo enfoque. */
+const FOCUS_DIM_STYLES = `
+.doc-focus-dim .ProseMirror > * { opacity: 0.35; transition: opacity 300ms ease; }
+.doc-focus-dim .ProseMirror > .has-focus { opacity: 1; }
+@media print {
+  .doc-focus-dim .ProseMirror > * { opacity: 1 !important; }
 }
 `
 
@@ -133,6 +146,7 @@ function DocumentEditorInner({ initialData, onBack }) {
       Image.configure({ inline: false }),
       CharacterCount,
       Typography,
+      Focus.configure({ className: 'has-focus', mode: 'shallowest' }),
     ],
     content: isHtmlImport ? initialData.content.html : (initialData.content || ''),
     onUpdate: ({ editor }) => {
@@ -377,6 +391,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
   return (
     <>
       <style>{PRINT_STYLES}</style>
+      <style>{FOCUS_DIM_STYLES}</style>
 
       <div className={`flex flex-col h-full overflow-hidden transition-colors duration-300 ${focusMode ? 'bg-[#111827]' : 'bg-slate-950'}`}>
 
@@ -559,7 +574,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
         {/* ── Área del documento + panel de esquema ── */}
         <div className="flex-1 flex overflow-hidden">
-          <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-[#111827]' : 'bg-slate-950'}`}>
+          <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-[#111827] doc-focus-dim' : 'bg-slate-950'}`}>
           <div
             ref={printAreaRef}
             className="doc-print-area mx-auto bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-white/10"
@@ -822,7 +837,7 @@ function Ruler() {
   }
 
   return (
-    <div className="shrink-0 bg-slate-900 border-b border-white/10 overflow-hidden h-6">
+    <div className="hidden md:block shrink-0 bg-slate-900 border-b border-white/10 overflow-hidden h-6">
       <div className="mx-auto relative" style={{ width: '794px', maxWidth: '100%', height: '100%' }}>
         <div className="absolute top-0 bottom-0 left-0 bg-white/10" style={{ width: MARGIN }} />
         <div className="absolute top-0 bottom-0 right-0 bg-white/10" style={{ width: MARGIN }} />

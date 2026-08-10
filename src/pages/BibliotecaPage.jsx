@@ -27,6 +27,140 @@ function getInitials(name, email) {
   return email ? email.slice(0, 2).toUpperCase() : 'UN'
 }
 
+// ─── Plantillas de documento (TipTap JSON) ────────────────────────
+// Niveles de encabezado = los mismos que produce el botón T1 del toolbar (level 1).
+const tplHeading = (level, text) => ({ type: 'heading', attrs: { level }, content: [{ type: 'text', text }] })
+const tplParagraph = () => ({ type: 'paragraph' })
+
+// El editor de Biblioteca registra TaskList/TaskItem, así que "Acuerdos" usa lista de tareas.
+const buildActaTemplate = () => ({
+  type: 'doc',
+  content: [
+    tplHeading(1, 'Asistentes'),
+    tplParagraph(),
+    tplHeading(1, 'Orden del día'),
+    tplParagraph(),
+    tplHeading(1, 'Acuerdos'),
+    {
+      type: 'taskList',
+      content: [
+        { type: 'taskItem', attrs: { checked: false }, content: [{ type: 'paragraph' }] },
+      ],
+    },
+    tplHeading(1, 'Próximos pasos'),
+    tplParagraph(),
+  ],
+})
+
+const buildPropuestaTemplate = () => ({
+  type: 'doc',
+  content: [
+    tplHeading(1, 'Resumen'),
+    tplParagraph(),
+    tplHeading(1, 'Contexto'),
+    tplParagraph(),
+    tplHeading(1, 'Propuesta'),
+    tplParagraph(),
+    tplHeading(1, 'Presupuesto'),
+    tplParagraph(),
+    tplHeading(1, 'Siguientes pasos'),
+    tplParagraph(),
+  ],
+})
+
+const DOC_TEMPLATES = [
+  {
+    id: 'blank',
+    name: 'En blanco',
+    desc: 'Documento vacío',
+    buildContent: () => null,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'acta',
+    name: 'Acta de reunión',
+    desc: 'Asistentes y acuerdos',
+    buildContent: buildActaTemplate,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'propuesta',
+    name: 'Propuesta',
+    desc: 'Proyecto y presupuesto',
+    buildContent: buildPropuestaTemplate,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+      </svg>
+    ),
+  },
+]
+
+// ─── Modal selector de plantilla ──────────────────────────────────
+function TemplateModal({ onSelect, onClose, creating }) {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-6 py-5 border-b border-white/10">
+          <h3 className="text-base font-bold text-white">Nuevo documento</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Elige una plantilla para empezar</p>
+        </div>
+        <div className="px-6 py-5 space-y-2.5">
+          {DOC_TEMPLATES.map(tpl => (
+            <button
+              key={tpl.id}
+              disabled={creating}
+              onClick={() => onSelect(tpl)}
+              className="w-full flex items-center gap-3.5 text-left bg-white/5 border border-white/10 rounded-xl px-4 py-3.5
+                         hover:bg-white/10 hover:border-violet-400/30 disabled:opacity-50 transition-all duration-200"
+            >
+              <div className="w-10 h-10 shrink-0 rounded-lg bg-violet-500/15 border border-violet-400/20 text-violet-300 flex items-center justify-center">
+                {tpl.icon}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">{tpl.name}</p>
+                <p className="text-xs text-slate-400">{tpl.desc}</p>
+              </div>
+              {creating && (
+                <div className="ml-auto w-4 h-4 shrink-0 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="px-6 pb-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-all"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Modal crear/renombrar carpeta ────────────────────────────────
 function FolderModal({ initial, onConfirm, onClose }) {
   const [name, setName] = useState(initial?.name || '')
@@ -506,6 +640,7 @@ export default function BibliotecaPage() {
   const [viewingDoc, setViewingDoc]     = useState(null)
   const [currentFolderId, setCurrentFolderIdRaw] = useState(null)
   const [folderModal, setFolderModal]   = useState(null) // null | 'create' | { id, name, color }
+  const [showTemplateModal, setShowTemplateModal] = useState(false)
 
   // Cambiar de carpeta limpia la búsqueda
   const setCurrentFolderId = (id) => {
@@ -517,10 +652,18 @@ export default function BibliotecaPage() {
     try { await signOut() } catch (err) { console.error(err) }
   }
 
-  const handleCreateDoc = async () => {
+  // "Nuevo documento" abre el selector de plantillas
+  const handleCreateDoc = () => setShowTemplateModal(true)
+
+  const handleCreateFromTemplate = async (tpl) => {
     setCreating(true)
     try {
-      await createDocumento({ folder_id: currentFolderId })
+      const content = tpl.buildContent()
+      // "En blanco" (content null) se comporta exactamente como la creación de siempre
+      await createDocumento(content
+        ? { folder_id: currentFolderId, content }
+        : { folder_id: currentFolderId })
+      setShowTemplateModal(false)
     } catch (err) { console.error(err) } finally { setCreating(false) }
     setSidebarOpen(false)
   }
@@ -636,6 +779,15 @@ export default function BibliotecaPage() {
 
   return (
     <div className="flex h-dvh bg-slate-950 overflow-hidden">
+
+      {/* Modal selector de plantilla */}
+      {showTemplateModal && (
+        <TemplateModal
+          onSelect={handleCreateFromTemplate}
+          onClose={() => { if (!creating) setShowTemplateModal(false) }}
+          creating={creating}
+        />
+      )}
 
       {/* Modal carpeta */}
       {folderModal === 'create' && (
