@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+.claude
+.env
+.env.*
+!.env.example
+android
+graphify-out
+supabase
+docs
+*.md
