@@ -48,13 +48,13 @@ export default function DocumentCard({ doc }) {
             ${isActive ? 'text-white' : 'text-slate-200 group-hover:text-white'}`}>
             {doc.title || 'Sin título'}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">{formatDate(doc.updated_at)}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{formatDate(doc.updated_at)}</p>
         </div>
 
         <button
           onClick={handleDelete}
           className="shrink-0 opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center
-                     rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                     rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
         >
           {deleting
             ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />

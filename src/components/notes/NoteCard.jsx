@@ -36,9 +36,8 @@ export default function NoteCard({ note, variant = 'light', onSelect }) {
 
   return (
     <div
-      onClick={() => { setActiveNote(note.id); onSelect?.() }}
       className={`
-        group relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
+        group relative px-4 py-3 rounded-xl transition-all duration-200
         ${isActive
           ? isDark
             ? 'bg-white/10 border border-violet-400/30 shadow-lg shadow-violet-500/10'
@@ -50,27 +49,35 @@ export default function NoteCard({ note, variant = 'light', onSelect }) {
         ${isActive ? 'animate-scaleIn' : ''}
       `}
     >
-      <p className={`text-sm font-semibold truncate pr-8 transition-colors ${
+      {/* Botón real (Tab + Enter) que cubre toda la tarjeta con .stretched-link */}
+      <p className={`text-sm font-semibold pr-8 transition-colors ${
         isActive
           ? isDark ? 'text-white' : 'text-violet-700'
           : isDark ? 'text-slate-200' : 'text-slate-700'
       }`}>
-        {note.title || 'Sin título'}
+        <button
+          type="button"
+          onClick={() => { setActiveNote(note.id); onSelect?.() }}
+          aria-current={isActive ? 'true' : undefined}
+          className="stretched-link block w-full text-left cursor-pointer"
+        >
+          <span className="block truncate">{note.title || 'Sin título'}</span>
+        </button>
       </p>
 
       <div className="flex items-center gap-1.5 mt-1.5">
         {note.meeting_date && (
           <>
-            <span className={`text-xs flex items-center gap-1 ${isActive ? (isDark ? 'text-violet-300' : 'text-violet-400') : (isDark ? 'text-slate-500' : 'text-slate-400')}`}>
+            <span className={`text-xs flex items-center gap-1 ${isActive ? (isDark ? 'text-violet-300' : 'text-violet-400') : (isDark ? 'text-slate-400' : 'text-slate-400')}`}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               {formatDate(note.meeting_date)}
             </span>
-            <span className={`text-xs ${isActive ? (isDark ? 'text-violet-400' : 'text-violet-300') : (isDark ? 'text-slate-600' : 'text-slate-300')}`}>·</span>
+            <span className={`text-xs ${isActive ? (isDark ? 'text-violet-400' : 'text-violet-300') : (isDark ? 'text-slate-400' : 'text-slate-300')}`}>·</span>
           </>
         )}
-        <span className={`text-xs ${isActive ? (isDark ? 'text-violet-300' : 'text-violet-400') : (isDark ? 'text-slate-500' : 'text-slate-400')}`}>
+        <span className={`text-xs ${isActive ? (isDark ? 'text-violet-300' : 'text-violet-400') : (isDark ? 'text-slate-400' : 'text-slate-400')}`}>
           {timeAgo(note.updated_at)}
         </span>
       </div>
@@ -78,12 +85,13 @@ export default function NoteCard({ note, variant = 'light', onSelect }) {
       {/* Visible always on mobile, hover-only on desktop */}
       <button
         onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-        className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200
+        className={`absolute z-10 right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200
           ${isDark
-            ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10'
+            ? 'text-slate-400 hover:text-red-400 hover:bg-red-500/10'
             : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
           }`}
         title="Borrar nota"
+        aria-label={`Borrar nota ${note.title || 'Sin título'}`}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

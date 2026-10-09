@@ -98,7 +98,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 onChange={e => set('nombre_apellidos', e.target.value)}
                 placeholder="Ej: María García López"
                 autoFocus
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                 required
               />
             </div>
@@ -116,7 +116,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                   value={form.posicion}
                   onChange={e => set('posicion', e.target.value)}
                   disabled={positions.length === 0}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all appearance-none pr-10 disabled:bg-white/5 disabled:text-slate-500"
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all appearance-none pr-10 disabled:bg-white/5 disabled:text-slate-400"
                 >
                   <option value="">Sin posición</option>
                   {positions.map(p => (
@@ -189,7 +189,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 value={form.situacion}
                 onChange={e => set('situacion', e.target.value)}
                 placeholder="Situación actual..."
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
 
@@ -201,7 +201,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 value={form.preaviso}
                 onChange={e => set('preaviso', e.target.value)}
                 placeholder="Ej: 15 días"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
 
@@ -213,7 +213,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 onChange={e => set('experiencia', e.target.value)}
                 placeholder="Describe la experiencia del candidato..."
                 rows={3}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
               />
             </div>
 
@@ -225,7 +225,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 value={form.expectativas_salariales}
                 onChange={e => set('expectativas_salariales', e.target.value)}
                 placeholder="Ej: 30.000€ - 35.000€"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
 
@@ -236,7 +236,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 type="date"
                 value={form.fecha_incorporacion}
                 onChange={e => set('fecha_incorporacion', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
 
@@ -248,7 +248,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                 onChange={e => set('otros', e.target.value)}
                 placeholder="Información adicional..."
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
               />
             </div>
           </div>

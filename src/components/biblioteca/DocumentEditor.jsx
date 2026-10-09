@@ -441,7 +441,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
                 </button>
               )}
               {initialData.file_name && (
-                <span className="text-white/40 text-xs truncate hidden sm:block">({initialData.file_name})</span>
+                <span className="text-white/60 text-xs truncate hidden sm:block">({initialData.file_name})</span>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
@@ -488,7 +488,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
               <button
                 onClick={() => setFocusMode(false)}
                 title="Salir del modo enfoque (ESC)"
-                className="text-white/40 hover:text-white/80 text-xs flex items-center gap-1.5 hover:bg-white/10 px-2.5 py-1 rounded-lg transition-all"
+                className="text-white/60 hover:text-white/80 text-xs flex items-center gap-1.5 hover:bg-white/10 px-2.5 py-1 rounded-lg transition-all"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4 4m0 0l5-5M4 4l5 5M15 9l5-5m0 0l-5-5m5 5l-5 5M9 15l-5 5m0 0l5 5m-5-5l5-5M15 15l5 5m0 0l-5 5m5-5l-5-5" />
@@ -538,11 +538,11 @@ xmlns="http://www.w3.org/TR/REC-html40">
             <span className="text-xs font-semibold text-slate-300">Buscar:</span>
             <input value={findText} onChange={e => setFindText(e.target.value)}
               placeholder="Texto a buscar..." autoFocus
-              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
+              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
             <span className="text-xs font-semibold text-slate-300">Reemplazar:</span>
             <input value={replaceText} onChange={e => setReplaceText(e.target.value)}
               placeholder="Reemplazar por..."
-              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
+              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
             <button onClick={handleReplace}
               className="text-xs bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-500 font-medium">
               Reemplazar todo
@@ -637,7 +637,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
               </div>
               <div className="flex-1 overflow-y-auto p-2">
                 {outline.length === 0 ? (
-                  <p className="text-slate-500 text-sm px-2 py-3">Sin encabezados todavía</p>
+                  <p className="text-slate-400 text-sm px-2 py-3">Sin encabezados todavía</p>
                 ) : (
                   outline.map((item, i) => (
                     <button
@@ -689,7 +689,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
             </div>
           </div>
         ) : (
-          <div className="shrink-0 bg-black/40 px-6 py-1.5 flex items-center justify-center text-xs text-white/25">
+          <div className="shrink-0 bg-black/40 px-6 py-1.5 flex items-center justify-center text-xs text-white/60">
             {wordCount.toLocaleString()} palabras · {charCount.toLocaleString()} caracteres · ~{readingTime} min lectura · <kbd className="ml-1 px-1 py-0.5 bg-white/10 rounded text-[10px]">ESC</kbd>&nbsp;para salir
           </div>
         )}
@@ -848,7 +848,7 @@ function Ruler() {
           <div key={px} className="absolute bottom-0" style={{ left: px }}>
             <div className={`absolute bottom-0 bg-white/30 ${isInch ? 'h-3 w-px' : 'h-1.5 w-px'}`} />
             {isInch && inch > 0 && inch < TOTAL_W / 96 && (
-              <span className="absolute bottom-3 text-[8px] text-white/40 -translate-x-1/2" style={{ left: 0 }}>{inch}"</span>
+              <span className="absolute bottom-3 text-[8px] text-white/60 -translate-x-1/2" style={{ left: 0 }}>{inch}"</span>
             )}
           </div>
         ))}
@@ -865,7 +865,7 @@ function SaveIndicator({ status, savedAgo, onRetry }) {
   if (status === 'saved') return (
     <span className={`${base} text-white/60`}>
       <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-      Guardado{savedAgo && <span className="text-white/40 hidden sm:inline">· {savedAgo}</span>}
+      Guardado{savedAgo && <span className="text-white/60 hidden sm:inline">· {savedAgo}</span>}
     </span>
   )
   if (status === 'saving') return <span className={`${base} text-white/60`}><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Guardando...</span>

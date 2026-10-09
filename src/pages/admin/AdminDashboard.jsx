@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       <div className="p-6 sm:p-8 min-h-full bg-slate-950">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Resumen general de la plataforma</p>
+          <p className="text-slate-400 mt-1">Resumen general de la plataforma</p>
         </div>
 
         {/* Stats Grid */}

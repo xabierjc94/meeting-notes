@@ -195,7 +195,7 @@ function EditorInner({ initialData }) {
                 rows={1}
                 className="w-full text-xl sm:text-[1.75rem] font-bold text-white bg-transparent
                            border-none outline-none resize-none leading-tight
-                           placeholder-white/20 transition-colors duration-200"
+                           placeholder-white/40 transition-colors duration-200"
               />
             </div>
             <div className="shrink-0 pt-1 sm:pt-2">
@@ -245,7 +245,7 @@ function EditorInner({ initialData }) {
           className="prose prose-invert prose-sm max-w-none min-h-[400px]
                      focus:outline-none
                      [&_.tiptap]:outline-none
-                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-white/30
+                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-white/50
                      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
                      [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
                      [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none

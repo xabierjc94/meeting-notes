@@ -62,11 +62,11 @@ export default function AdminLayout({ children }) {
               <p className="text-sm font-semibold text-slate-200 truncate">
                 {profile?.full_name || user?.email?.split('@')[0] || 'Admin'}
               </p>
-              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
             <button
               onClick={handleSignOut}
-              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
               title="Cerrar sesión"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -44,7 +44,7 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
                 onChange={e => setName(e.target.value)}
                 placeholder="Mi proyecto..."
                 autoFocus
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
             <div>
@@ -54,7 +54,7 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Describe el proyecto..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
             </div>
             <div>

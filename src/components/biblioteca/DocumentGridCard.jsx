@@ -146,7 +146,7 @@ export default function DocumentGridCard({ doc, onOpen, onPreview }) {
                 <button
                   onMouseDown={e => handleMoveToFolder(e, null)}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/10 transition-colors
-                    ${!doc.folder_id ? 'text-slate-500' : 'text-slate-200'}`}
+                    ${!doc.folder_id ? 'text-slate-400' : 'text-slate-200'}`}
                 >
                   <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
@@ -160,7 +160,7 @@ export default function DocumentGridCard({ doc, onOpen, onPreview }) {
                     key={c.id}
                     onMouseDown={e => handleMoveToFolder(e, c.id)}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/10 transition-colors
-                      ${doc.folder_id === c.id ? 'text-slate-500' : 'text-slate-200'}`}
+                      ${doc.folder_id === c.id ? 'text-slate-400' : 'text-slate-200'}`}
                   >
                     <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: c.color }} />
                     <span className="truncate">{c.name}</span>

@@ -52,7 +52,7 @@ function readCollapsed() {
 function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef }) {
   const greeting = getGreeting()
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
-  const headerButton = 'ml-auto shrink-0 w-8 h-8 items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition-all'
+  const headerButton = 'ml-auto shrink-0 w-8 h-8 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all'
 
   return (
     <div className="w-80 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
@@ -120,12 +120,12 @@ function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef }) {
               <p className="text-sm font-semibold text-slate-200 truncate">
                 {user?.user_metadata?.full_name || 'Usuario'}
               </p>
-              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={onSignOut}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
             title="Cerrar sesión"
             aria-label="Cerrar sesión"
           >
@@ -190,7 +190,7 @@ function SidebarRail({ user, onExpand, onSignOut, railRef }) {
         </div>
         <button
           onClick={onSignOut}
-          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
           title="Cerrar sesión"
           aria-label="Cerrar sesión"
         >

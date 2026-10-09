@@ -25,7 +25,7 @@ function ProjectCard({ project, taskCount, onEdit, onDelete }) {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-white truncate">{project.name}</h3>
             {project.description && (
-              <p className="text-xs text-white/40 mt-0.5 line-clamp-2">{project.description}</p>
+              <p className="text-xs text-white/60 mt-0.5 line-clamp-2">{project.description}</p>
             )}
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function ProjectsPage() {
               </svg>
             </div>
             <h2 className="text-lg font-bold text-white mb-2">Sin proyectos todavía</h2>
-            <p className="text-sm text-white/40 mb-6 max-w-xs">Crea tu primer proyecto para empezar a organizar tus tareas con tablero Kanban.</p>
+            <p className="text-sm text-white/60 mb-6 max-w-xs">Crea tu primer proyecto para empezar a organizar tus tareas con tablero Kanban.</p>
             <button
               onClick={() => setShowModal(true)}
               className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/20 hover:scale-105 active:scale-95"
@@ -163,7 +163,7 @@ export default function ProjectsPage() {
             ))}
             <button
               onClick={() => setShowModal(true)}
-              className="flex flex-col items-center justify-center gap-2 h-32 rounded-2xl border-2 border-dashed border-white/15 hover:border-violet-400/50 hover:bg-white/5 text-white/30 hover:text-white/60 text-sm font-medium transition-all"
+              className="flex flex-col items-center justify-center gap-2 h-32 rounded-2xl border-2 border-dashed border-white/15 hover:border-violet-400/50 hover:bg-white/5 text-white/60 hover:text-white text-sm font-medium transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -68,7 +68,7 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
       {/* Search */}
       <div className="px-5 pb-4">
         <div className="relative">
-          <Icon d={ICONS.search} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Icon d={ICONS.search} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             autoFocus={autoFocusSearch}
@@ -77,7 +77,7 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white
-                       placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30
+                       placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/30
                        transition-all duration-200"
           />
         </div>
@@ -105,7 +105,7 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
         ) : filteredNotes.length === 0 ? (
           <div className="px-3 pt-8 text-center">
             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10 animate-float">
-              <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -113,7 +113,7 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
             <p className="text-sm font-medium text-slate-400">
               {searchQuery ? 'Sin resultados' : 'Sin notas todavía'}
             </p>
-            <p className="text-xs text-slate-500 mt-1.5">
+            <p className="text-xs text-slate-400 mt-1.5">
               {searchQuery ? 'Prueba con otro término' : 'Crea tu primera nota con el botón de arriba'}
             </p>
           </div>

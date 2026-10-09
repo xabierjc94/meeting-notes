@@ -88,7 +88,7 @@ function EditModal({ user, onClose, onSave }) {
               type="text"
               value={form.full_name}
               onChange={e => setForm({ ...form, full_name: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
             />
           </div>
           <div>
@@ -97,7 +97,7 @@ function EditModal({ user, onClose, onSave }) {
               type="email"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ function EditModal({ user, onClose, onSave }) {
               type="datetime-local"
               value={form.subscription_expires_at}
               onChange={e => setForm({ ...form, subscription_expires_at: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function UsersPanel() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white">Usuarios</h1>
-            <p className="text-slate-500 mt-1">{profiles.length} usuarios registrados · {filtered.length} mostrados</p>
+            <p className="text-slate-400 mt-1">{profiles.length} usuarios registrados · {filtered.length} mostrados</p>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export default function UsersPanel() {
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
           />
         </div>
 
@@ -290,7 +290,7 @@ export default function UsersPanel() {
           </div>
         ) : (
           <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-            <div className="hidden lg:grid lg:grid-cols-8 gap-4 px-6 py-3 bg-black/20 border-b border-white/10 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="hidden lg:grid lg:grid-cols-8 gap-4 px-6 py-3 bg-black/20 border-b border-white/10 text-xs font-semibold text-slate-400 uppercase tracking-wider">
               <div className="col-span-2">Usuario</div>
               <div>Rol</div>
               <div>Suscripción</div>
@@ -334,7 +334,7 @@ export default function UsersPanel() {
                       ) : expiring ? (
                         <Badge color="expiring">{formatDate(u.subscription_expires_at)}</Badge>
                       ) : (
-                        <span className="text-xs text-slate-500">{formatDate(u.subscription_expires_at)}</span>
+                        <span className="text-xs text-slate-400">{formatDate(u.subscription_expires_at)}</span>
                       )}
                     </div>
                     {/* Estado */}
@@ -343,7 +343,7 @@ export default function UsersPanel() {
                     </div>
                     {/* Registro */}
                     <div>
-                      <span className="text-xs text-slate-500">{formatDate(u.created_at)}</span>
+                      <span className="text-xs text-slate-400">{formatDate(u.created_at)}</span>
                     </div>
                     {/* Acciones */}
                     <div className="flex lg:justify-end gap-2 pt-2 lg:pt-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">

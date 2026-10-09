@@ -40,7 +40,7 @@ export default function ActivityLog() {
       <div className="p-6 sm:p-8 min-h-full bg-slate-950">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Actividad</h1>
-          <p className="text-slate-500 mt-1">Registro de acciones en la plataforma</p>
+          <p className="text-slate-400 mt-1">Registro de acciones en la plataforma</p>
         </div>
 
         <div className="relative mb-6">
@@ -52,7 +52,7 @@ export default function ActivityLog() {
             placeholder="Buscar por acción, email o nombre..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
           />
         </div>
 
@@ -63,11 +63,11 @@ export default function ActivityLog() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <p className="text-slate-500 font-medium">Sin actividad</p>
+            <p className="text-slate-400 font-medium">Sin actividad</p>
             <p className="text-slate-400 text-sm mt-1">Las acciones de los usuarios aparecerán aquí</p>
           </div>
         ) : (

@@ -25,11 +25,14 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
-function GripHandle({ dragHandleProps }) {
+// Asa de arrastre. Recibe de dnd-kit role="button" y tabIndex (Tab para
+// llegar, Espacio para coger/soltar, flechas para mover)
+function GripHandle({ dragHandleProps, label }) {
   return (
     <div
       {...dragHandleProps}
-      className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 transition-colors"
+      aria-label={label}
+      className="relative z-10 shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 transition-colors"
       title="Arrastrar"
     >
       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -48,15 +51,28 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
   const dueSoon = isDueSoon(task.due_date)
   // Una urgente ya terminada (done) no debe alarmar
   const urgentBlink = task.priority === 'urgent' && !done && !overlay
+  const gripLabel = `Mover tarea: ${task.title}`
+
+  // El título es un botón real que cubre toda la tarjeta (.stretched-link):
+  // se abre con clic o con Tab + Enter. En la copia que se arrastra no hay botón.
+  // (line-clamp va en un <span>: aplicado al propio <button> no es fiable)
+  const title = (className) => onClick ? (
+    <p className={className}>
+      <button type="button" onClick={onClick} className="stretched-link block w-full text-left cursor-pointer">
+        <span className="line-clamp-2">{task.title}</span>
+      </button>
+    </p>
+  ) : (
+    <p className={className}><span className="line-clamp-2">{task.title}</span></p>
+  )
 
   if (compact) {
     return (
       <div
-        onClick={onClick}
-        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-slate-900/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/10 hover:border-white/30 hover:shadow-md active:scale-[0.98] relative ${urgentBlink ? 'animate-urgent' : ''}`}
+        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-slate-900/90 backdrop-blur-sm rounded-lg border-l-[3px] select-none transition-all duration-150 ${priority.border} border border-white/10 hover:border-white/30 hover:shadow-md active:scale-[0.98] relative ${urgentBlink ? 'animate-urgent' : ''}`}
       >
         <div className="flex items-center gap-2">
-          {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
+          {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} label={gripLabel} />}
           <div className={`w-2 h-2 rounded-full shrink-0 ${priority.dot}`} style={{ boxShadow: `0 0 5px ${priority.glow}` }} />
           <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${priority.text}`}>{priority.label}</span>
           {task.recurrence && (
@@ -71,15 +87,16 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
           )}
           {onDelete && (
             confirmingDelete ? (
-              <div className="ml-auto flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+              <div className="relative z-10 ml-auto flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                 <button onClick={() => onDelete()} className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-400 text-white rounded transition-colors">Sí</button>
                 <button onClick={() => setConfirmingDelete(false)} className="px-2 py-0.5 text-[10px] font-semibold bg-white/10 hover:bg-white/20 text-slate-300 rounded transition-colors">No</button>
               </div>
             ) : (
               <button
                 onClick={e => { e.stopPropagation(); setConfirmingDelete(true) }}
-                className="ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                className="relative z-10 ml-auto shrink-0 w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Eliminar tarea"
+                aria-label={`Eliminar tarea: ${task.title}`}
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -88,15 +105,14 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             )
           )}
         </div>
-        <p className="text-sm font-semibold text-white leading-snug line-clamp-2">{task.title}</p>
+        {title('text-sm font-semibold text-white leading-snug')}
       </div>
     )
   }
 
   return (
     <div
-      onClick={onClick}
-      className={`group/card relative bg-slate-900/90 backdrop-blur-sm rounded-xl border-l-[3px] cursor-pointer select-none
+      className={`group/card relative bg-slate-900/90 backdrop-blur-sm rounded-xl border-l-[3px] select-none
         transition-all duration-200
         ${priority.border}
         ${overlay
@@ -111,7 +127,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
             <div className={`w-2 h-2 rounded-full ${priority.dot}`} style={{ boxShadow: `0 0 6px ${priority.glow}` }} />
             <span className={`text-[10px] font-bold uppercase tracking-wide ${priority.text}`}>{priority.label}</span>
           </div>
-          <div className="ml-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
+          <div className="relative z-10 ml-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
             {onDelete && (
               confirmingDelete ? (
                 <div className="flex items-center gap-1">
@@ -123,6 +139,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
                   onClick={() => setConfirmingDelete(true)}
                   className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   title="Eliminar tarea"
+                  aria-label={`Eliminar tarea: ${task.title}`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -130,13 +147,11 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
                 </button>
               )
             )}
-            {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
+            {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} label={gripLabel} />}
           </div>
         </div>
 
-        <p className="text-sm font-semibold text-white leading-snug line-clamp-2 mb-2">
-          {task.title}
-        </p>
+        {title('text-sm font-semibold text-white leading-snug mb-2')}
 
         {task.description && (
           <p className="text-xs text-slate-400 mb-2.5 line-clamp-2 leading-relaxed">{task.description}</p>

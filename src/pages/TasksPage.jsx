@@ -201,7 +201,7 @@ function TasksContent({ project, projectId }) {
                 onChange={e => setNewColName(e.target.value)}
                 placeholder="Nombre de la columna..."
                 autoFocus
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
               />
               <div className="flex gap-2">
                 <button type="submit" disabled={savingCol || !newColName.trim()} className="flex-1 py-3 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50">

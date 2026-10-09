@@ -48,7 +48,7 @@ export default function GestionTable({ records, onEdit, onDelete }) {
               </td>
 
               <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
-                {r.posicion || <span className="text-slate-500">—</span>}
+                {r.posicion || <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4">
@@ -59,7 +59,7 @@ export default function GestionTable({ records, onEdit, onDelete }) {
                   >
                     {r.estado_candidatura}
                   </span>
-                ) : <span className="text-slate-500">—</span>}
+                ) : <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4">
@@ -70,7 +70,7 @@ export default function GestionTable({ records, onEdit, onDelete }) {
                       <span className="text-xs text-slate-400 bg-white/10 px-2 py-0.5 rounded-md">+{r.regiones.length - 1}</span>
                     )}
                   </div>
-                ) : <span className="text-slate-500">—</span>}
+                ) : <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4">
@@ -81,21 +81,21 @@ export default function GestionTable({ records, onEdit, onDelete }) {
                       <span className="text-xs text-violet-400 bg-violet-500/15 px-2 py-0.5 rounded-md">+{r.clinicas.length - 1}</span>
                     )}
                   </div>
-                ) : <span className="text-slate-500">—</span>}
+                ) : <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
-                {r.expectativas_salariales || <span className="text-slate-500">—</span>}
+                {r.expectativas_salariales || <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
                 {r.fecha_incorporacion
                   ? new Date(r.fecha_incorporacion + 'T00:00:00').toLocaleDateString('es-ES')
-                  : <span className="text-slate-500">—</span>}
+                  : <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
-                {r.preaviso || <span className="text-slate-500">—</span>}
+                {r.preaviso || <span className="text-slate-400">—</span>}
               </td>
 
               <td className="py-3 px-4">

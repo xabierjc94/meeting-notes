@@ -15,8 +15,9 @@ function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = f
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1 }}
       className={stretch ? 'h-full' : undefined}
-      {...attributes}
     >
+      {/* attributes (role, tabIndex…) y listeners van juntos en el asa: así el
+          asa se puede enfocar con Tab y arrastrar con el teclado */}
       <TaskCard
         task={task}
         onClick={() => onOpen(task)}
@@ -24,7 +25,7 @@ function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = f
         compact={compact}
         stretch={stretch}
         done={done}
-        dragHandleProps={{ ...listeners, style: { touchAction: 'none' } }}
+        dragHandleProps={{ ...attributes, ...listeners, style: { touchAction: 'none' } }}
       />
     </div>
   )
@@ -150,10 +151,10 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                   onChange={e => { setName(e.target.value); setColError(null) }}
                   onKeyDown={e => { if (e.key === 'Enter') saveColumn(); else if (e.key === 'Escape') cancelEdit() }}
                   autoFocus
-                  className="flex-1 text-sm font-semibold text-white bg-white/10 border border-white/20 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 placeholder-white/30"
+                  className="flex-1 text-sm font-semibold text-white bg-white/10 border border-white/20 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 placeholder-white/50"
                 />
                 <button onClick={saveColumn} className="text-xs text-violet-300 font-semibold hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">OK</button>
-                <button onClick={cancelEdit} className="text-xs text-white/40 font-semibold hover:text-white/70 px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">✕</button>
+                <button onClick={cancelEdit} className="text-xs text-white/60 font-semibold hover:text-white px-2 py-1 rounded-lg hover:bg-white/10 transition-colors">✕</button>
               </div>
               {colError && <p className="text-xs text-red-400 px-1">{colError}</p>}
               {showColorPicker && (
@@ -175,8 +176,9 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               {/* Drag handle — solo desktop */}
               <div
                 {...dragHandleProps}
-                className="hidden md:flex cursor-grab active:cursor-grabbing text-white/25 hover:text-white/60 transition-colors shrink-0 touch-none"
+                className="hidden md:flex cursor-grab active:cursor-grabbing text-white/50 hover:text-white transition-colors shrink-0 touch-none"
                 title="Arrastrar columna"
+                aria-label={`Mover columna: ${column.name}`}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
@@ -190,7 +192,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               {/* Expand — siempre visible */}
               <button
                 onClick={() => setExpanded(true)}
-                className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/70 hover:bg-white/10 transition-all md:opacity-0 md:group-hover:opacity-100 shrink-0"
+                className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all md:opacity-0 md:group-hover:opacity-100 shrink-0"
                 title="Expandir columna"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +202,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               {/* Editar y eliminar — solo desktop */}
               <button
                 onClick={() => setEditing(true)}
-                className="hidden md:flex w-7 h-7 items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                className="hidden md:flex w-7 h-7 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -214,7 +216,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               ) : (
                 <button
                   onClick={() => setConfirmDelete(true)}
-                  className="hidden md:flex w-7 h-7 items-center justify-center rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                  className="hidden md:flex w-7 h-7 items-center justify-center rounded-lg text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -240,7 +242,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 placeholder="Nombre de la tarea..."
                 autoFocus
                 onBlur={() => !newTitle && setAdding(false)}
-                className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/30"
+                className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/50"
               />
               <div className="flex gap-2 mt-2">
                 <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors active:scale-95">Añadir</button>
@@ -251,7 +253,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
             <div className="flex gap-1.5 mb-1 shrink-0">
               <button
                 onClick={() => setAdding(true)}
-                className="flex-1 flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
+                className="flex-1 flex items-center gap-2 text-white/60 hover:text-white text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
                 style={{ '--tw-bg-opacity': 0.08 }}
               >
                 <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,7 +263,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               </button>
               <button
                 onClick={() => openFullTask()}
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-white/30 hover:text-violet-300 hover:bg-violet-500/15 transition-all active:scale-95"
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-white/60 hover:text-violet-300 hover:bg-violet-500/15 transition-all active:scale-95"
                 title="Tarea completa"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,7 +295,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
           {isCompleted && hiddenCount > 0 && (
             <button
               onClick={loadMore}
-              className="w-full shrink-0 flex items-center justify-center gap-2 py-2 text-xs font-semibold text-white/40 hover:text-white/70 hover:bg-white/8 rounded-xl transition-all active:scale-95 border border-white/10 border-dashed"
+              className="w-full shrink-0 flex items-center justify-center gap-2 py-2 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/8 rounded-xl transition-all active:scale-95 border border-white/10 border-dashed"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -322,7 +324,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 {/* Editar columna — accesible desde el modal en móvil */}
                 <button
                   onClick={() => { setExpanded(false); setEditing(true) }}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg text-white/40 hover:text-white/70 hover:bg-white/10 transition-all shrink-0"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all shrink-0"
                   title="Editar columna"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +333,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 </button>
                 <button
                   onClick={() => { setExpanded(false); setExpandedAdding(false); setExpandedTitle('') }}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all shrink-0"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all shrink-0"
                   title="Cerrar (Esc)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -351,7 +353,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                     onChange={e => setExpandedTitle(e.target.value)}
                     placeholder="Nombre de la tarea..."
                     autoFocus
-                    className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/30"
+                    className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/50"
                   />
                   <div className="flex gap-2 mt-2">
                     <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors active:scale-95">Añadir</button>
@@ -362,7 +364,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 <div className="flex gap-1.5 mb-3">
                   <button
                     onClick={() => setExpandedAdding(true)}
-                    className="flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
+                    className="flex items-center gap-2 text-white/60 hover:text-white text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
                   >
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

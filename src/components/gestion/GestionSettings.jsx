@@ -150,7 +150,7 @@ export default function GestionSettings({ onClose }) {
                   value={newClinic}
                   onChange={e => setNewClinic(e.target.value)}
                   placeholder="Nombre de la clínica..."
-                  className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                  className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                 />
                 <button
                   type="submit"
@@ -219,7 +219,7 @@ export default function GestionSettings({ onClose }) {
                   value={newPosition}
                   onChange={e => setNewPosition(e.target.value)}
                   placeholder="Nombre de la posición..."
-                  className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                  className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                 />
                 <button
                   type="submit"
@@ -289,7 +289,7 @@ export default function GestionSettings({ onClose }) {
                     value={newStatus}
                     onChange={e => setNewStatus(e.target.value)}
                     placeholder="Nombre del estado..."
-                    className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                    className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                   />
                   <button
                     type="submit"

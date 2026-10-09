@@ -48,10 +48,10 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
         ) : projects.length === 0 ? (
           <div className="px-3 pt-8 text-center">
             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
-              <Icon d={ICONS.folder} className="w-8 h-8 text-slate-500" strokeWidth={1.5} />
+              <Icon d={ICONS.folder} className="w-8 h-8 text-slate-400" strokeWidth={1.5} />
             </div>
             <p className="text-sm font-medium text-slate-400">Sin proyectos todavía</p>
-            <p className="text-xs text-slate-500 mt-1.5">Crea tu primer proyecto con el botón de arriba</p>
+            <p className="text-xs text-slate-400 mt-1.5">Crea tu primer proyecto con el botón de arriba</p>
           </div>
         ) : (
           <nav aria-label="Proyectos" className="space-y-1">
@@ -67,7 +67,7 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
               >
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: project.color || '#6366f1' }} />
                 <span className="flex-1 min-w-0 truncate font-medium">{project.name}</span>
-                <span className="shrink-0 text-xs text-slate-500 tabular-nums">{taskCounts[project.id] ?? 0}</span>
+                <span className="shrink-0 text-xs text-slate-400 tabular-nums">{taskCounts[project.id] ?? 0}</span>
               </NavLink>
             ))}
           </nav>

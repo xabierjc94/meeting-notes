@@ -28,14 +28,15 @@ function TaskRow({ task, onOpen, onToggleDone, doneColumnId }) {
 
   return (
     <div
-      className={`flex items-center gap-3 px-3 sm:px-4 py-3.5 hover:bg-white/10 active:bg-white/15 rounded-xl cursor-pointer group transition-colors
+      className={`relative flex items-center gap-3 px-3 sm:px-4 py-3.5 hover:bg-white/10 active:bg-white/15 rounded-xl group transition-colors
         ${task.priority === 'urgent' && !isDone ? 'animate-urgent' : ''}`}
-      onClick={() => onOpen(task)}
     >
-      {/* Checkbox — larger touch target */}
+      {/* Checkbox — larger touch target (z-10: por encima del botón que cubre la fila) */}
       <button
         onClick={e => { e.stopPropagation(); onToggleDone(task, isDone) }}
-        className={`w-10 h-10 -ml-1 flex items-center justify-center shrink-0 rounded-xl transition-all active:scale-90
+        aria-label={isDone ? `Marcar como pendiente: ${task.title}` : `Marcar como completada: ${task.title}`}
+        aria-pressed={isDone}
+        className={`relative z-10 w-10 h-10 -ml-1 flex items-center justify-center shrink-0 rounded-xl transition-all active:scale-90
           ${isDone ? 'text-emerald-500' : 'text-slate-300 hover:text-violet-400'}`}
       >
         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
@@ -51,8 +52,11 @@ function TaskRow({ task, onOpen, onToggleDone, doneColumnId }) {
       {/* Title + meta (stacked on mobile) */}
       <div className="flex-1 min-w-0">
         <p className={`flex items-center gap-1.5 text-sm font-medium transition-colors
-          ${isDone ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-violet-300'}`}>
-          <span className="truncate">{task.title}</span>
+          ${isDone ? 'line-through text-slate-400' : 'text-slate-200 group-hover:text-violet-300'}`}>
+          {/* Botón real que cubre toda la fila (.stretched-link): clic o Tab + Enter */}
+          <button type="button" onClick={() => onOpen(task)} className="stretched-link min-w-0 text-left cursor-pointer">
+            <span className={`block truncate ${isDone ? 'line-through' : ''}`}>{task.title}</span>
+          </button>
           {task.recurrence && (
             <span className="shrink-0 text-violet-300" title={`Se repite: ${recurrenceLabel(task.recurrence)}`}>
               <RecurrenceIcon className="w-3.5 h-3.5" />
@@ -140,7 +144,7 @@ export default function ListView() {
       {/* Search + progress */}
       <div className="flex flex-col gap-3 mb-5">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -148,7 +152,7 @@ export default function ListView() {
             placeholder="Buscar tareas..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+            className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
           />
         </div>
         {totalTasks > 0 && (
@@ -159,7 +163,7 @@ export default function ListView() {
                 style={{ width: `${Math.round((doneTasks / totalTasks) * 100)}%` }}
               />
             </div>
-            <span className="text-xs text-slate-500 font-medium whitespace-nowrap shrink-0">{doneTasks}/{totalTasks} completadas</span>
+            <span className="text-xs text-slate-400 font-medium whitespace-nowrap shrink-0">{doneTasks}/{totalTasks} completadas</span>
           </div>
         )}
       </div>

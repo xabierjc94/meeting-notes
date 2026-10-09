@@ -150,7 +150,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
             autoFocus
             required
             rows={1}
-            className="w-full text-lg font-semibold text-white placeholder-white/30 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
+            className="w-full text-lg font-semibold text-white placeholder-white/50 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
           />
 
           {/* Description */}
@@ -160,7 +160,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
             value={form.description}
             onChange={e => { setForm({ ...form, description: e.target.value }); resizeDesc(e.target) }}
             rows={3}
-            className="w-full text-sm text-slate-300 placeholder-white/30 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
+            className="w-full text-sm text-slate-300 placeholder-white/50 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
           />
 
           {/* Column + Priority — stack on mobile */}
@@ -256,7 +256,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
                 onKeyDown={handleTagKeyDown}
                 onBlur={() => tagInput && addTag(tagInput)}
                 placeholder={form.tags.length === 0 ? 'Escribe y pulsa Enter...' : ''}
-                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-white placeholder-white/30"
+                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-white placeholder-white/50"
               />
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
               value={form.notes}
               onChange={e => { setForm({ ...form, notes: e.target.value }); resizeDesc(e.target) }}
               rows={2}
-              className="w-full text-sm text-slate-300 placeholder-white/30 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
+              className="w-full text-sm text-slate-300 placeholder-white/50 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
             />
           </div>
         </div>

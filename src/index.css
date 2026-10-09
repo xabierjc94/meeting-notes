@@ -145,3 +145,36 @@ option {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Foco de teclado visible (WCAG 2.4.7)
+   Muchos botones llevan outline-none: con ratón no se nota, pero con
+   el teclado (Tab) no se veía dónde estabas. :focus-visible solo se
+   activa con teclado, así que el clic con ratón no muestra el anillo.
+   Va fuera de las capas (@layer) de Tailwind a propósito: el CSS sin
+   capa gana a las utilidades como outline-none.
+   Los campos de texto no se incluyen: ya tienen su propio anillo.
+   ───────────────────────────────────────────────────────────── */
+:where(a[href], button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid #a78bfa; /* violet-400 */
+  outline-offset: 2px;
+}
+
+/* Tarjeta clicable entera ("stretched link"): el botón del título
+   extiende su zona de clic a toda la tarjeta con un ::after, así la
+   tarjeta se abre con ratón Y con teclado (Tab + Enter), sin anidar
+   botones dentro de otro botón. La tarjeta necesita position: relative
+   y sus otros botones, relative + z-10 para quedar por encima. */
+.stretched-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+}
+.stretched-link:focus-visible {
+  outline: none;
+}
+.stretched-link:focus-visible::after {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}

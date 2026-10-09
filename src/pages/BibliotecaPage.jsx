@@ -187,7 +187,7 @@ function FolderModal({ initial, onConfirm, onClose }) {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Ej: Contratos, Marketing, Proyectos..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400"
             />
           </div>
           <div>
@@ -375,14 +375,14 @@ function BibliotecaSidebarSection({
             }
             {importing ? 'Importando...' : 'Importar archivo'}
           </label>
-          <p className="text-center text-[10px] text-slate-600">Word · PDF · TXT</p>
+          <p className="text-center text-[10px] text-slate-400">Word · PDF · TXT</p>
         </div>
       </div>
 
       {/* Buscador */}
       <div className="px-5 pb-3">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -390,7 +390,7 @@ function BibliotecaSidebarSection({
             placeholder="Buscar documentos..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-9 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-9 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
           />
           {searchQuery && (
             <button
@@ -408,7 +408,7 @@ function BibliotecaSidebarSection({
 
       {/* Árbol de carpetas */}
       <div className="px-4 pb-2 flex-1 min-h-0 overflow-y-auto">
-        <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider mb-2 px-1">Ubicaciones</p>
+        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2 px-1">Ubicaciones</p>
 
         {/* Todos */}
         <button
@@ -423,7 +423,7 @@ function BibliotecaSidebarSection({
           </svg>
           <span className="flex-1 text-left">Todos los documentos</span>
           <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold
-            ${currentFolderId === null ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-500'}`}>
+            ${currentFolderId === null ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
             {documentos.length}
           </span>
         </button>
@@ -442,7 +442,7 @@ function BibliotecaSidebarSection({
               <span className="w-3.5 h-3.5 rounded-md shrink-0" style={{ backgroundColor: carpeta.color }} />
               <span className="flex-1 text-left truncate">{carpeta.name}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold
-                ${isActive ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-500'}`}>
+                ${isActive ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
                 {count}
               </span>
             </button>
@@ -450,7 +450,7 @@ function BibliotecaSidebarSection({
         })}
 
         {carpetas.length === 0 && (
-          <p className="text-[10px] text-slate-600 italic px-3 py-2">Sin carpetas aún</p>
+          <p className="text-[10px] text-slate-400 italic px-3 py-2">Sin carpetas aún</p>
         )}
       </div>
 
@@ -458,11 +458,11 @@ function BibliotecaSidebarSection({
       <div className="px-4 pb-4">
         <div className="bg-white/5 rounded-xl p-3 border border-white/8">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-slate-500">Total documentos</span>
+            <span className="text-xs text-slate-400">Total documentos</span>
             <span className="text-sm font-bold text-emerald-400">{totalDocs}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">Carpetas</span>
+            <span className="text-xs text-slate-400">Carpetas</span>
             <span className="text-sm font-bold text-teal-400">{carpetas.length}</span>
           </div>
         </div>
@@ -542,7 +542,7 @@ function DocumentsGrid({
           >
             Biblioteca
           </button>
-          <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <div className="flex items-center gap-1.5">

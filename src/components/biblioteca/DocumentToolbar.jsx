@@ -460,7 +460,7 @@ export default function DocumentToolbar({
                       onKeyDown={e => { if (e.key === 'Enter') applyCustomTextColor(textColorHex) }}
                       placeholder="#000000"
                       maxLength={7}
-                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
                     />
                     {textColorHex && (
                       <div className="w-5 h-5 rounded border border-white/10 shrink-0"
@@ -508,7 +508,7 @@ export default function DocumentToolbar({
                       onKeyDown={e => { if (e.key === 'Enter') applyCustomHighlight(highlightHex) }}
                       placeholder="#FEF08A"
                       maxLength={7}
-                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/30 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
                     />
                     <button
                       onMouseDown={e => { e.preventDefault(); applyCustomHighlight(highlightHex) }}
@@ -594,7 +594,7 @@ export default function DocumentToolbar({
                     onChange={e => setLinkUrl(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') setLink(); if (e.key === 'Escape') closeAll() }}
                     placeholder="https://..."
-                    className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
+                    className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded outline-none focus:border-violet-500"
                   />
                   <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500">OK</button>
                   <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-white/5 text-slate-400 rounded hover:bg-white/10 hover:text-white">✕</button>
@@ -629,7 +629,7 @@ export default function DocumentToolbar({
                         if (e.key === 'Escape') closeAll()
                       }}
                       placeholder="https://ejemplo.com/imagen.png"
-                      className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded outline-none focus:border-violet-500"
+                      className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded outline-none focus:border-violet-500"
                     />
                     <button
                       onMouseDown={e => {
