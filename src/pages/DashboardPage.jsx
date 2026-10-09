@@ -6,6 +6,7 @@ import MobileTopBar from '../components/layout/MobileTopBar'
 import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import NoteCard from '../components/notes/NoteCard'
+import UndoDeleteToast from '../components/notes/UndoDeleteToast'
 
 // El editor (TipTap) pesa ~120 KB: se descarga solo al abrir una nota
 const NoteEditor = lazy(() => import('../components/editor/NoteEditor'))
@@ -221,6 +222,8 @@ export default function DashboardPage() {
           <EmptyState stats={stats} onCreateNote={handleCreateNote} />
         )}
       </div>
+
+      <UndoDeleteToast />
     </div>
   )
 }

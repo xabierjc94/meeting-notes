@@ -20,6 +20,7 @@ import { Focus } from '@tiptap/extension-focus'
 import { supabase } from '../../lib/supabaseClient'
 import { useBiblioteca } from '../../context/BibliotecaContext'
 import { useDebounce } from '../../hooks/useDebounce'
+import { useAutosave } from '../../hooks/useAutosave'
 import DocumentToolbar from './DocumentToolbar'
 
 const PRINT_STYLES = `
@@ -91,7 +92,6 @@ function DocumentEditorInner({ initialData, onBack }) {
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
   const titleCommittedRef = useRef(false)
-  const [saveStatus, setSaveStatus] = useState('saved')
   const [lastSavedAt, setLastSavedAt] = useState(null)
   const [nowTick, setNowTick] = useState(0)
   const [showOutline, setShowOutline] = useState(false)
@@ -109,18 +109,17 @@ function DocumentEditorInner({ initialData, onBack }) {
   const [bubbleLinkMode, setBubbleLinkMode] = useState(false)
   const [bubbleLinkUrl, setBubbleLinkUrl] = useState('')
 
-  const save = useCallback(async (changes) => {
-    setSaveStatus('saving')
-    try {
+  // Mismo motor de autoguardado que las notas (acumula cambios, reintenta
+  // y guarda al ocultar/cerrar la pestaña), pero SIN copia en localStorage:
+  // un documento con imágenes incrustadas puede pesar varios MB y
+  // desbordaría el almacenamiento del navegador.
+  const { status: saveStatus, queue, flush, retryNow } = useAutosave({
+    save: async (changes) => {
       await updateDocumento(docId, changes)
-      setSaveStatus('saved')
       setLastSavedAt(Date.now())
-    } catch {
-      setSaveStatus('error')
-    }
-  }, [docId, updateDocumento])
-
-  const debouncedSave = useDebounce(save, 800)
+    },
+    delay: 800,
+  })
 
   const editor = useEditor({
     extensions: [
@@ -150,11 +149,13 @@ function DocumentEditorInner({ initialData, onBack }) {
     ],
     content: isHtmlImport ? initialData.content.html : (initialData.content || ''),
     onUpdate: ({ editor }) => {
-      setSaveStatus('unsaved')
-      debouncedSave({ content: editor.getJSON() })
+      queue({ content: editor.getJSON() })
     },
     onCreate: ({ editor }) => {
-      if (isHtmlImport) save({ content: editor.getJSON() })
+      if (isHtmlImport) {
+        queue({ content: editor.getJSON() })
+        flush()
+      }
     },
     editorProps: {
       attributes: {
@@ -341,7 +342,8 @@ xmlns="http://www.w3.org/TR/REC-html40">
     if (finalTitle === title) return
     setTitle(finalTitle)
     updateDocumentoLocal(docId, { title: finalTitle })
-    save({ title: finalTitle })
+    queue({ title: finalTitle })
+    flush()
   }
 
   const cancelTitleEdit = () => {
@@ -381,7 +383,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
     if (!content.includes(findText)) return
     const html = editor.getHTML().replaceAll(findText, replaceText)
     editor.commands.setContent(html)
-    debouncedSave({ content: editor.getJSON() })
+    queue({ content: editor.getJSON() })
   }
 
   const wordCount = editor ? editor.storage.characterCount?.words() ?? 0 : 0
@@ -443,7 +445,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <SaveIndicator status={saveStatus} savedAgo={savedAgo} />
+              <SaveIndicator status={saveStatus} savedAgo={savedAgo} onRetry={retryNow} />
               {/* Outline panel toggle */}
               <button
                 onClick={() => setShowOutline(v => !v)}
@@ -482,7 +484,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
           <div className="bg-black/50 backdrop-blur px-6 py-2 flex items-center justify-between shrink-0 border-b border-white/5">
             <span className="text-white/50 text-sm font-medium truncate">{title || 'Sin título'}</span>
             <div className="flex items-center gap-3">
-              <SaveIndicator status={saveStatus} savedAgo={savedAgo} />
+              <SaveIndicator status={saveStatus} savedAgo={savedAgo} onRetry={retryNow} />
               <button
                 onClick={() => setFocusMode(false)}
                 title="Salir del modo enfoque (ESC)"
@@ -858,7 +860,7 @@ function Ruler() {
 }
 
 /* ─── Save Indicator ─── */
-function SaveIndicator({ status, savedAgo }) {
+function SaveIndicator({ status, savedAgo, onRetry }) {
   const base = 'flex items-center gap-1.5 text-xs font-medium'
   if (status === 'saved') return (
     <span className={`${base} text-white/60`}>
@@ -868,7 +870,13 @@ function SaveIndicator({ status, savedAgo }) {
   )
   if (status === 'saving') return <span className={`${base} text-white/60`}><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Guardando...</span>
   if (status === 'unsaved') return <span className={`${base} text-yellow-300/80`}><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Sin guardar</span>
-  if (status === 'error') return <span className={`${base} text-red-300`}><span className="w-1.5 h-1.5 rounded-full bg-red-400" />Error</span>
+  if (status === 'offline') return <span role="status" className={`${base} text-yellow-300/80`}><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Sin conexión · no cierres la pestaña</span>
+  if (status === 'error') return (
+    <span role="status" className={`${base} text-red-300`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />No se pudo guardar
+      <button onClick={onRetry} className="underline underline-offset-2 hover:text-red-200">Reintentar</button>
+    </span>
+  )
   return null
 }
 

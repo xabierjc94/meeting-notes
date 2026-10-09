@@ -1,8 +1,20 @@
-import { createContext, useContext, useReducer, useEffect } from 'react'
+import { createContext, useContext, useReducer, useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { draftKey, clearDraft } from '../lib/drafts'
 import { useAuth } from './AuthContext'
 
 const NotesContext = createContext(null)
+
+// Tiempo durante el que se puede deshacer un borrado
+const UNDO_MS = 6000
+
+async function deleteNoteRemote(id) {
+  const { error } = await supabase.from('notes').delete().eq('id', id)
+  if (error) throw error
+  // La nota ya no existe: sus copias locales sobran
+  clearDraft(draftKey('note', id))
+  clearDraft(draftKey('note-conflict', id))
+}
 
 const initialState = {
   notes: [],
@@ -24,6 +36,15 @@ function notesReducer(state, action) {
 
     case 'ADD_NOTE':
       return { ...state, notes: [action.payload, ...state.notes] }
+
+    // Devuelve una nota a la lista en su sitio (orden por updated_at)
+    case 'RESTORE_NOTE': {
+      if (state.notes.some((n) => n.id === action.payload.id)) return state
+      const notes = [...state.notes, action.payload].sort((a, b) =>
+        (b.updated_at || '').localeCompare(a.updated_at || '')
+      )
+      return { ...state, notes }
+    }
 
     case 'DELETE_NOTE':
       return {
@@ -52,6 +73,11 @@ export function NotesProvider({ children }) {
   const [state, dispatch] = useReducer(notesReducer, initialState)
   const { user } = useAuth()
 
+  // Borrado pendiente de confirmar (ver "Borrado con Deshacer" más abajo)
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deleteError, setDeleteError] = useState(null)
+  const pendingDeleteRef = useRef(null)
+
   useEffect(() => {
     if (user) {
       fetchNotes()
@@ -69,7 +95,11 @@ export function NotesProvider({ children }) {
         .order('updated_at', { ascending: false })
 
       if (error) throw error
-      dispatch({ type: 'FETCH_SUCCESS', payload: data })
+      // Una nota en espera de borrarse no debe "resucitar" si se recarga la
+      // lista (p. ej. al renovarse la sesión): se podría abrir y escribir en
+      // ella justo antes de que el borrado se confirme
+      const pendingId = pendingDeleteRef.current?.note.id
+      dispatch({ type: 'FETCH_SUCCESS', payload: pendingId ? data.filter((n) => n.id !== pendingId) : data })
     } catch (err) {
       dispatch({ type: 'FETCH_ERROR', payload: err.message })
     }
@@ -95,19 +125,68 @@ export function NotesProvider({ children }) {
     }
   }
 
-  const deleteNote = async (id) => {
-    const previousNotes = state.notes
-    dispatch({ type: 'DELETE_NOTE', payload: id })
-
+  // ─────────────────────────────────────────────────────────────
+  // CONCEPTO: Borrado con "Deshacer"
+  //
+  // La nota desaparece de la lista al instante, pero el DELETE real
+  // se envía al servidor UNDO_MS después. Durante ese tiempo,
+  // "Deshacer" simplemente cancela el temporizador y la devuelve.
+  // Así no hace falta papelera ni cambiar la base de datos.
+  //
+  // Si se cierra la pestaña antes de tiempo, el borrado no llega a
+  // enviarse y la nota sigue existiendo: fallamos hacia el lado seguro.
+  // ─────────────────────────────────────────────────────────────
+  const commitDelete = async ({ note }) => {
     try {
-      const { error } = await supabase.from('notes').delete().eq('id', id)
-      if (error) throw error
+      await deleteNoteRemote(note.id)
     } catch (err) {
-      dispatch({ type: 'FETCH_SUCCESS', payload: previousNotes })
+      dispatch({ type: 'RESTORE_NOTE', payload: note })
+      setDeleteError(`No se pudo borrar "${note.title || 'Sin título'}". La hemos devuelto a la lista.`)
       console.error('Error borrando nota:', err.message)
-      throw err
     }
   }
+
+  const deleteNote = (id) => {
+    const note = state.notes.find((n) => n.id === id)
+    if (!note) return
+
+    // Si había otro borrado esperando, lo confirmamos ya
+    const previous = pendingDeleteRef.current
+    if (previous) {
+      clearTimeout(previous.timer)
+      commitDelete(previous)
+    }
+
+    const entry = { note, wasActive: state.activeNoteId === id }
+    entry.timer = setTimeout(() => {
+      pendingDeleteRef.current = null
+      setPendingDelete(null)
+      commitDelete(entry)
+    }, UNDO_MS)
+    pendingDeleteRef.current = entry
+    setPendingDelete(note)
+    setDeleteError(null)
+    dispatch({ type: 'DELETE_NOTE', payload: id })
+  }
+
+  const undoDelete = () => {
+    const entry = pendingDeleteRef.current
+    if (!entry) return
+    clearTimeout(entry.timer)
+    pendingDeleteRef.current = null
+    setPendingDelete(null)
+    dispatch({ type: 'RESTORE_NOTE', payload: entry.note })
+    // Solo la reabrimos si el usuario no ha abierto otra nota mientras tanto
+    if (entry.wasActive && !state.activeNoteId) dispatch({ type: 'SET_ACTIVE_NOTE', payload: entry.note.id })
+  }
+
+  // Si se sale de Notas con un borrado esperando, lo enviamos ya
+  useEffect(() => () => {
+    const entry = pendingDeleteRef.current
+    if (!entry) return
+    clearTimeout(entry.timer)
+    deleteNoteRemote(entry.note.id).catch((err) => console.error('Error borrando nota:', err.message))
+  }, [])
 
   const updateNote = async (id, changes) => {
     const { error } = await supabase
@@ -133,6 +212,10 @@ export function NotesProvider({ children }) {
     createNote,
     updateNote,
     deleteNote,
+    undoDelete,
+    pendingDelete,
+    deleteError,
+    clearDeleteError: () => setDeleteError(null),
     updateNoteLocal,
     setActiveNote,
   }
