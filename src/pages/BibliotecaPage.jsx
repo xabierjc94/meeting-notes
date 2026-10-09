@@ -619,9 +619,11 @@ export default function BibliotecaPage() {
     setSearchQuery('')
   }
 
-  // Elegir carpeta desde el menú: en móvil se cierra el drawer para ver el resultado
+  // Elegir carpeta desde el menú cierra el documento abierto (si no, el cambio
+  // no se ve) y, en móvil, el drawer. El autoguardado pendiente se completa igual.
   const handleSelectFolder = (id) => {
     setCurrentFolderId(id)
+    setActiveDoc(null)
     closeMobile()
   }
 

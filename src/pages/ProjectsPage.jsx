@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useProjects } from '../context/ProjectsContext'
 import MobileTopBar from '../components/layout/MobileTopBar'
 import Icon from '../components/ui/Icon'
@@ -61,14 +61,17 @@ export default function ProjectsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
   const [confirmProject, setConfirmProject] = useState(null)
+  const navigate = useNavigate()
 
+  // Igual que desde la barra lateral: al crear, se abre directamente el tablero nuevo
   const handleSave = async (data) => {
     if (editingProject) {
       await editProject(editingProject.id, data)
-    } else {
-      await addProject(data)
+      setEditingProject(null)
+      return
     }
-    setEditingProject(null)
+    const created = await addProject(data)
+    navigate(`/tasks/${created.id}`, { state: { project: created } })
   }
 
   const handleDelete = async () => {
