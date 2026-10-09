@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import RecurrenceIcon from './RecurrenceIcon'
+import { recurrenceLabel } from '../../lib/recurrence'
 
 const PRIORITY_CONFIG = {
   low:    { label: 'Baja',    dot: 'bg-emerald-400', text: 'text-emerald-400', border: 'border-l-emerald-400', glow: '#10b981' },
@@ -57,6 +59,11 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
           {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
           <div className={`w-2 h-2 rounded-full shrink-0 ${priority.dot}`} style={{ boxShadow: `0 0 5px ${priority.glow}` }} />
           <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${priority.text}`}>{priority.label}</span>
+          {task.recurrence && (
+            <span className="shrink-0 text-violet-300" title={`Se repite: ${recurrenceLabel(task.recurrence)}`}>
+              <RecurrenceIcon />
+            </span>
+          )}
           {task.due_date && (
             <span className={`ml-auto text-[10px] font-medium shrink-0 ${overdue ? 'text-red-400' : dueSoon ? 'text-orange-400' : 'text-slate-400'}`}>
               {overdue ? '⚠ ' : ''}{formatDate(task.due_date)}
@@ -148,12 +155,22 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
           </div>
         )}
 
-        {task.due_date && (
-          <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-400' : dueSoon ? 'text-orange-400' : 'text-slate-400'}`}>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {overdue ? '⚠ Vencida · ' : ''}{formatDate(task.due_date)}
+        {(task.due_date || task.recurrence) && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {task.due_date && (
+              <div className={`flex items-center gap-1 text-[11px] font-semibold ${overdue ? 'text-red-400' : dueSoon ? 'text-orange-400' : 'text-slate-400'}`}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {overdue ? '⚠ Vencida · ' : ''}{formatDate(task.due_date)}
+              </div>
+            )}
+            {task.recurrence && (
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-violet-300">
+                <RecurrenceIcon />
+                {recurrenceLabel(task.recurrence)}
+              </div>
+            )}
           </div>
         )}
       </div>

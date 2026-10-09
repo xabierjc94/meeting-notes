@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { useAuth } from './AuthContext'
 import {
   getColumns, createColumn, updateColumn, deleteColumn,
-  getTasks, createTask, updateTask, deleteTask, batchUpdateTaskPositions
+  getTasks, createTask, updateTask, deleteTask, batchUpdateTaskPositions, generateRecurringTasks
 } from '../lib/tasksApi'
 import { arrayMove } from '@dnd-kit/sortable'
 
@@ -18,12 +18,15 @@ export function TasksProvider({ children, projectId }) {
     if (!user || !projectId) return
     setLoading(true)
     try {
-      const [cols, tsks] = await Promise.all([
+      // En paralelo: si el generador ha creado copias de tareas recurrentes,
+      // volvemos a pedir las tareas (caso raro; el normal no espera nada extra)
+      const [cols, tsks, generated] = await Promise.all([
         getColumns(user.id, projectId),
-        getTasks(user.id, projectId)
+        getTasks(user.id, projectId),
+        generateRecurringTasks().catch(err => { console.warn('Tareas recurrentes:', err.message); return 0 }),
       ])
       setColumns(cols)
-      setTasks(tsks)
+      setTasks(generated > 0 ? await getTasks(user.id, projectId) : tsks)
     } finally {
       setLoading(false)
     }

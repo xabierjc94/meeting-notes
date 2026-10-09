@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useTasks } from '../../context/TasksContext'
 import TaskModal from './TaskModal'
+import RecurrenceIcon from './RecurrenceIcon'
+import { recurrenceLabel } from '../../lib/recurrence'
 
 const PRIORITY_CONFIG = {
   low:    { label: 'Baja',    class: 'bg-emerald-500/15 text-emerald-300' },
@@ -48,9 +50,14 @@ function TaskRow({ task, onOpen, onToggleDone, doneColumnId }) {
 
       {/* Title + meta (stacked on mobile) */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium truncate transition-colors
+        <p className={`flex items-center gap-1.5 text-sm font-medium transition-colors
           ${isDone ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-violet-300'}`}>
-          {task.title}
+          <span className="truncate">{task.title}</span>
+          {task.recurrence && (
+            <span className="shrink-0 text-violet-300" title={`Se repite: ${recurrenceLabel(task.recurrence)}`}>
+              <RecurrenceIcon className="w-3.5 h-3.5" />
+            </span>
+          )}
         </p>
         {/* Mobile meta row */}
         <div className="flex items-center gap-2 mt-0.5 sm:hidden">

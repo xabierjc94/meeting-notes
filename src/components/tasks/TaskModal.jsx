@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useTasks } from '../../context/TasksContext'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import DatePicker from '../ui/DatePicker'
+import RecurrenceIcon from './RecurrenceIcon'
+import { RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence'
 
 const PRIORITY_OPTIONS = [
   { value: 'low',    label: 'Baja',    color: 'text-emerald-300 bg-emerald-500/15' },
@@ -43,7 +45,10 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
     due_date: task?.due_date || '',
     tags: task?.tags || [],
     notes: task?.notes || '',
+    recurrence: task?.recurrence || '',
   })
+  // Las copias generadas por una serie no pueden iniciar otra serie
+  const isRecurringCopy = !!task?.recurrence_parent
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -61,9 +66,13 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
     if (!form.title.trim()) return
     setSaving(true)
     setError(null)
+    // recurrence solo se envía si ha cambiado: así editar una tarea normal
+    // no depende de que la columna exista en la base de datos
+    const { recurrence, ...rest } = form
+    const payload = recurrence !== (task?.recurrence || '') ? { ...rest, recurrence: recurrence || null } : rest
     try {
-      if (isEditing) await editTask(task.id, form)
-      else await addTask(form)
+      if (isEditing) await editTask(task.id, payload)
+      else await addTask(payload)
       onClose()
     } catch {
       setError('No se pudo guardar la tarea. Inténtalo de nuevo.')
@@ -182,16 +191,49 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
             </div>
           </div>
 
-          {/* Due date */}
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Fecha límite</label>
-            <DatePicker
-              value={form.due_date}
-              onChange={val => setForm({ ...form, due_date: val })}
-              placeholder="Sin fecha límite"
-              className="w-full"
-            />
+          {/* Due date + repetición */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                {form.recurrence ? 'Primera fecha' : 'Fecha límite'}
+              </label>
+              <DatePicker
+                value={form.due_date}
+                onChange={val => setForm({ ...form, due_date: val })}
+                placeholder={form.recurrence ? 'Hoy' : 'Sin fecha límite'}
+                className="w-full"
+              />
+            </div>
+            {!isRecurringCopy && (
+              <div>
+                <label htmlFor="task-recurrence" className="block text-xs font-medium text-slate-400 mb-1.5">Repetir</label>
+                <select
+                  id="task-recurrence"
+                  value={form.recurrence}
+                  onChange={e => setForm({ ...form, recurrence: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                >
+                  {RECURRENCE_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
+          {form.recurrence && !isRecurringCopy && (
+            <p className="flex items-start gap-1.5 -mt-2 text-xs text-slate-400">
+              <RecurrenceIcon className="w-3.5 h-3.5 mt-px shrink-0 text-violet-300" />
+              <span>
+                Se repite: {recurrenceLabel(form.recurrence).toLowerCase()}. En cada fecha aparecerá una copia en «{columns[0]?.name ?? 'la primera columna'}», aunque no hayas completado la anterior.
+              </span>
+            </p>
+          )}
+          {isRecurringCopy && (
+            <p className="flex items-center gap-1.5 -mt-2 text-xs text-slate-400">
+              <RecurrenceIcon className="w-3.5 h-3.5 shrink-0 text-violet-300" />
+              Copia creada por una tarea que se repite.
+            </p>
+          )}
 
           {/* Tags */}
           <div>

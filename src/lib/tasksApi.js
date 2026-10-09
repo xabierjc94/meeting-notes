@@ -57,6 +57,15 @@ export async function getTasks(userId, projectId) {
   return data
 }
 
+// Crea en el servidor las copias de tareas recurrentes que tocan hoy (solo
+// las del usuario conectado). El cron diario hace lo mismo; llamarlo al abrir
+// un tablero evita esperar al cron. Devuelve cuántas tareas ha creado.
+export async function generateRecurringTasks() {
+  const { data, error } = await supabase.rpc('generate_my_recurring_tasks')
+  if (error) throw error
+  return data ?? 0
+}
+
 export async function createTask(userId, data) {
   const { data: task, error } = await supabase
     .from('tasks')
