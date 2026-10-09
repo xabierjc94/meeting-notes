@@ -17,7 +17,96 @@ function getInitials(name, email) {
   return email ? email.slice(0, 2).toUpperCase() : 'UN'
 }
 
-function SidebarContent({ greeting, userName, user, notes, loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, creating, handleSignOut, getInitials }) {
+const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
+
+const ICONS = {
+  note: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+  tasks: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+  library: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z',
+  plus: 'M12 4v16m8-8H4',
+  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  signOut: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1',
+  collapse: 'M11 19l-7-7 7-7m8 14l-7-7 7-7',
+  expand: 'M13 5l7 7-7 7M5 5l7 7-7 7',
+}
+
+function Icon({ d, className = 'w-4 h-4' }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
+    </svg>
+  )
+}
+
+function readCollapsed() {
+  try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1' } catch { return false }
+}
+
+function SidebarRail({ user, onExpand, onSearch, handleCreateNote, creating, handleSignOut, getInitials }) {
+  const railButton = 'w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all'
+  return (
+    <div className="w-[72px] h-full flex flex-col items-center bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden pt-7 pb-4">
+      <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col items-center gap-2 w-full">
+        <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30 ring-1 ring-violet-400/30 mb-2">
+          <Icon d={ICONS.note} className="w-5 h-5 text-white" />
+        </div>
+        <button onClick={onExpand} className={railButton} title="Desplegar menú" aria-label="Desplegar menú" aria-expanded={false}>
+          <Icon d={ICONS.expand} />
+        </button>
+
+        <div className="w-8 h-px bg-white/10 my-2" />
+
+        <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white" title="Notas">
+          <Icon d={ICONS.note} />
+        </div>
+        <Link to="/tasks" className={railButton} title="Tareas" aria-label="Tareas">
+          <Icon d={ICONS.tasks} />
+        </Link>
+        <Link to="/biblioteca" className={railButton} title="Biblioteca" aria-label="Biblioteca">
+          <Icon d={ICONS.library} />
+        </Link>
+
+        <div className="w-8 h-px bg-white/10 my-2" />
+
+        <button
+          onClick={handleCreateNote}
+          disabled={creating}
+          title="Nueva nota"
+          aria-label="Nueva nota"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 active:scale-95"
+        >
+          {creating
+            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            : <Icon d={ICONS.plus} />}
+        </button>
+        <button onClick={onSearch} className={railButton} title="Buscar notas" aria-label="Buscar notas">
+          <Icon d={ICONS.search} />
+        </button>
+      </div>
+
+      <div className="relative z-10 mt-auto flex flex-col items-center gap-2 pt-4 border-t border-white/10 w-full">
+        <div
+          className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center border border-violet-400/20"
+          title={user?.email}
+        >
+          <span className="text-xs font-bold text-violet-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+          title="Cerrar sesión"
+          aria-label="Cerrar sesión"
+        >
+          <Icon d={ICONS.signOut} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function SidebarContent({ greeting, userName, user, loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, creating, handleSignOut, getInitials, onCollapse, autoFocusSearch = false, collapseLabel = 'Plegar menú' }) {
   return (
     <div className="w-80 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
       {/* Decorative gradient orbs */}
@@ -34,6 +123,17 @@ function SidebarContent({ greeting, userName, user, notes, loading, error, filte
             </svg>
           </div>
           <span className="font-bold text-white text-lg tracking-tight">MeetingNotes</span>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="ml-auto shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+              title={collapseLabel}
+              aria-label={collapseLabel}
+              aria-expanded={true}
+            >
+              <Icon d={ICONS.collapse} />
+            </button>
+          )}
         </div>
 
         <div className="mb-4">
@@ -88,6 +188,7 @@ function SidebarContent({ greeting, userName, user, notes, loading, error, filte
           </svg>
           <input
             type="text"
+            autoFocus={autoFocusSearch}
             placeholder="Buscar notas..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -177,6 +278,13 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(readCollapsed)
+  const [focusSearch, setFocusSearch] = useState(false)
+
+  const setCollapsedPersisted = (value) => {
+    setCollapsed(value)
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0') } catch { /* sin storage: solo dura la sesión */ }
+  }
 
   const handleSignOut = async () => {
     try { await signOut() } catch (err) { console.error(err) }
@@ -216,29 +324,40 @@ export default function DashboardPage() {
   const greeting = getGreeting()
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
 
-  const sidebarContent = (
-    <SidebarContent
-      greeting={greeting}
-      userName={userName}
-      user={user}
-      notes={notes}
-      loading={loading}
-      error={error}
-      filteredNotes={filteredNotes}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      handleCreateNote={handleCreateNote}
-      creating={creating}
-      handleSignOut={handleSignOut}
-      getInitials={getInitials}
-    />
-  )
+  const sidebarProps = {
+    greeting,
+    userName,
+    user,
+    loading,
+    error,
+    filteredNotes,
+    searchQuery,
+    setSearchQuery,
+    handleCreateNote,
+    creating,
+    handleSignOut,
+    getInitials,
+  }
 
   return (
     <div className="flex h-dvh bg-slate-950 overflow-hidden">
-      {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex flex-col shrink-0 animate-slideInLeft">
-        {sidebarContent}
+      {/* DESKTOP SIDEBAR — el ancho se anima; el contenido mantiene su ancho fijo y se recorta */}
+      <aside
+        className={`hidden md:flex flex-col shrink-0 overflow-hidden border-r border-white/5 transition-[width] duration-300 ease-out animate-slideInLeft ${collapsed ? 'w-[72px]' : 'w-80'}`}
+      >
+        {collapsed ? (
+          <SidebarRail
+            {...sidebarProps}
+            onExpand={() => { setFocusSearch(false); setCollapsedPersisted(false) }}
+            onSearch={() => { setFocusSearch(true); setCollapsedPersisted(false) }}
+          />
+        ) : (
+          <SidebarContent
+            {...sidebarProps}
+            autoFocusSearch={focusSearch}
+            onCollapse={() => setCollapsedPersisted(true)}
+          />
+        )}
       </aside>
 
       {/* MOBILE SIDEBAR OVERLAY */}
@@ -249,7 +368,11 @@ export default function DashboardPage() {
             onClick={() => setSidebarOpen(false)}
           />
           <div className="fixed inset-y-0 left-0 z-50 md:hidden animate-slideInLeft">
-            {sidebarContent}
+            <SidebarContent
+              {...sidebarProps}
+              onCollapse={() => setSidebarOpen(false)}
+              collapseLabel="Cerrar menú"
+            />
           </div>
         </>
       )}
