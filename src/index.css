@@ -26,6 +26,22 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Los controles nativos (listas de <select>, calendarios, barras de scroll) los
+   dibuja el sistema operativo: sin esto salen en modo claro sobre la app oscura. */
+:root {
+  color-scheme: dark;
+}
+
+/* La hoja del editor de Biblioteca es blanca y se exporta así a PDF/Word */
+.doc-print-area {
+  color-scheme: light;
+}
+
+option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
 ::selection {
   background-color: #c4b5fd;
   color: #1e1b4b;
