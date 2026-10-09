@@ -1,7 +1,11 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../context/AuthContext'
 import { useBiblioteca } from '../context/BibliotecaContext'
+import { useAppSidebar } from '../components/layout/AppSidebarContext'
+import MobileTopBar from '../components/layout/MobileTopBar'
+import Icon from '../components/ui/Icon'
+import { ICONS } from '../components/ui/icons'
 import DocumentGridCard from '../components/biblioteca/DocumentGridCard'
 import DocumentEditor from '../components/biblioteca/DocumentEditor'
 import DocumentPreviewModal from '../components/biblioteca/DocumentPreviewModal'
@@ -14,18 +18,6 @@ const FOLDER_COLORS = [
   '#ec4899', '#ef4444', '#f97316', '#eab308',
   '#84cc16', '#14b8a6', '#6366f1', '#64748b',
 ]
-
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 18) return 'Buenas tardes'
-  return 'Buenas noches'
-}
-
-function getInitials(name, email) {
-  if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  return email ? email.slice(0, 2).toUpperCase() : 'UN'
-}
 
 // ─── Plantillas de documento (TipTap JSON) ────────────────────────
 // Niveles de encabezado = los mismos que produce el botón T1 del toolbar (level 1).
@@ -296,52 +288,50 @@ function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
   )
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────
-function Sidebar({
-  greeting, userName, user,
-  handleCreateDoc, creating,
-  onFileChange, importing,
-  handleSignOut,
+// ─── Acciones rápidas del rail (menú plegado) ─────────────────────
+function BibliotecaRailActions({ handleCreateDoc, creating, importing }) {
+  const busy = creating || importing
+  return (
+    <>
+      <button
+        onClick={handleCreateDoc}
+        disabled={busy}
+        title="Nuevo documento"
+        aria-label="Nuevo documento"
+        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+      >
+        {creating
+          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          : <Icon d={ICONS.plus} />}
+      </button>
+      <label
+        htmlFor="biblioteca-file-input"
+        title="Importar documento"
+        aria-label="Importar documento"
+        className={`w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all
+                    ${busy ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+      >
+        {importing
+          ? <div className="w-4 h-4 border-2 border-white/30 border-t-emerald-400 rounded-full animate-spin" />
+          : <Icon d={ICONS.upload} />}
+      </label>
+    </>
+  )
+}
+
+// ─── Sección de la barra lateral (se pinta dentro del marco común) ─
+function BibliotecaSidebarSection({
+  handleCreateDoc, creating, importing,
   searchQuery, setSearchQuery,
   totalDocs,
   carpetas, documentos,
-  currentFolderId, setCurrentFolderId,
+  currentFolderId, onSelectFolder,
   onCreateFolder,
 }) {
   return (
-    <div className="w-72 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden shrink-0">
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 -left-16 w-36 h-36 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Header */}
-      <div className="relative z-10 px-5 pt-6 pb-4">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-            </svg>
-          </div>
-          <span className="font-bold text-white text-base tracking-tight">MeetingNotes</span>
-        </div>
-
-        <p className="text-xs text-emerald-300/60 font-medium mb-1">{greeting}, {userName}</p>
-        <h2 className="text-white font-semibold text-sm mb-4">Tu biblioteca</h2>
-
-        {/* Navegación app */}
-        <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
-          <Link to="/dashboard" title="Notas" className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            <span className="text-[10px] font-semibold">Notas</span>
-          </Link>
-          <Link to="/tasks" title="Tareas" className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-            <span className="text-[10px] font-semibold">Tareas</span>
-          </Link>
-          <div title="Biblioteca" className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg bg-white/10 text-white">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
-            <span className="text-[10px] font-semibold">Biblioteca</span>
-          </div>
-        </div>
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="px-6 pb-4">
+        <h2 className="text-white font-semibold text-sm mb-3">Tu biblioteca</h2>
 
         {/* Botones acción */}
         <div className="space-y-2">
@@ -383,13 +373,12 @@ function Sidebar({
             }
             {importing ? 'Importando...' : 'Importar archivo'}
           </label>
-          <input id="biblioteca-file-input" type="file" accept=".docx,.doc,.pdf,.txt,.md" className="hidden" onChange={onFileChange} disabled={creating || importing} />
           <p className="text-center text-[10px] text-slate-600">Word · PDF · TXT</p>
         </div>
       </div>
 
       {/* Buscador */}
-      <div className="relative z-10 px-4 pb-3">
+      <div className="px-5 pb-3">
         <div className="relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -416,12 +405,12 @@ function Sidebar({
       </div>
 
       {/* Árbol de carpetas */}
-      <div className="relative z-10 px-4 pb-2 flex-1 overflow-y-auto">
+      <div className="px-4 pb-2 flex-1 min-h-0 overflow-y-auto">
         <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider mb-2 px-1">Ubicaciones</p>
 
         {/* Todos */}
         <button
-          onClick={() => setCurrentFolderId(null)}
+          onClick={() => onSelectFolder(null)}
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all mb-0.5
             ${currentFolderId === null
               ? 'bg-white/12 text-white'
@@ -444,7 +433,7 @@ function Sidebar({
           return (
             <button
               key={carpeta.id}
-              onClick={() => setCurrentFolderId(carpeta.id)}
+              onClick={() => onSelectFolder(carpeta.id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all mb-0.5
                 ${isActive ? 'bg-white/12 text-white' : 'text-slate-400 hover:bg-white/6 hover:text-slate-200'}`}
             >
@@ -464,7 +453,7 @@ function Sidebar({
       </div>
 
       {/* Stats */}
-      <div className="relative z-10 px-4 pb-4">
+      <div className="px-4 pb-4">
         <div className="bg-white/5 rounded-xl p-3 border border-white/8">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs text-slate-500">Total documentos</span>
@@ -474,24 +463,6 @@ function Sidebar({
             <span className="text-xs text-slate-500">Carpetas</span>
             <span className="text-sm font-bold text-teal-400">{carpetas.length}</span>
           </div>
-        </div>
-      </div>
-
-      {/* Footer usuario */}
-      <div className="relative z-10 border-t border-white/10 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-xl flex items-center justify-center shrink-0 border border-emerald-400/20">
-              <span className="text-[10px] font-bold text-emerald-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-200 truncate">{user?.user_metadata?.full_name || 'Usuario'}</p>
-              <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button onClick={handleSignOut} className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Cerrar sesión">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          </button>
         </div>
       </div>
     </div>
@@ -623,18 +594,18 @@ function DocumentsGrid({
 
 // ─── Página principal ─────────────────────────────────────────────
 export default function BibliotecaPage() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const {
     documentos, carpetas, loading, error, activeDocId,
     createDocumento, setActiveDoc,
     createCarpeta, updateCarpeta, deleteCarpeta,
   } = useBiblioteca()
+  const { panelEl, railEl, closeMobile } = useAppSidebar()
 
   const [creating, setCreating]         = useState(false)
   const [importing, setImporting]       = useState(false)
   const [importError, setImportError]   = useState(null)
   const [searchQuery, setSearchQuery]   = useState('')
-  const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [pendingFile, setPendingFile]   = useState(null)
   const [previewData, setPreviewData]   = useState(null)
   const [viewingDoc, setViewingDoc]     = useState(null)
@@ -648,12 +619,22 @@ export default function BibliotecaPage() {
     setSearchQuery('')
   }
 
-  const handleSignOut = async () => {
-    try { await signOut() } catch (err) { console.error(err) }
+  // Elegir carpeta desde el menú: en móvil se cierra el drawer para ver el resultado
+  const handleSelectFolder = (id) => {
+    setCurrentFolderId(id)
+    closeMobile()
   }
 
-  // "Nuevo documento" abre el selector de plantillas
-  const handleCreateDoc = () => setShowTemplateModal(true)
+  // "Nuevo documento" abre el selector de plantillas (cerrando antes el drawer móvil)
+  const handleCreateDoc = () => {
+    closeMobile()
+    setShowTemplateModal(true)
+  }
+
+  const handleOpenCreateFolder = () => {
+    closeMobile()
+    setFolderModal('create')
+  }
 
   const handleCreateFromTemplate = async (tpl) => {
     setCreating(true)
@@ -665,13 +646,15 @@ export default function BibliotecaPage() {
         : { folder_id: currentFolderId })
       setShowTemplateModal(false)
     } catch (err) { console.error(err) } finally { setCreating(false) }
-    setSidebarOpen(false)
+    closeMobile()
   }
 
   const handleFileSelected = async (e) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+    // Ya hay archivo: cerrar el drawer móvil para que el modal de preview quede a la vista
+    closeMobile()
     if (!isSupportedFile(file)) { setImportError('Formato no soportado.'); return }
     setPendingFile(file)
     setPreviewData({ type: 'loading' })
@@ -707,7 +690,7 @@ export default function BibliotecaPage() {
       await createDocumento({ title, content, file_name: pendingFile.name, file_path: storagePath, folder_id: currentFolderId })
       setPendingFile(null)
       setPreviewData(null)
-      setSidebarOpen(false)
+      closeMobile()
     } catch (err) {
       console.error('Error importando:', err)
       setImportError(err.message || 'Error al importar.')
@@ -752,33 +735,32 @@ export default function BibliotecaPage() {
     return documentos.filter(d => !d.folder_id)
   }, [documentos, searchQuery, currentFolderId])
 
-  const greeting  = getGreeting()
-  const userName  = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
-  const activeDoc = documentos.find(d => d.id === activeDocId) ?? null
-
-  const sidebarEl = (
-    <Sidebar
-      greeting={greeting}
-      userName={userName}
-      user={user}
-      handleCreateDoc={handleCreateDoc}
-      creating={creating}
-      onFileChange={handleFileSelected}
-      importing={importing}
-      handleSignOut={handleSignOut}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      totalDocs={documentos.length}
-      carpetas={carpetas}
-      documentos={documentos}
-      currentFolderId={currentFolderId}
-      setCurrentFolderId={setCurrentFolderId}
-      onCreateFolder={() => setFolderModal('create')}
-    />
-  )
-
   return (
-    <div className="flex h-dvh bg-slate-950 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0">
+      {panelEl && createPortal(
+        <BibliotecaSidebarSection
+          handleCreateDoc={handleCreateDoc}
+          creating={creating}
+          importing={importing}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          totalDocs={documentos.length}
+          carpetas={carpetas}
+          documentos={documentos}
+          currentFolderId={currentFolderId}
+          onSelectFolder={handleSelectFolder}
+          onCreateFolder={handleOpenCreateFolder}
+        />,
+        panelEl
+      )}
+      {railEl && createPortal(
+        <BibliotecaRailActions handleCreateDoc={handleCreateDoc} creating={creating} importing={importing} />,
+        railEl
+      )}
+
+      {/* Input de archivo único: fuera de la sección para que exista también con el menú plegado.
+          Lo usan el label de la sección, el del rail y el botón Importar del estado vacío */}
+      <input id="biblioteca-file-input" type="file" accept=".docx,.doc,.pdf,.txt,.md" className="hidden" onChange={handleFileSelected} disabled={creating || importing} />
 
       {/* Modal selector de plantilla */}
       {showTemplateModal && (
@@ -826,65 +808,58 @@ export default function BibliotecaPage() {
         </div>
       )}
 
-      {/* Sidebar desktop */}
-      <aside className="hidden md:flex flex-col animate-slideInLeft">{sidebarEl}</aside>
-
-      {/* Sidebar mobile */}
-      {sidebarOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
-          <div className="fixed inset-y-0 left-0 z-50 md:hidden animate-slideInLeft">{sidebarEl}</div>
-        </>
-      )}
-
-      {/* Área principal */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Mobile top bar */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-black/20 backdrop-blur-sm border-b border-white/10 shrink-0">
-          <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+      <MobileTopBar
+        action={
+          <button
+            onClick={handleCreateDoc}
+            disabled={creating}
+            aria-label="Nuevo documento"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white"
+          >
+            {creating
+              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              : <Icon d={ICONS.plus} className="w-5 h-5" />
+            }
           </button>
-          {activeDocId
-            ? <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-emerald-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                Documentos
-              </button>
-            : <span className="font-bold text-white text-sm">
-                {carpetas.find(c => c.id === currentFolderId)?.name || 'Biblioteca'}
-              </span>
-          }
-          <button onClick={handleCreateDoc} disabled={creating} className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-            {creating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
-          </button>
-        </header>
+        }
+      >
+        {activeDocId
+          ? <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-emerald-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              Documentos
+            </button>
+          : <span className="font-bold text-white text-sm">
+              {carpetas.find(c => c.id === currentFolderId)?.name || 'Biblioteca'}
+            </span>
+        }
+      </MobileTopBar>
 
-        {/* Contenido */}
-        <div className="flex-1 min-h-0 overflow-hidden bg-slate-950">
-          {activeDocId ? (
-            <div className="h-full animate-fadeIn">
-              <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />
-            </div>
-          ) : (
-            <DocumentsGrid
-              documentos={filteredDocs}
-              allDocumentos={documentos}
-              carpetas={carpetas}
-              loading={loading}
-              error={error}
-              searchQuery={searchQuery}
-              currentFolderId={currentFolderId}
-              setCurrentFolderId={setCurrentFolderId}
-              onOpen={id => setActiveDoc(id)}
-              onPreview={doc => setViewingDoc(doc)}
-              onCreateDoc={handleCreateDoc}
-              onImport={() => document.getElementById('biblioteca-file-input')?.click()}
-              onCreateFolder={() => setFolderModal('create')}
-              onRenameFolder={carpeta => setFolderModal(carpeta)}
-              onDeleteFolder={handleDeleteFolder}
-            />
-          )}
-        </div>
-      </main>
+      {/* Contenido */}
+      <div className="flex-1 min-h-0 overflow-hidden bg-slate-950">
+        {activeDocId ? (
+          <div className="h-full animate-fadeIn">
+            <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />
+          </div>
+        ) : (
+          <DocumentsGrid
+            documentos={filteredDocs}
+            allDocumentos={documentos}
+            carpetas={carpetas}
+            loading={loading}
+            error={error}
+            searchQuery={searchQuery}
+            currentFolderId={currentFolderId}
+            setCurrentFolderId={setCurrentFolderId}
+            onOpen={id => setActiveDoc(id)}
+            onPreview={doc => setViewingDoc(doc)}
+            onCreateDoc={handleCreateDoc}
+            onImport={() => document.getElementById('biblioteca-file-input')?.click()}
+            onCreateFolder={() => setFolderModal('create')}
+            onRenameFolder={carpeta => setFolderModal(carpeta)}
+            onDeleteFolder={handleDeleteFolder}
+          />
+        )}
+      </div>
     </div>
   )
 }
