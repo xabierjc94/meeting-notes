@@ -26,7 +26,8 @@ function TaskRow({ task, onOpen, onToggleDone, doneColumnId }) {
 
   return (
     <div
-      className="flex items-center gap-3 px-3 sm:px-4 py-3.5 hover:bg-white/10 active:bg-white/15 rounded-xl cursor-pointer group transition-colors"
+      className={`flex items-center gap-3 px-3 sm:px-4 py-3.5 hover:bg-white/10 active:bg-white/15 rounded-xl cursor-pointer group transition-colors
+        ${task.priority === 'urgent' && !isDone ? 'animate-urgent' : ''}`}
       onClick={() => onOpen(task)}
     >
       {/* Checkbox — larger touch target */}

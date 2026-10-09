@@ -39,17 +39,19 @@ function GripHandle({ dragHandleProps }) {
   )
 }
 
-export default function TaskCard({ task, onClick, onDelete, overlay, compact = false, stretch = false, dragHandleProps = null }) {
+export default function TaskCard({ task, onClick, onDelete, overlay, compact = false, stretch = false, done = false, dragHandleProps = null }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium
   const overdue = isOverdue(task.due_date)
   const dueSoon = isDueSoon(task.due_date)
+  // Una urgente ya terminada (done) no debe alarmar
+  const urgentBlink = task.priority === 'urgent' && !done && !overlay
 
   if (compact) {
     return (
       <div
         onClick={onClick}
-        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-slate-900/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/10 hover:border-white/30 hover:shadow-md active:scale-[0.98] relative`}
+        className={`${stretch ? 'h-full' : ''} group/card flex flex-col justify-center gap-1 px-3 py-2 bg-slate-900/90 backdrop-blur-sm rounded-lg border-l-[3px] cursor-pointer select-none transition-all duration-150 ${priority.border} border border-white/10 hover:border-white/30 hover:shadow-md active:scale-[0.98] relative ${urgentBlink ? 'animate-urgent' : ''}`}
       >
         <div className="flex items-center gap-2">
           {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} />}
@@ -93,7 +95,8 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
         ${overlay
           ? 'rotate-2 shadow-2xl shadow-black/40 scale-105 border border-white/40'
           : 'border border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 active:scale-[0.98] active:shadow-sm'
-        }`}
+        }
+        ${urgentBlink ? 'animate-urgent' : ''}`}
     >
       <div className="p-3.5">
         <div className="flex items-start gap-2 mb-2">

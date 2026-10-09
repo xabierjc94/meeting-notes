@@ -8,7 +8,7 @@ import TaskModal from './TaskModal'
 
 const COLORS = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#64748b']
 
-function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = false }) {
+function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = false, done = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
   return (
     <div
@@ -23,6 +23,7 @@ function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = f
         onDelete={onDelete}
         compact={compact}
         stretch={stretch}
+        done={done}
         dragHandleProps={{ ...listeners, style: { touchAction: 'none' } }}
       />
     </div>
@@ -277,13 +278,13 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 style={{ gridTemplateRows: `repeat(${visibleTasks.length}, 1fr)` }}
               >
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact stretch />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact stretch done />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {visibleTasks.map(task => (
-                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact={isCompleted} />
+                  <SortableTaskCard key={task.id} task={task} onOpen={onOpenTask} onDelete={async () => { await removeTask(task.id); onTaskDeleted?.(task.title) }} compact={isCompleted} done={isCompleted} />
                 ))}
               </div>
             )}
@@ -373,7 +374,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {tasks.map(task => (
-                  <TaskCard key={task.id} task={task} onClick={() => onOpenTask(task)} />
+                  <TaskCard key={task.id} task={task} onClick={() => onOpenTask(task)} done={isCompleted} />
                 ))}
               </div>
             </div>
