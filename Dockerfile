@@ -16,9 +16,9 @@ RUN npm ci
 
 COPY . .
 
-# Sin estas variables el build "funciona" pero la app sale rota en el navegador.
-RUN test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_ANON_KEY" \
-  || (echo "ERROR: faltan VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY como build args" && exit 1)
+# Con variables ausentes o mal pegadas el build "funciona" pero la app sale
+# rota en el navegador. Aqui se para el build con un mensaje claro.
+RUN node scripts/check-supabase-env.mjs
 
 RUN npm run build
 
