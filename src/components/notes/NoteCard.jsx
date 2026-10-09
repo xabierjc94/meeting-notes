@@ -20,7 +20,7 @@ function timeAgo(isoString) {
   return formatDate(isoString)
 }
 
-export default function NoteCard({ note, variant = 'light' }) {
+export default function NoteCard({ note, variant = 'light', onSelect }) {
   const { activeNoteId, setActiveNote, deleteNote } = useNotes()
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -41,7 +41,7 @@ export default function NoteCard({ note, variant = 'light' }) {
 
   return (
     <div
-      onClick={() => setActiveNote(note.id)}
+      onClick={() => { setActiveNote(note.id); onSelect?.() }}
       className={`
         group relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
         ${isActive

@@ -1,168 +1,44 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { createPortal } from 'react-dom'
 import { useNotes } from '../context/NotesContext'
+import { useAppSidebar } from '../components/layout/AppSidebarContext'
+import MobileTopBar from '../components/layout/MobileTopBar'
+import Icon from '../components/ui/Icon'
+import { ICONS } from '../components/ui/icons'
 import NoteCard from '../components/notes/NoteCard'
 import NoteEditor from '../components/editor/NoteEditor'
 
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Buenos días'
-  if (hour < 18) return 'Buenas tardes'
-  return 'Buenas noches'
-}
-
-function getInitials(name, email) {
-  if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  return email ? email.slice(0, 2).toUpperCase() : 'UN'
-}
-
-const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
-
-const ICONS = {
-  note: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-  tasks: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-  library: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z',
-  plus: 'M12 4v16m8-8H4',
-  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-  signOut: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1',
-  collapse: 'M11 19l-7-7 7-7m8 14l-7-7 7-7',
-  expand: 'M13 5l7 7-7 7M5 5l7 7-7 7',
-}
-
-function Icon({ d, className = 'w-4 h-4' }) {
+function NotesRailActions({ handleCreateNote, creating, onSearch }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
-    </svg>
+    <>
+      <button
+        onClick={handleCreateNote}
+        disabled={creating}
+        title="Nueva nota"
+        aria-label="Nueva nota"
+        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 active:scale-95"
+      >
+        {creating
+          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          : <Icon d={ICONS.plus} />}
+      </button>
+      <button
+        onClick={onSearch}
+        className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+        title="Buscar notas"
+        aria-label="Buscar notas"
+      >
+        <Icon d={ICONS.search} />
+      </button>
+    </>
   )
 }
 
-function readCollapsed() {
-  try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1' } catch { return false }
-}
-
-function SidebarRail({ user, onExpand, onSearch, handleCreateNote, creating, handleSignOut, getInitials }) {
-  const railButton = 'w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all'
+function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, creating, autoFocusSearch, onSearchFocus, onSelectNote }) {
   return (
-    <div className="w-[72px] h-full flex flex-col items-center bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden pt-7 pb-4">
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col items-center gap-2 w-full">
-        <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30 ring-1 ring-violet-400/30 mb-2">
-          <Icon d={ICONS.note} className="w-5 h-5 text-white" />
-        </div>
-        <button onClick={onExpand} className={railButton} title="Desplegar menú" aria-label="Desplegar menú" aria-expanded={false}>
-          <Icon d={ICONS.expand} />
-        </button>
-
-        <div className="w-8 h-px bg-white/10 my-2" />
-
-        <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white" title="Notas">
-          <Icon d={ICONS.note} />
-        </div>
-        <Link to="/tasks" className={railButton} title="Tareas" aria-label="Tareas">
-          <Icon d={ICONS.tasks} />
-        </Link>
-        <Link to="/biblioteca" className={railButton} title="Biblioteca" aria-label="Biblioteca">
-          <Icon d={ICONS.library} />
-        </Link>
-
-        <div className="w-8 h-px bg-white/10 my-2" />
-
-        <button
-          onClick={handleCreateNote}
-          disabled={creating}
-          title="Nueva nota"
-          aria-label="Nueva nota"
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 active:scale-95"
-        >
-          {creating
-            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            : <Icon d={ICONS.plus} />}
-        </button>
-        <button onClick={onSearch} className={railButton} title="Buscar notas" aria-label="Buscar notas">
-          <Icon d={ICONS.search} />
-        </button>
-      </div>
-
-      <div className="relative z-10 mt-auto flex flex-col items-center gap-2 pt-4 border-t border-white/10 w-full">
-        <div
-          className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center border border-violet-400/20"
-          title={user?.email}
-        >
-          <span className="text-xs font-bold text-violet-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
-        </div>
-        <button
-          onClick={handleSignOut}
-          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-          title="Cerrar sesión"
-          aria-label="Cerrar sesión"
-        >
-          <Icon d={ICONS.signOut} />
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function SidebarContent({ greeting, userName, user, loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, creating, handleSignOut, getInitials, onCollapse, autoFocusSearch = false, collapseLabel = 'Plegar menú' }) {
-  return (
-    <div className="w-80 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
-      {/* Decorative gradient orbs */}
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 -left-16 w-36 h-36 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Header section */}
-      <div className="relative z-10 px-6 pt-7 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/30 ring-1 ring-violet-400/30">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </div>
-          <span className="font-bold text-white text-lg tracking-tight">MeetingNotes</span>
-          {onCollapse && (
-            <button
-              onClick={onCollapse}
-              className="ml-auto shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition-all"
-              title={collapseLabel}
-              aria-label={collapseLabel}
-              aria-expanded={true}
-            >
-              <Icon d={ICONS.collapse} />
-            </button>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <p className="text-xs text-violet-300/60 font-medium mb-1">{greeting}, {userName}</p>
-          <h2 className="text-white font-semibold text-sm">¿Qué vas a documentar hoy?</h2>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex gap-1 mb-4 bg-white/5 rounded-xl p-1">
-          <div className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg bg-white/10 text-white">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span className="text-[10px] font-semibold">Notas</span>
-          </div>
-          <Link to="/tasks" title="Tareas" className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            <span className="text-[10px] font-semibold">Tareas</span>
-          </Link>
-          <Link to="/biblioteca" title="Biblioteca" className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-            </svg>
-            <span className="text-[10px] font-semibold">Biblioteca</span>
-          </Link>
-        </div>
-
+    <>
+      <div className="px-6 pb-4">
+        <h2 className="text-white font-semibold text-sm mb-3">¿Qué vas a documentar hoy?</h2>
         <button
           onClick={handleCreateNote}
           disabled={creating}
@@ -172,23 +48,20 @@ function SidebarContent({ greeting, userName, user, loading, error, filteredNote
         >
           {creating
             ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+            : <Icon d={ICONS.plus} />
           }
           Nueva nota
         </button>
       </div>
 
       {/* Search */}
-      <div className="relative z-10 px-5 pb-4">
+      <div className="px-5 pb-4">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Icon d={ICONS.search} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
             autoFocus={autoFocusSearch}
+            onFocus={onSearchFocus}
             placeholder="Buscar notas..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -200,7 +73,7 @@ function SidebarContent({ greeting, userName, user, loading, error, filteredNote
       </div>
 
       {/* Notes list */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3 relative z-10">
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         {loading ? (
           <div className="space-y-2 px-2 pt-1">
             {[1, 2, 3, 4].map((i) => (
@@ -236,64 +109,32 @@ function SidebarContent({ greeting, userName, user, loading, error, filteredNote
         ) : (
           <div className="space-y-1">
             {filteredNotes.map((note) => (
-              <NoteCard key={note.id} note={note} variant="dark" />
+              <NoteCard key={note.id} note={note} variant="dark" onSelect={onSelectNote} />
             ))}
           </div>
         )}
       </div>
-
-      {/* User footer */}
-      <div className="relative z-10 border-t border-white/10 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center shrink-0 border border-violet-400/20">
-              <span className="text-xs font-bold text-violet-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-200 truncate">
-                {user?.user_metadata?.full_name || 'Usuario'}
-              </p>
-              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-            title="Cerrar sesión"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   )
 }
 
 export default function DashboardPage() {
-  const { user, signOut } = useAuth()
   const { notes, loading, error, activeNoteId, createNote } = useNotes()
+  const { panelEl, railEl, setCollapsed, closeMobile } = useAppSidebar()
   const [creating, setCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(readCollapsed)
   const [focusSearch, setFocusSearch] = useState(false)
-
-  const setCollapsedPersisted = (value) => {
-    setCollapsed(value)
-    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0') } catch { /* sin storage: solo dura la sesión */ }
-  }
-
-  const handleSignOut = async () => {
-    try { await signOut() } catch (err) { console.error(err) }
-  }
 
   const handleCreateNote = async () => {
     setCreating(true)
     try { await createNote() } catch (err) { console.error(err) } finally { setCreating(false) }
-    setSidebarOpen(false)
+    closeMobile()
+  }
+
+  // Desde el rail: desplegar el menú y enfocar el buscador (una sola vez)
+  const handleRailSearch = () => {
+    setFocusSearch(true)
+    setCollapsed(false)
   }
 
   const activeNote = notes.find((n) => n.id === activeNoteId)
@@ -321,107 +162,53 @@ export default function DashboardPage() {
     }
   }, [notes])
 
-  const greeting = getGreeting()
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
-
-  const sidebarProps = {
-    greeting,
-    userName,
-    user,
-    loading,
-    error,
-    filteredNotes,
-    searchQuery,
-    setSearchQuery,
-    handleCreateNote,
-    creating,
-    handleSignOut,
-    getInitials,
-  }
-
   return (
-    <div className="flex h-dvh bg-slate-950 overflow-hidden">
-      {/* DESKTOP SIDEBAR — el ancho se anima; el contenido mantiene su ancho fijo y se recorta */}
-      <aside
-        className={`hidden md:flex flex-col shrink-0 overflow-hidden border-r border-white/5 transition-[width] duration-300 ease-out animate-slideInLeft ${collapsed ? 'w-[72px]' : 'w-80'}`}
-      >
-        {collapsed ? (
-          <SidebarRail
-            {...sidebarProps}
-            onExpand={() => { setFocusSearch(false); setCollapsedPersisted(false) }}
-            onSearch={() => { setFocusSearch(true); setCollapsedPersisted(false) }}
-          />
-        ) : (
-          <SidebarContent
-            {...sidebarProps}
-            autoFocusSearch={focusSearch}
-            onCollapse={() => setCollapsedPersisted(true)}
-          />
-        )}
-      </aside>
-
-      {/* MOBILE SIDEBAR OVERLAY */}
-      {sidebarOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 z-50 md:hidden animate-slideInLeft">
-            <SidebarContent
-              {...sidebarProps}
-              onCollapse={() => setSidebarOpen(false)}
-              collapseLabel="Cerrar menú"
-            />
-          </div>
-        </>
+    <div className="flex-1 flex flex-col min-h-0">
+      {panelEl && createPortal(
+        <NotesSidebarSection
+          loading={loading}
+          error={error}
+          filteredNotes={filteredNotes}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleCreateNote={handleCreateNote}
+          creating={creating}
+          autoFocusSearch={focusSearch}
+          onSearchFocus={() => setFocusSearch(false)}
+          onSelectNote={closeMobile}
+        />,
+        panelEl
+      )}
+      {railEl && createPortal(
+        <NotesRailActions handleCreateNote={handleCreateNote} creating={creating} onSearch={handleRailSearch} />,
+        railEl
       )}
 
-      {/* MAIN AREA */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Mobile top bar */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-black/20 backdrop-blur-sm border-b border-white/10 shrink-0">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <span className="font-bold text-white text-sm">MeetingNotes</span>
-          </div>
+      <MobileTopBar
+        action={
           <button
             onClick={handleCreateNote}
             disabled={creating}
+            aria-label="Nueva nota"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/20 transition-all"
           >
             {creating
               ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+              : <Icon d={ICONS.plus} className="w-5 h-5" />
             }
           </button>
-        </header>
+        }
+      />
 
-        <div className="flex-1 overflow-y-auto">
-          {activeNote ? (
-            <div className="animate-fadeIn">
-              <NoteEditor key={activeNoteId} noteId={activeNoteId} />
-            </div>
-          ) : (
-            <EmptyState stats={stats} onCreateNote={handleCreateNote} />
-          )}
-        </div>
-      </main>
+      <div className="flex-1 overflow-y-auto">
+        {activeNote ? (
+          <div className="animate-fadeIn">
+            <NoteEditor key={activeNoteId} noteId={activeNoteId} />
+          </div>
+        ) : (
+          <EmptyState stats={stats} onCreateNote={handleCreateNote} />
+        )}
+      </div>
     </div>
   )
 }

@@ -19,6 +19,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
 import { BibliotecaProvider } from './context/BibliotecaContext'
 import { AdminProvider } from './context/AdminContext'
+import AppLayout from './components/layout/AppLayout'
 
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
@@ -79,34 +80,12 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <NotesProvider>
-              <DashboardPage />
-            </NotesProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/biblioteca"
-        element={
-          <ProtectedRoute>
-            <BibliotecaProvider>
-              <BibliotecaPage />
-            </BibliotecaProvider>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tasks"
-        element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/tasks/:projectId"
-        element={<ProtectedRoute><TasksPage /></ProtectedRoute>}
-      />
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<NotesProvider><DashboardPage /></NotesProvider>} />
+        <Route path="/biblioteca" element={<BibliotecaProvider><BibliotecaPage /></BibliotecaProvider>} />
+        <Route path="/tasks" element={<ProjectsPage />} />
+        <Route path="/tasks/:projectId" element={<TasksPage />} />
+      </Route>
       <Route
         path="/admin"
         element={
