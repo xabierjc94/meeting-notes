@@ -30,7 +30,7 @@ function SortableTaskCard({ task, onOpen, onDelete, compact = false, stretch = f
 }
 
 export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProps = {}, isDragging = false, overlay = false, onTaskDeleted }) {
-  const { editColumn, removeColumn, addTask, removeTask } = useTasks()
+  const { editColumn, removeColumn, removeTask } = useTasks()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
   const [color, setColor] = useState(column.color)
@@ -38,6 +38,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [showNewTaskModal, setShowNewTaskModal] = useState(false)
+  const [newTaskTitle, setNewTaskTitle] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [colError, setColError] = useState(null)
   const [expanded, setExpanded] = useState(false)
@@ -97,28 +98,26 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
     }
   }
 
-  const handleQuickAdd = async (e) => {
-    e.preventDefault()
-    if (!newTitle.trim()) return
-    try {
-      await addTask({ title: newTitle.trim(), column_id: column.id, priority: 'medium', tags: [] })
-      setNewTitle('')
-      setAdding(false)
-    } catch {
-      // keep form open so user can retry
-    }
+  // El título escrito abre el panel completo; la tarea se crea al guardar allí
+  const openFullTask = (title = '') => {
+    setNewTaskTitle(title)
+    setShowNewTaskModal(true)
   }
 
-  const handleExpandedQuickAdd = async (e) => {
+  const handleQuickAdd = (e) => {
+    e.preventDefault()
+    if (!newTitle.trim()) return
+    openFullTask(newTitle.trim())
+    setNewTitle('')
+    setAdding(false)
+  }
+
+  const handleExpandedQuickAdd = (e) => {
     e.preventDefault()
     if (!expandedTitle.trim()) return
-    try {
-      await addTask({ title: expandedTitle.trim(), column_id: column.id, priority: 'medium', tags: [] })
-      setExpandedTitle('')
-      setExpandedAdding(false)
-    } catch {
-      // keep form open so user can retry
-    }
+    openFullTask(expandedTitle.trim())
+    setExpandedTitle('')
+    setExpandedAdding(false)
   }
 
   return (
@@ -260,7 +259,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 Añadir tarea
               </button>
               <button
-                onClick={() => setShowNewTaskModal(true)}
+                onClick={() => openFullTask()}
                 className="w-9 h-9 flex items-center justify-center rounded-xl text-white/30 hover:text-violet-300 hover:bg-violet-500/15 transition-all active:scale-95"
                 title="Tarea completa"
               >
@@ -303,13 +302,6 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
           )}
         </div>
       </div>
-
-      {showNewTaskModal && (
-        <TaskModal
-          defaultColumnId={column.id}
-          onClose={() => setShowNewTaskModal(false)}
-        />
-      )}
 
       {expanded && (
         <div
@@ -387,6 +379,15 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
             </div>
           </div>
         </div>
+      )}
+
+      {/* Después de la vista ampliada para quedar por encima (mismo z-50) */}
+      {showNewTaskModal && (
+        <TaskModal
+          defaultColumnId={column.id}
+          defaultTitle={newTaskTitle}
+          onClose={() => setShowNewTaskModal(false)}
+        />
       )}
     </div>
   )

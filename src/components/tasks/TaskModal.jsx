@@ -10,7 +10,7 @@ const PRIORITY_OPTIONS = [
   { value: 'urgent', label: 'Urgente', color: 'text-red-300 bg-red-500/15' },
 ]
 
-export default function TaskModal({ task, defaultColumnId, onClose }) {
+export default function TaskModal({ task, defaultColumnId, defaultTitle = '', onClose }) {
   const { columns, addTask, editTask, removeTask } = useTasks()
   const isEditing = !!task
   const tagInputRef = useRef(null)
@@ -36,7 +36,7 @@ export default function TaskModal({ task, defaultColumnId, onClose }) {
   }, [])
 
   const [form, setForm] = useState({
-    title: task?.title || '',
+    title: task?.title || defaultTitle,
     description: task?.description || '',
     column_id: task?.column_id || defaultColumnId || columns[0]?.id || '',
     priority: task?.priority || 'medium',
