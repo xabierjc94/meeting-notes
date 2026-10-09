@@ -25,17 +25,24 @@ const NAV_ITEMS = [
   { to: '/biblioteca', label: 'Biblioteca', icon: ICONS.library },
 ]
 
-// Mismo breakpoint que `md:` de Tailwind: por debajo, el aside es un drawer y nunca muestra el rail
+// Mismos breakpoints que `md:` y `lg:` de Tailwind.
+// < md: el aside es un drawer. md–lg (tablet): empieza en rail para no comerse
+// medio ancho. ≥ lg: plegado/desplegado según la preferencia guardada.
 const DESKTOP_QUERY = '(min-width: 48rem)'
+const WIDE_QUERY = '(min-width: 64rem)'
 
-function subscribeDesktop(callback) {
-  const mql = window.matchMedia(DESKTOP_QUERY)
-  mql.addEventListener('change', callback)
-  return () => mql.removeEventListener('change', callback)
+function subscribeMedia(callback) {
+  const mqls = [window.matchMedia(DESKTOP_QUERY), window.matchMedia(WIDE_QUERY)]
+  mqls.forEach(m => m.addEventListener('change', callback))
+  return () => mqls.forEach(m => m.removeEventListener('change', callback))
 }
 
 function getIsDesktop() {
   return window.matchMedia(DESKTOP_QUERY).matches
+}
+
+function getIsWide() {
+  return window.matchMedia(WIDE_QUERY).matches
 }
 
 function readCollapsed() {
@@ -205,25 +212,40 @@ function ContentSpinner() {
 export default function AppLayout() {
   const { user, signOut } = useAuth()
   const location = useLocation()
-  const isDesktop = useSyncExternalStore(subscribeDesktop, getIsDesktop)
-  const [collapsed, setCollapsedState] = useState(readCollapsed)
+  const isDesktop = useSyncExternalStore(subscribeMedia, getIsDesktop)
+  const isWide = useSyncExternalStore(subscribeMedia, getIsWide)
+  const isTablet = isDesktop && !isWide
+  const [savedCollapsed, setSavedCollapsed] = useState(readCollapsed)
+  // En tablet el despliegue es temporal y no se guarda (no pisa la preferencia del portátil)
+  const [tabletExpanded, setTabletExpanded] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [panelEl, setPanelEl] = useState(null)
   const [railEl, setRailEl] = useState(null)
   const [lastPath, setLastPath] = useState(location.pathname)
 
-  // Cerrar el drawer móvil al cambiar de ruta (ajuste durante el render, sin efecto)
+  // Al cambiar de ruta se cierra el drawer móvil y se repliega la tablet (ajuste durante el render, sin efecto)
   if (lastPath !== location.pathname) {
     setLastPath(location.pathname)
     setMobileOpen(false)
+    setTabletExpanded(false)
   }
 
+  const collapsed = isTablet ? !tabletExpanded : savedCollapsed
+
   const setCollapsed = useCallback((value) => {
-    setCollapsedState(value)
+    if (isTablet) {
+      setTabletExpanded(!value)
+      return
+    }
+    setSavedCollapsed(value)
     try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0') } catch { /* sin storage: solo dura la sesión */ }
-  }, [])
+  }, [isTablet])
   const openMobile = useCallback(() => setMobileOpen(true), [])
-  const closeMobile = useCallback(() => setMobileOpen(false), [])
+  // Las secciones lo llaman al elegir algo: en tablet también devuelve el espacio al contenido
+  const closeMobile = useCallback(() => {
+    setMobileOpen(false)
+    setTabletExpanded(false)
+  }, [])
 
   const handleSignOut = async () => {
     try { await signOut() } catch (err) { console.error(err) }
@@ -255,7 +277,7 @@ export default function AppLayout() {
           inert={!isDesktop && !mobileOpen}
           className={`fixed inset-y-0 left-0 z-50 w-80 flex flex-col shrink-0 overflow-hidden border-r border-white/5 animate-slideInLeft
                       transition-transform duration-300 ease-out ${mobileOpen ? 'translate-none' : '-translate-x-full'}
-                      md:static md:z-auto md:translate-none md:transition-[width] ${collapsed ? 'md:w-[72px]' : 'md:w-80'}`}
+                      md:static md:z-auto md:translate-none md:transition-[width] ${showRail ? 'md:w-[72px]' : 'md:w-80'}`}
         >
           {showRail ? (
             <SidebarRail
