@@ -49,7 +49,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
   const PAGE_SIZE = 6
   const isCompleted = column.name.toLowerCase().includes('completado')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const visibleTasks = isCompleted ? tasks.slice(Math.max(0, tasks.length - visibleCount)) : tasks
+  const visibleTasks = isCompleted ? tasks.slice(0, visibleCount) : tasks
   const hiddenCount = isCompleted ? Math.max(0, tasks.length - visibleCount) : 0
 
   const scrollRef = useRef(null)
@@ -230,6 +230,47 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
           ref={combinedRef}
           className={`flex flex-col gap-2 p-3 ${isCompleted ? (visibleCount > PAGE_SIZE ? 'sm:flex-1 sm:min-h-0 sm:overflow-y-auto' : 'sm:flex-1 sm:min-h-0') : 'sm:flex-1 sm:min-h-0 sm:overflow-y-auto'}`}
         >
+          {/* Quick add — arriba, porque las tareas nuevas se colocan al principio */}
+          {adding ? (
+            <form onSubmit={handleQuickAdd} className="mb-1">
+              <input
+                type="text"
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="Nombre de la tarea..."
+                autoFocus
+                onBlur={() => !newTitle && setAdding(false)}
+                className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/30"
+              />
+              <div className="flex gap-2 mt-2">
+                <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors active:scale-95">Añadir</button>
+                <button type="button" onClick={() => setAdding(false)} className="flex-1 py-2.5 border border-white/15 text-white/60 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors active:scale-95">Cancelar</button>
+              </div>
+            </form>
+          ) : (
+            <div className="flex gap-1.5 mb-1 shrink-0">
+              <button
+                onClick={() => setAdding(true)}
+                className="flex-1 flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
+                style={{ '--tw-bg-opacity': 0.08 }}
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Añadir tarea
+              </button>
+              <button
+                onClick={() => setShowNewTaskModal(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-white/30 hover:text-violet-300 hover:bg-violet-500/15 transition-all active:scale-95"
+                title="Tarea completa"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {isCompleted && visibleCount <= PAGE_SIZE ? (
               <div
@@ -259,47 +300,6 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
               </svg>
               Cargar {Math.min(hiddenCount, PAGE_SIZE)} más · {hiddenCount} ocultas
             </button>
-          )}
-
-          {/* Quick add */}
-          {adding ? (
-            <form onSubmit={handleQuickAdd} className="mt-1">
-              <input
-                type="text"
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                placeholder="Nombre de la tarea..."
-                autoFocus
-                onBlur={() => !newTitle && setAdding(false)}
-                className="w-full text-sm border border-white/20 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-400/50 bg-white/10 text-white placeholder-white/30"
-              />
-              <div className="flex gap-2 mt-2">
-                <button type="submit" className="flex-1 py-2.5 bg-violet-500 text-white text-sm font-semibold rounded-xl hover:bg-violet-400 transition-colors active:scale-95">Añadir</button>
-                <button type="button" onClick={() => setAdding(false)} className="flex-1 py-2.5 border border-white/15 text-white/60 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors active:scale-95">Cancelar</button>
-              </div>
-            </form>
-          ) : (
-            <div className="flex gap-1.5 mt-1">
-              <button
-                onClick={() => setAdding(true)}
-                className="flex-1 flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
-                style={{ '--tw-bg-opacity': 0.08 }}
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Añadir tarea
-              </button>
-              <button
-                onClick={() => setShowNewTaskModal(true)}
-                className="w-9 h-9 flex items-center justify-center rounded-xl text-white/30 hover:text-violet-300 hover:bg-violet-500/15 transition-all active:scale-95"
-                title="Tarea completa"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
-              </button>
-            </div>
           )}
         </div>
       </div>
@@ -350,14 +350,8 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
 
             {/* Tasks — grid responsive: 1 col móvil, 2 tablet, 3 md, 4 lg, 5 xl */}
             <div className="p-3 sm:p-4 flex-1 min-h-0 overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {tasks.map(task => (
-                  <TaskCard key={task.id} task={task} onClick={() => onOpenTask(task)} />
-                ))}
-              </div>
-
               {expandedAdding ? (
-                <form onSubmit={handleExpandedQuickAdd} className="mt-3">
+                <form onSubmit={handleExpandedQuickAdd} className="mb-3">
                   <input
                     type="text"
                     value={expandedTitle}
@@ -372,7 +366,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                   </div>
                 </form>
               ) : (
-                <div className="flex gap-1.5 mt-3">
+                <div className="flex gap-1.5 mb-3">
                   <button
                     onClick={() => setExpandedAdding(true)}
                     className="flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-medium py-2.5 px-3 rounded-xl hover:bg-white/8 transition-all active:scale-95"
@@ -384,6 +378,12 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                   </button>
                 </div>
               )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {tasks.map(task => (
+                  <TaskCard key={task.id} task={task} onClick={() => onOpenTask(task)} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
