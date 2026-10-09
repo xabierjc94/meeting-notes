@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, useLocation } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { TasksProvider, useTasks } from '../context/TasksContext'
 import { GestionProvider } from '../context/GestionContext'
 import { useProjects } from '../context/ProjectsContext'
@@ -11,7 +11,7 @@ import KanbanBoard from '../components/tasks/KanbanBoard'
 import ListView from '../components/tasks/ListView'
 import TaskModal from '../components/tasks/TaskModal'
 import GestionPanel from '../components/gestion/GestionPanel'
-import { supabase } from '../lib/supabaseClient'
+import MobileTopBar from '../components/layout/MobileTopBar'
 
 function TasksContent({ project, projectId }) {
   const { tasks, columns, loading, addColumn } = useTasks()
@@ -219,36 +219,65 @@ function TasksContent({ project, projectId }) {
   )
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export default function TasksPage() {
-  const { projectId } = useParams()
-  const location = useLocation()
-  const { projects, loading: projectsLoading } = useProjects()
-  const [fetched, setFetched] = useState(null)
+  // La URL lleva el slug del proyecto (/tasks/marketing), no su id
+  const { slug } = useParams()
+  const { projects, loading, findProjectBySlug, projectPath } = useProjects()
+  const [lastProjectId, setLastProjectId] = useState(null)
 
-  // El proyecto sale de la lista compartida; el state de la navegación y la consulta directa son
-  // solo respaldo. Todo se filtra por projectId para no mostrar el anterior al cambiar desde la barra
-  const listed = projects.find(p => p.id === projectId)
-  const fromState = location.state?.project?.id === projectId ? location.state.project : null
-  const project = listed ?? fromState ?? (fetched?.id === projectId ? fetched : null)
-  const needsFetch = !listed && !fromState && !projectsLoading
+  const project = findProjectBySlug(slug)
 
-  useEffect(() => {
-    if (!needsFetch || !projectId) return
-    let cancelled = false
-    supabase.from('projects').select('*').eq('id', projectId).single()
-      .then(({ data }) => { if (data && !cancelled) setFetched(data) })
-    return () => { cancelled = true }
-  }, [projectId, needsFetch])
+  // Recordamos el último proyecto abierto (ajuste de estado durante el render)
+  if (project && project.id !== lastProjectId) setLastProjectId(project.id)
+
+  if (loading) {
+    return (
+      <>
+        <ProjectsSidebarSection />
+        <BoardMessage>Cargando proyecto...</BoardMessage>
+      </>
+    )
+  }
+
+  if (!project) {
+    // Enlaces antiguos con el id (/tasks/3f2a…) o proyecto renombrado
+    // estando dentro: redirigimos a su URL actual. replace evita que el
+    // botón "atrás" vuelva a la URL vieja.
+    const moved = projects.find(p => p.id === (UUID_RE.test(slug) ? slug : lastProjectId))
+    if (moved) return <Navigate to={projectPath(moved)} replace />
+    return (
+      <>
+        <ProjectsSidebarSection />
+        <BoardMessage>
+          No encontramos este proyecto.{' '}
+          <Link to="/tasks" className="text-violet-300 underline underline-offset-2 hover:text-violet-200">Ver todos los proyectos</Link>
+        </BoardMessage>
+      </>
+    )
+  }
 
   return (
     <>
       <ProjectsSidebarSection />
       {/* key: al cambiar de proyecto se reinician datos, vista y modales del tablero */}
-      <TasksProvider key={projectId} projectId={projectId}>
-        <GestionProvider projectId={projectId}>
-          <TasksContent project={project} projectId={projectId} />
+      <TasksProvider key={project.id} projectId={project.id}>
+        <GestionProvider projectId={project.id}>
+          <TasksContent project={project} projectId={project.id} />
         </GestionProvider>
       </TasksProvider>
     </>
+  )
+}
+
+function BoardMessage({ children }) {
+  return (
+    <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
+      <MobileTopBar />
+      <div className="flex-1 flex items-center justify-center p-6">
+        <p className="text-sm text-slate-400 text-center">{children}</p>
+      </div>
+    </div>
   )
 }

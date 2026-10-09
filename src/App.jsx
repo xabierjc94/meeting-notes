@@ -87,7 +87,7 @@ function AppRoutes() {
         {/* Un solo ProjectsProvider para la lista y el tablero: la barra lateral no recarga al cambiar entre ellos */}
         <Route element={<ProjectsProvider><Outlet /></ProjectsProvider>}>
           <Route path="/tasks" element={<ProjectsPage />} />
-          <Route path="/tasks/:projectId" element={<TasksPage />} />
+          <Route path="/tasks/:slug" element={<TasksPage />} />
         </Route>
       </Route>
       <Route

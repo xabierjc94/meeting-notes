@@ -9,12 +9,13 @@ import ProjectModal from '../components/tasks/ProjectModal'
 import ProjectsSidebarSection from '../components/tasks/ProjectsSidebarSection'
 
 function ProjectCard({ project, taskCount, onEdit, onDelete }) {
+  const { projectPath } = useProjects()
   return (
     <div
       className="group relative flex flex-col bg-white/6 backdrop-blur-md border border-white/10 border-l-4 rounded-2xl overflow-hidden hover:border-white/20 hover:bg-white/10 transition-all duration-200"
       style={{ borderLeftColor: project.color }}
     >
-      <Link to={`/tasks/${project.id}`} state={{ project }} className="flex-1 p-5 block">
+      <Link to={projectPath(project)} className="flex-1 p-5 block">
         <div className="flex items-start gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md" style={{ backgroundColor: `${project.color}25`, border: `1px solid ${project.color}40` }}>
             <svg className="w-5 h-5" style={{ color: project.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +58,7 @@ function ProjectCard({ project, taskCount, onEdit, onDelete }) {
 }
 
 export default function ProjectsPage() {
-  const { projects, taskCounts, loading, addProject, editProject, removeProject } = useProjects()
+  const { projects, taskCounts, loading, addProject, editProject, removeProject, projectPath } = useProjects()
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
   const [confirmProject, setConfirmProject] = useState(null)
@@ -71,7 +72,7 @@ export default function ProjectsPage() {
       return
     }
     const created = await addProject(data)
-    navigate(`/tasks/${created.id}`, { state: { project: created } })
+    navigate(projectPath(created))
   }
 
   const handleDelete = async () => {

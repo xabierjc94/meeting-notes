@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from './AuthContext'
 import { getProjects, createProject, updateProject, deleteProject, getProjectTaskCounts } from '../lib/projectsApi'
+import { buildSlugs } from '../lib/slugs'
 
 const ProjectsContext = createContext(null)
 
@@ -61,9 +62,23 @@ export function ProjectsProvider({ children }) {
     setTaskCounts(prev => prev[id] === count ? prev : { ...prev, [id]: count })
   }, [])
 
+  // URLs legibles (/tasks/marketing) en lugar del id de la base de datos
+  const slugs = useMemo(() => buildSlugs(projects), [projects])
+
+  const findProjectBySlug = useCallback((slug) => {
+    for (const [id, s] of slugs) if (s === slug) return projects.find(p => p.id === id)
+    return null
+  }, [slugs, projects])
+
+  // Acepta también un proyecto recién creado que aún no está en la lista
+  const projectPath = useCallback((project) => {
+    const slug = slugs.get(project.id) ?? buildSlugs([...projects, project]).get(project.id)
+    return `/tasks/${slug}`
+  }, [slugs, projects])
+
   const value = useMemo(
-    () => ({ projects, taskCounts, loading, addProject, editProject, removeProject, setTaskCount }),
-    [projects, taskCounts, loading, addProject, editProject, removeProject, setTaskCount]
+    () => ({ projects, taskCounts, loading, addProject, editProject, removeProject, setTaskCount, findProjectBySlug, projectPath }),
+    [projects, taskCounts, loading, addProject, editProject, removeProject, setTaskCount, findProjectBySlug, projectPath]
   )
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>

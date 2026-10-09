@@ -21,6 +21,7 @@ function ProjectsRailActions({ onNewProject }) {
 }
 
 function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectProject }) {
+  const { projectPath } = useProjects()
   return (
     <>
       <div className="px-6 pb-4">
@@ -57,8 +58,7 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
             {projects.map((project) => (
               <NavLink
                 key={project.id}
-                to={`/tasks/${project.id}`}
-                state={{ project }}
+                to={projectPath(project)}
                 onClick={onSelectProject}
                 title={project.name}
                 className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
@@ -81,7 +81,7 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
 // El modal de nuevo proyecto se queda aquí (en la página, fuera de los portales): dentro del
 // aside quedaría atrapado por su translate y, además, el panel se desmonta al plegar el menú
 export default function ProjectsSidebarSection() {
-  const { projects, taskCounts, loading, addProject } = useProjects()
+  const { projects, taskCounts, loading, addProject, projectPath } = useProjects()
   const { panelEl, railEl, closeMobile } = useAppSidebar()
   const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false)
@@ -93,7 +93,7 @@ export default function ProjectsSidebarSection() {
 
   const handleCreate = async (data) => {
     const created = await addProject(data)
-    navigate(`/tasks/${created.id}`, { state: { project: created } })
+    navigate(projectPath(created))
   }
 
   return (
