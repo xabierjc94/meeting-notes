@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../context/AuthContext'
 import { useBiblioteca } from '../context/BibliotecaContext'
@@ -7,11 +7,13 @@ import MobileTopBar from '../components/layout/MobileTopBar'
 import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import DocumentGridCard from '../components/biblioteca/DocumentGridCard'
-import DocumentEditor from '../components/biblioteca/DocumentEditor'
 import DocumentPreviewModal from '../components/biblioteca/DocumentPreviewModal'
 import DocumentViewModal from '../components/biblioteca/DocumentViewModal'
-import { importFile, isSupportedFile } from '../lib/fileImport'
+import { isSupportedFile } from '../lib/fileTypes'
 import { supabase } from '../lib/supabaseClient'
+
+// El editor (TipTap) pesa ~120 KB: se descarga solo al abrir un documento
+const DocumentEditor = lazy(() => import('../components/biblioteca/DocumentEditor'))
 
 const FOLDER_COLORS = [
   '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6',
@@ -686,6 +688,8 @@ export default function BibliotecaPage() {
         .from('biblioteca-docs')
         .upload(storagePath, pendingFile, { contentType: pendingFile.type, upsert: false })
       if (uploadError) throw uploadError
+      // mammoth + pdfjs pesan ~1 MB: se descargan solo al importar
+      const { importFile } = await import('../lib/fileImport')
       const result = await importFile(pendingFile)
       const title = pendingFile.name.replace(/\.[^/.]+$/, '')
       const content = result.type === 'html' ? { type: 'html_import', html: result.data } : result.data
@@ -840,7 +844,13 @@ export default function BibliotecaPage() {
       <div className="flex-1 min-h-0 overflow-hidden bg-slate-950">
         {activeDocId ? (
           <div className="h-full animate-fadeIn">
-            <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-full">
+                <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+              </div>
+            }>
+              <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />
+            </Suspense>
           </div>
         ) : (
           <DocumentsGrid

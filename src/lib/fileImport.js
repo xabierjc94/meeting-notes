@@ -1,27 +1,11 @@
 import mammoth from 'mammoth'
 import * as pdfjsLib from 'pdfjs-dist'
+import { SUPPORTED_TYPES, getExtension } from './fileTypes'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.mjs',
   import.meta.url
 ).href
-
-export const SUPPORTED_TYPES = {
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-  'application/msword': 'doc',
-  'application/pdf': 'pdf',
-  'text/plain': 'txt',
-  'text/markdown': 'md',
-}
-
-export function isSupportedFile(file) {
-  return !!(SUPPORTED_TYPES[file.type] || getExtension(file.name))
-}
-
-function getExtension(name) {
-  const ext = name.split('.').pop()?.toLowerCase()
-  return ['docx', 'doc', 'pdf', 'txt', 'md'].includes(ext) ? ext : null
-}
 
 // .docx → HTML string (mammoth)
 async function parseDocx(file) {

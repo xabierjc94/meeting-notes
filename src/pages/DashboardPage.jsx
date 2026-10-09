@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { useNotes } from '../context/NotesContext'
 import { useAppSidebar } from '../components/layout/AppSidebarContext'
@@ -6,7 +6,17 @@ import MobileTopBar from '../components/layout/MobileTopBar'
 import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import NoteCard from '../components/notes/NoteCard'
-import NoteEditor from '../components/editor/NoteEditor'
+
+// El editor (TipTap) pesa ~120 KB: se descarga solo al abrir una nota
+const NoteEditor = lazy(() => import('../components/editor/NoteEditor'))
+
+function EditorFallback() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-6 h-6 border-2 border-violet-500/30 border-t-violet-400 rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function NotesRailActions({ handleCreateNote, creating, onSearch }) {
   return (
@@ -203,7 +213,9 @@ export default function DashboardPage() {
       <div className="flex-1 overflow-y-auto">
         {activeNote ? (
           <div className="animate-fadeIn">
-            <NoteEditor key={activeNoteId} noteId={activeNoteId} />
+            <Suspense fallback={<EditorFallback />}>
+              <NoteEditor key={activeNoteId} noteId={activeNoteId} />
+            </Suspense>
           </div>
         ) : (
           <EmptyState stats={stats} onCreateNote={handleCreateNote} />

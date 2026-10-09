@@ -4,7 +4,6 @@ import GestionTable from './GestionTable'
 import GestionCards from './GestionCards'
 import PersonnelModal from './PersonnelModal'
 import GestionSettings from './GestionSettings'
-import { exportToExcel, exportToPDF } from '../../lib/exportGestion'
 
 export default function GestionPanel() {
   const { personnel, statuses, clinics, loading, removePersonnel } = useGestion()
@@ -51,6 +50,18 @@ export default function GestionPanel() {
       return true
     })
   }, [personnel, search, filterStatus, filterRegion, filterClinic, filterPosition])
+
+  // xlsx + jspdf son pesadas: se descargan solo al exportar
+  const handleExport = async (kind) => {
+    setShowExportMenu(false)
+    try {
+      const { exportToExcel, exportToPDF } = await import('../../lib/exportGestion')
+      if (kind === 'excel') exportToExcel(filtered)
+      else exportToPDF(filtered)
+    } catch (err) {
+      console.error('Error al exportar:', err)
+    }
+  }
 
   const activeFilters = [filterStatus, filterRegion, filterClinic, filterPosition].filter(Boolean).length
 
@@ -175,7 +186,7 @@ export default function GestionPanel() {
                   <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
                   <div className="absolute right-0 top-full mt-1.5 z-50 bg-slate-900 border border-white/10 rounded-xl shadow-xl overflow-hidden w-44">
                     <button
-                      onClick={() => { exportToExcel(filtered); setShowExportMenu(false) }}
+                      onClick={() => handleExport('excel')}
                       className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10 transition-colors"
                     >
                       <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +195,7 @@ export default function GestionPanel() {
                       Exportar Excel
                     </button>
                     <button
-                      onClick={() => { exportToPDF(filtered); setShowExportMenu(false) }}
+                      onClick={() => handleExport('pdf')}
                       className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10 transition-colors border-t border-white/10"
                     >
                       <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
