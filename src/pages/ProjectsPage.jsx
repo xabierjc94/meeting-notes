@@ -1,103 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { getProjects, createProject, updateProject, deleteProject, getProjectTaskCounts } from '../lib/projectsApi'
+import { useProjects } from '../context/ProjectsContext'
+import MobileTopBar from '../components/layout/MobileTopBar'
+import Icon from '../components/ui/Icon'
+import { ICONS } from '../components/ui/icons'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
-
-const PROJECT_COLORS = [
-  '#6366f1','#8b5cf6','#ec4899','#ef4444',
-  '#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#64748b'
-]
-
-function ProjectModal({ project, onClose, onSave, position }) {
-  const [name, setName] = useState(project?.name || '')
-  const [description, setDescription] = useState(project?.description || '')
-  const [color, setColor] = useState(project?.color || '#6366f1')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!name.trim()) return
-    setSaving(true)
-    setError(null)
-    try {
-      await onSave({ name: name.trim(), description: description.trim(), color, position })
-      onClose()
-    } catch {
-      setError('No se pudo guardar el proyecto. Inténtalo de nuevo.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl animate-scaleIn">
-        <div className="p-6">
-          <h2 className="text-lg font-bold text-white mb-5">
-            {project ? 'Editar proyecto' : 'Nuevo proyecto'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Nombre</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Mi proyecto..."
-                autoFocus
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Descripción (opcional)</label>
-              <input
-                type="text"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Describe el proyecto..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Color</label>
-              <div className="flex flex-wrap gap-2.5">
-                {PROJECT_COLORS.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={`w-7 h-7 rounded-full transition-transform hover:scale-110 active:scale-95 ${color === c ? 'ring-2 ring-offset-2 ring-offset-slate-900 ring-white scale-110' : ''}`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            </div>
-            {error && <p className="text-xs text-red-400 text-center">{error}</p>}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-violet-500/20"
-              >
-                {saving ? 'Guardando...' : project ? 'Guardar' : 'Crear proyecto'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3 border border-white/15 text-white/70 text-sm font-semibold rounded-xl hover:bg-white/10 transition-all"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-}
+import ProjectModal from '../components/tasks/ProjectModal'
+import ProjectsSidebarSection from '../components/tasks/ProjectsSidebarSection'
 
 function ProjectCard({ project, taskCount, onEdit, onDelete }) {
   return (
@@ -148,46 +57,23 @@ function ProjectCard({ project, taskCount, onEdit, onDelete }) {
 }
 
 export default function ProjectsPage() {
-  const { user } = useAuth()
-  const [projects, setProjects] = useState([])
-  const [taskCounts, setTaskCounts] = useState({})
-  const [loading, setLoading] = useState(true)
+  const { projects, taskCounts, loading, addProject, editProject, removeProject } = useProjects()
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
   const [confirmProject, setConfirmProject] = useState(null)
 
-  const fetchProjects = useCallback(async () => {
-    if (!user) return
-    setLoading(true)
-    try {
-      const [projs, counts] = await Promise.all([
-        getProjects(user.id),
-        getProjectTaskCounts(user.id)
-      ])
-      setProjects(projs)
-      setTaskCounts(counts)
-    } finally {
-      setLoading(false)
-    }
-  }, [user])
-
-  useEffect(() => { fetchProjects() }, [fetchProjects])
-
   const handleSave = async (data) => {
     if (editingProject) {
-      const updated = await updateProject(editingProject.id, data)
-      setProjects(prev => prev.map(p => p.id === editingProject.id ? updated : p))
+      await editProject(editingProject.id, data)
     } else {
-      const created = await createProject(user.id, { ...data, position: projects.length })
-      setProjects(prev => [...prev, created])
+      await addProject(data)
     }
     setEditingProject(null)
   }
 
   const handleDelete = async () => {
     try {
-      await deleteProject(confirmProject.id)
-      setProjects(prev => prev.filter(p => p.id !== confirmProject.id))
+      await removeProject(confirmProject.id)
     } finally {
       setConfirmProject(null)
     }
@@ -204,35 +90,33 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900">
-      {/* Header */}
-      <header className="bg-black/20 backdrop-blur-sm border-b border-white/10 px-3 sm:px-6 py-3 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-              </svg>
-            </div>
-            <span className="font-bold text-white text-sm sm:text-base hidden sm:inline">MeetingNotes</span>
-          </div>
+    <div className="flex-1 flex flex-col min-h-0">
+      <ProjectsSidebarSection />
 
-          <nav className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto">
-            <Link to="/tasks" className="px-3 py-2 rounded-lg text-sm font-semibold text-white bg-white/10 shrink-0">Proyectos</Link>
-            <Link to="/dashboard" className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/10 transition-all shrink-0">Notas</Link>
-            <Link to="/biblioteca" className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/10 transition-all shrink-0">Biblioteca</Link>
-          </nav>
-
+      <MobileTopBar
+        action={
           <button
             onClick={() => setShowModal(true)}
-            className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 shrink-0"
+            aria-label="Nuevo proyecto"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/20 transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span className="hidden sm:inline">Nuevo proyecto</span>
+            <Icon d={ICONS.plus} className="w-5 h-5" />
           </button>
-        </div>
+        }
+      >
+        <span className="font-bold text-white text-sm">Proyectos</span>
+      </MobileTopBar>
+
+      {/* Header (escritorio): la navegación entre secciones vive ya en la barra lateral */}
+      <header className="hidden md:flex items-center justify-between gap-4 bg-black/20 backdrop-blur-sm border-b border-white/10 px-6 py-3 shrink-0">
+        <h1 className="text-lg font-bold text-white">Proyectos</h1>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 shrink-0"
+        >
+          <Icon d={ICONS.plus} />
+          Nuevo proyecto
+        </button>
       </header>
 
       {/* Content */}

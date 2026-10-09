@@ -14,10 +14,11 @@ class ErrorBoundary extends Component {
     return this.props.children
   }
 }
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { NotesProvider } from './context/NotesContext'
 import { BibliotecaProvider } from './context/BibliotecaContext'
+import { ProjectsProvider } from './context/ProjectsContext'
 import { AdminProvider } from './context/AdminContext'
 import AppLayout from './components/layout/AppLayout'
 
@@ -83,8 +84,11 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<NotesProvider><DashboardPage /></NotesProvider>} />
         <Route path="/biblioteca" element={<BibliotecaProvider><BibliotecaPage /></BibliotecaProvider>} />
-        <Route path="/tasks" element={<ProjectsPage />} />
-        <Route path="/tasks/:projectId" element={<TasksPage />} />
+        {/* Un solo ProjectsProvider para la lista y el tablero: la barra lateral no recarga al cambiar entre ellos */}
+        <Route element={<ProjectsProvider><Outlet /></ProjectsProvider>}>
+          <Route path="/tasks" element={<ProjectsPage />} />
+          <Route path="/tasks/:projectId" element={<TasksPage />} />
+        </Route>
       </Route>
       <Route
         path="/admin"

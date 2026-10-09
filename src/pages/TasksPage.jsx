@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { TasksProvider, useTasks } from '../context/TasksContext'
 import { GestionProvider } from '../context/GestionContext'
+import { useProjects } from '../context/ProjectsContext'
+import { useAppSidebar } from '../components/layout/AppSidebarContext'
+import Icon from '../components/ui/Icon'
+import { ICONS } from '../components/ui/icons'
+import ProjectsSidebarSection from '../components/tasks/ProjectsSidebarSection'
 import KanbanBoard from '../components/tasks/KanbanBoard'
 import ListView from '../components/tasks/ListView'
 import TaskModal from '../components/tasks/TaskModal'
 import GestionPanel from '../components/gestion/GestionPanel'
 import { supabase } from '../lib/supabaseClient'
 
-function TasksContent({ project }) {
+function TasksContent({ project, projectId }) {
   const { tasks, columns, loading, addColumn } = useTasks()
+  const { setTaskCount } = useProjects()
+  const { openMobile } = useAppSidebar()
   const [view, setView] = useState('kanban')
   const [showNewTask, setShowNewTask] = useState(false)
   const [showNewColumn, setShowNewColumn] = useState(false)
@@ -32,9 +39,16 @@ function TasksContent({ project }) {
   const totalTasks = tasks.length
   const urgentTasks = tasks.filter(t => t.priority === 'urgent').length
 
+  // Mantener al día el contador del proyecto en la barra lateral. Un proyecto real siempre tiene
+  // columnas: sin ellas la carga ha fallado y no se pisa el contador con un 0 falso
+  const loaded = !loading && columns.length > 0
+  useEffect(() => {
+    if (loaded) setTaskCount(projectId, totalTasks)
+  }, [loaded, projectId, totalTasks, setTaskCount])
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-dvh bg-slate-950">
+      <div className="flex-1 flex items-center justify-center bg-slate-950">
         <div className="text-center">
           <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,11 +64,21 @@ function TasksContent({ project }) {
   const projectColor = project?.color || '#6366f1'
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-950">
+    <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
       <header className="bg-black/20 backdrop-blur-sm border-b border-white/10 px-3 sm:px-6 py-3 shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Solo móvil: abre el drawer con la lista de proyectos y las secciones */}
+          <button
+            onClick={openMobile}
+            className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Abrir menú"
+          >
+            <Icon d={ICONS.menu} className="w-5 h-5" />
+          </button>
+
           <Link
             to="/tasks"
+            aria-label="Volver a proyectos"
             className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 active:bg-white/20 transition-all shrink-0"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,10 +88,10 @@ function TasksContent({ project }) {
 
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
             <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0"
+              className="hidden sm:flex w-9 h-9 rounded-xl items-center justify-center shrink-0"
               style={{ backgroundColor: projectColor, boxShadow: `0 4px 12px ${projectColor}40` }}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
@@ -192,20 +216,33 @@ function TasksContent({ project }) {
 export default function TasksPage() {
   const { projectId } = useParams()
   const location = useLocation()
-  const [project, setProject] = useState(location.state?.project || null)
+  const { projects, loading: projectsLoading } = useProjects()
+  const [fetched, setFetched] = useState(null)
+
+  // El proyecto sale de la lista compartida; el state de la navegación y la consulta directa son
+  // solo respaldo. Todo se filtra por projectId para no mostrar el anterior al cambiar desde la barra
+  const listed = projects.find(p => p.id === projectId)
+  const fromState = location.state?.project?.id === projectId ? location.state.project : null
+  const project = listed ?? fromState ?? (fetched?.id === projectId ? fetched : null)
+  const needsFetch = !listed && !fromState && !projectsLoading
 
   useEffect(() => {
-    if (!project && projectId) {
-      supabase.from('projects').select('*').eq('id', projectId).single()
-        .then(({ data }) => { if (data) setProject(data) })
-    }
-  }, [projectId, project])
+    if (!needsFetch || !projectId) return
+    let cancelled = false
+    supabase.from('projects').select('*').eq('id', projectId).single()
+      .then(({ data }) => { if (data && !cancelled) setFetched(data) })
+    return () => { cancelled = true }
+  }, [projectId, needsFetch])
 
   return (
-    <TasksProvider projectId={projectId}>
-      <GestionProvider projectId={projectId}>
-        <TasksContent project={project} />
-      </GestionProvider>
-    </TasksProvider>
+    <>
+      <ProjectsSidebarSection />
+      {/* key: al cambiar de proyecto se reinician datos, vista y modales del tablero */}
+      <TasksProvider key={projectId} projectId={projectId}>
+        <GestionProvider projectId={projectId}>
+          <TasksContent project={project} projectId={projectId} />
+        </GestionProvider>
+      </TasksProvider>
+    </>
   )
 }
