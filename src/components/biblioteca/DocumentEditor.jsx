@@ -615,8 +615,8 @@ xmlns="http://www.w3.org/TR/REC-html40">
                 [&_.tiptap_a]:text-blue-600 [&_.tiptap_a]:underline [&_.tiptap_a]:cursor-pointer
                 [&_.tiptap_img]:max-w-full [&_.tiptap_img]:rounded
                 [&_.tiptap_ul[data-type=taskList]]:list-none [&_.tiptap_ul[data-type=taskList]]:pl-0
-                [&_.tiptap_li[data-type=taskItem]]:flex [&_.tiptap_li[data-type=taskItem]]:gap-2 [&_.tiptap_li[data-type=taskItem]]:items-start [&_.tiptap_li[data-type=taskItem]]:my-1
-                [&_.tiptap_li[data-type=taskItem]>label]:flex [&_.tiptap_li[data-type=taskItem]>label]:items-center [&_.tiptap_li[data-type=taskItem]>label]:gap-1.5 [&_.tiptap_li[data-type=taskItem]>label>input]:mt-0.5
+                [&_.tiptap_ul[data-type=taskList]>li]:flex [&_.tiptap_ul[data-type=taskList]>li]:gap-2 [&_.tiptap_ul[data-type=taskList]>li]:items-start [&_.tiptap_ul[data-type=taskList]>li]:my-1
+                [&_.tiptap_ul[data-type=taskList]>li>label]:flex [&_.tiptap_ul[data-type=taskList]>li>label]:items-center [&_.tiptap_ul[data-type=taskList]>li>label]:gap-1.5 [&_.tiptap_ul[data-type=taskList]>li>label>input]:mt-0.5
               "
             />
           </div>

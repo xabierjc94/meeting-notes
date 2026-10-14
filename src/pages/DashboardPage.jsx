@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
+import { Helmet } from 'react-helmet-async'
 import { useNotes } from '../context/NotesContext'
 import { useAppSidebar } from '../components/layout/AppSidebarContext'
 import MobileTopBar from '../components/layout/MobileTopBar'
@@ -8,6 +9,70 @@ import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import NoteCard from '../components/notes/NoteCard'
 import UndoDeleteToast from '../components/notes/UndoDeleteToast'
+import ShortcutsDialog from '../components/ui/ShortcutsDialog'
+
+// Atajos reales: los de la página (DashboardPage) y los del editor (StarterKit + TaskList)
+const NOTES_SHORTCUTS = [
+  {
+    label: 'General',
+    items: [
+      ['Nueva nota', 'Alt+N'],
+      ['Buscar notas', '/'],
+      ['Ver estos atajos', '?'],
+      ['Imprimir o guardar como PDF', 'Ctrl+P'],
+      ['Salir del modo foco', 'Esc'],
+    ],
+  },
+  {
+    label: 'Formato (en Mac, Ctrl = ⌘)',
+    items: [
+      ['Negrita', 'Ctrl+B'],
+      ['Cursiva', 'Ctrl+I'],
+      ['Tachado', 'Ctrl+Shift+S'],
+      ['Código', 'Ctrl+E'],
+      ['Título 1 / Título 2', 'Ctrl+Alt+1 / 2'],
+      ['Lista con viñetas', 'Ctrl+Shift+8'],
+      ['Lista numerada', 'Ctrl+Shift+7'],
+      ['Lista de tareas', 'Ctrl+Shift+9'],
+      ['Casilla al empezar línea', '[ ] + espacio'],
+      ['Cita', 'Ctrl+Shift+B'],
+      ['Deshacer / Rehacer', 'Ctrl+Z / Ctrl+Shift+Z'],
+    ],
+  },
+]
+
+// ─────────────────────────────────────────────────────────────
+// Agrupa las notas por su última edición: "Hoy", "Ayer", "Últimos 7 días",
+// "Este mes" y después "septiembre de 2026"… Las fechas se comparan como
+// números (Date.parse): el servidor y el navegador las escriben con formatos
+// distintos y compararlas como texto daría un orden incorrecto.
+// ─────────────────────────────────────────────────────────────
+function groupNotesByDate(notes) {
+  const now = new Date()
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const today = startOfDay(now)
+  const DAY = 24 * 60 * 60 * 1000
+  const sorted = [...notes].sort((a, b) => (Date.parse(b.updated_at) || 0) - (Date.parse(a.updated_at) || 0))
+
+  const groups = []
+  for (const note of sorted) {
+    const d = new Date(note.updated_at)
+    const day = startOfDay(d)
+    let label
+    if (day >= today) label = 'Hoy'
+    else if (day >= today - DAY) label = 'Ayer'
+    else if (day >= today - 6 * DAY) label = 'Últimos 7 días'
+    else if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) label = 'Este mes'
+    else {
+      const month = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+      label = month.charAt(0).toUpperCase() + month.slice(1)
+    }
+    const last = groups[groups.length - 1]
+    if (last?.label === label) last.notes.push(note)
+    else groups.push({ label, notes: [note] })
+  }
+  return groups
+}
 
 // El editor (TipTap) pesa ~120 KB: se descarga solo al abrir una nota
 const NoteEditor = lazy(() => import('../components/editor/NoteEditor'))
@@ -43,11 +108,21 @@ function NotesRailActions({ handleCreateNote, onSearch }) {
   )
 }
 
-function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, autoFocusSearch, onSearchFocus, onSelectNote }) {
+function NotesSidebarSection({ loading, error, groups, searchQuery, setSearchQuery, handleCreateNote, autoFocusSearch, onSearchFocus, onSelectNote, onRetry, onShowShortcuts }) {
   return (
     <>
       <div className="px-6 pb-4">
-        <h2 className="text-white font-semibold text-sm mb-3">¿Qué vas a documentar hoy?</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="flex-1 text-white font-semibold text-sm">¿Qué vas a documentar hoy?</h2>
+          <button
+            onClick={onShowShortcuts}
+            title="Atajos de teclado (?)"
+            aria-label="Atajos de teclado"
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+          >
+            ?
+          </button>
+        </div>
         <button
           onClick={handleCreateNote}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold
@@ -64,7 +139,9 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
         <div className="relative">
           <Icon d={ICONS.search} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
-            type="text"
+            id="notes-search"
+            type="search"
+            aria-label="Buscar notas"
             autoFocus={autoFocusSearch}
             onFocus={onSearchFocus}
             placeholder="Buscar notas..."
@@ -94,9 +171,16 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01" />
               </svg>
             </div>
-            <p className="text-xs text-red-300/80">{error}</p>
+            <p className="text-sm text-red-300">No hemos podido cargar tus notas</p>
+            <p className="text-xs text-slate-400 mt-1">Comprueba la conexión e inténtalo de nuevo.</p>
+            <button
+              onClick={onRetry}
+              className="mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              Reintentar
+            </button>
           </div>
-        ) : filteredNotes.length === 0 ? (
+        ) : groups.length === 0 ? (
           <div className="px-3 pt-8 text-center">
             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10 animate-float">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,9 +196,16 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
             </p>
           </div>
         ) : (
-          <div className="space-y-1">
-            {filteredNotes.map((note) => (
-              <NoteCard key={note.id} note={note} variant="dark" onSelect={onSelectNote} />
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <section key={group.label} aria-label={group.label}>
+                <h3 className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{group.label}</h3>
+                <div className="space-y-1">
+                  {group.notes.map((note) => (
+                    <NoteCard key={note.id} note={note} variant="dark" onSelect={onSelectNote} />
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         )}
@@ -124,10 +215,11 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
 }
 
 export default function DashboardPage() {
-  const { notes, loading, error, activeNoteId, createNote } = useNotes()
-  const { panelEl, railEl, setCollapsed, closeMobile, focusMode } = useAppSidebar()
+  const { notes, loading, error, activeNoteId, createNote, fetchNotes } = useNotes()
+  const { panelEl, railEl, setCollapsed, openMobile, closeMobile, focusMode, setFocusMode } = useAppSidebar()
   const [searchQuery, setSearchQuery] = useState('')
   const [focusSearch, setFocusSearch] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -155,7 +247,41 @@ export default function DashboardPage() {
     setCollapsed(false)
   }
 
+  // Atajo "/": muestra la barra lateral (en móvil, el cajón) y enfoca el buscador
+  const focusNotesSearch = () => {
+    setFocusMode(false)
+    setFocusSearch(true)
+    setCollapsed(false)
+    if (!window.matchMedia('(min-width: 48rem)').matches) openMobile()
+    requestAnimationFrame(() => document.getElementById('notes-search')?.focus())
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Atajos de la sección Notas.
+  //   Alt+N: nueva nota (Ctrl+N lo reserva el navegador para "ventana nueva")
+  //   /    : buscar          ?: ver atajos
+  // "/" y "?" no se activan mientras escribes (en un campo o en el editor),
+  // si no, no podrías escribir esos caracteres.
+  // ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const isTyping = (el) => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+    const onKey = (e) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyN') {
+        e.preventDefault()
+        handleCreateNote()
+        return
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return
+      if (e.key === '/') { e.preventDefault(); focusNotesSearch() }
+      else if (e.key === '?') { e.preventDefault(); setShowShortcuts(true) }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  })
+
   const activeNote = notes.find((n) => n.id === activeNoteId)
+  // useCallback: el diálogo la usa en un efecto; estable = no re-suscribe Esc
+  const closeShortcuts = useCallback(() => setShowShortcuts(false), [])
 
   const filteredNotes = useMemo(() => {
     if (!searchQuery.trim()) return notes
@@ -165,6 +291,8 @@ export default function DashboardPage() {
       (n.meeting_date || '').toLowerCase().includes(q)
     )
   }, [notes, searchQuery])
+
+  const groups = useMemo(() => groupNotesByDate(filteredNotes), [filteredNotes])
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0]
@@ -182,17 +310,24 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      {/* Título de la pestaña: así se distinguen varias pestañas abiertas */}
+      <Helmet>
+        <title>{activeNote ? `${activeNote.title?.trim() || 'Sin título'} — MeetingNotes` : 'Notas — MeetingNotes'}</title>
+      </Helmet>
+      {showShortcuts && <ShortcutsDialog groups={NOTES_SHORTCUTS} onClose={closeShortcuts} />}
       {panelEl && createPortal(
         <NotesSidebarSection
           loading={loading}
           error={error}
-          filteredNotes={filteredNotes}
+          groups={groups}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           handleCreateNote={handleCreateNote}
           autoFocusSearch={focusSearch}
           onSearchFocus={() => setFocusSearch(false)}
           onSelectNote={closeMobile}
+          onRetry={fetchNotes}
+          onShowShortcuts={() => setShowShortcuts(true)}
         />,
         panelEl
       )}

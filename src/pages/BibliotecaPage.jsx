@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
+import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../context/AuthContext'
 import { useBiblioteca } from '../context/BibliotecaContext'
 import { useAppSidebar } from '../components/layout/AppSidebarContext'
@@ -741,8 +742,11 @@ export default function BibliotecaPage() {
     return documentos.filter(d => !d.folder_id)
   }, [documentos, searchQuery, currentFolderId])
 
+  const activeDocTitle = activeDocId ? (documentos.find(d => d.id === activeDocId)?.title?.trim() || 'Sin título') : null
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      <Helmet><title>{activeDocTitle ? `${activeDocTitle} — Biblioteca — MeetingNotes` : 'Biblioteca — MeetingNotes'}</title></Helmet>
       {panelEl && createPortal(
         <BibliotecaSidebarSection
           handleCreateDoc={handleCreateDoc}

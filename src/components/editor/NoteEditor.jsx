@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal, flushSync } from 'react-dom'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import { TaskList } from '@tiptap/extension-task-list'
+import { TaskItem } from '@tiptap/extension-task-item'
 import { supabase } from '../../lib/supabaseClient'
 import { useNotes } from '../../context/NotesContext'
 import { useAppSidebar } from '../layout/AppSidebarContext'
@@ -9,6 +12,7 @@ import { useAutosave } from '../../hooks/useAutosave'
 import { draftKey, readDraft, writeDraft, clearDraft, sameJson } from '../../lib/drafts'
 import EditorToolbar from './EditorToolbar'
 import DatePicker from '../ui/DatePicker'
+import { noteToMarkdown, noteToHtml } from '../../lib/noteMarkdown'
 
 // ─────────────────────────────────────────────────────────────
 // CONCEPTO: "stale-while-revalidate" (enseña lo guardado, comprueba por detrás)
@@ -24,6 +28,7 @@ export default function NoteEditor({ noteId }) {
   const [initialData, setInitialData] = useState(cached ?? null)
   const [version, setVersion] = useState(0)
   const [fetchError, setFetchError] = useState(null)
+  const [attempt, setAttempt] = useState(0)
   const editedRef = useRef(false)
 
   useEffect(() => {
@@ -51,12 +56,15 @@ export default function NoteEditor({ noteId }) {
       } catch (err) {
         // Con copia en caché (p. ej. una nota recién creada cuyo INSERT
         // aún no ha llegado) el error no impide seguir escribiendo
-        if (!cancelled && !getCachedNote(noteId)) setFetchError(err.message)
+        if (!cancelled && !getCachedNote(noteId)) {
+          console.error('Error cargando la nota:', err.message)
+          setFetchError(err.message)
+        }
       }
     }
     fetchNote()
     return () => { cancelled = true }
-  }, [noteId, getCachedNote, cacheNote])
+  }, [noteId, getCachedNote, cacheNote, attempt])
 
   const loading = !initialData && !fetchError
 
@@ -69,8 +77,14 @@ export default function NoteEditor({ noteId }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <p className="text-sm text-red-500 font-medium">Error al cargar la nota</p>
-        <p className="text-xs text-slate-400 mt-1">{fetchError}</p>
+        <p className="text-sm text-red-300 font-medium">No hemos podido abrir la nota</p>
+        <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Puede ser la conexión. Tu contenido no se ha perdido: vuelve a intentarlo.</p>
+        <button
+          onClick={() => { setFetchError(null); setAttempt(a => a + 1) }}
+          className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors"
+        >
+          Reintentar
+        </button>
       </div>
     </div>
   )
@@ -175,6 +189,9 @@ function EditorInner({ initialData, onEdit }) {
       Placeholder.configure({
         placeholder: 'Escribe el contenido de la reunión...',
       }),
+      // Casillas de acciones: escribe "[ ] " al empezar una línea o Ctrl+Shift+9
+      TaskList,
+      TaskItem.configure({ nested: true }),
     ],
     content: 'content' in restored ? restored.content : initialData.content,
     onUpdate: ({ editor }) => {
@@ -217,11 +234,64 @@ function EditorInner({ initialData, onEdit }) {
     e.target.style.height = e.target.scrollHeight + 'px'
   }
 
+  // ── Copiar: Markdown (texto plano) + HTML a la vez. Cada app pega el
+  //    formato que entiende: Gmail/Slack/Docs el HTML; un .md o GitHub el texto.
+  const [copyState, setCopyState] = useState(null)
+  const handleCopy = async () => {
+    if (!editor) return
+    const md = noteToMarkdown({ title, meetingDate, content: editor.getJSON() })
+    const html = noteToHtml({ title, meetingDate, bodyHtml: editor.getHTML() })
+    try {
+      if (window.ClipboardItem && navigator.clipboard?.write) {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/plain': new Blob([md], { type: 'text/plain' }),
+          'text/html': new Blob([html], { type: 'text/html' }),
+        })])
+      } else {
+        await navigator.clipboard.writeText(md)
+      }
+      setCopyState('ok')
+    } catch {
+      setCopyState('error')
+    }
+    setTimeout(() => setCopyState(null), 2000)
+  }
+
+  // ── Imprimir / PDF: pintamos una copia de la nota directamente en <body>
+  //    (createPortal) y el CSS de impresión oculta todo lo demás. Así el
+  //    PDF sale con texto real (seleccionable), no una foto de la pantalla.
+  //    flushSync obliga a React a pintarla ANTES de abrir el diálogo.
+  const [printing, setPrinting] = useState(false)
+  const handlePrint = () => {
+    if (!editor) return
+    const done = () => {
+      setPrinting(false)
+      window.removeEventListener('afterprint', done)
+    }
+    window.addEventListener('afterprint', done)
+    flushSync(() => setPrinting(true))
+    window.print()
+  }
+
+  // Ctrl+P (Cmd+P en Mac) imprime la nota, no la pantalla de la app
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        handlePrint()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  })
+
+  const headerAction = 'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors'
+
   return (
     <div className="animate-fadeIn">
       {/* Top bar */}
       <div className="sticky top-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-10 py-3 sm:py-4">
+        <div className="max-w-2xl mx-auto px-4 sm:px-8 py-3 sm:py-4">
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
               <textarea
@@ -242,8 +312,8 @@ function EditorInner({ initialData, onEdit }) {
             </div>
           </div>
 
-          {/* Date picker + modo foco */}
-          <div className="flex items-center gap-2 mt-2 sm:mt-3">
+          {/* Fecha + acciones (copiar, imprimir, modo foco) */}
+          <div className="flex items-center gap-1 sm:gap-2 mt-2 sm:mt-3">
             <DatePicker
               value={meetingDate}
               onChange={handleDateChange}
@@ -251,17 +321,46 @@ function EditorInner({ initialData, onEdit }) {
             />
             <button
               type="button"
+              onClick={handleCopy}
+              title="Copiar la nota (con formato y como Markdown)"
+              aria-label="Copiar la nota"
+              className={`ml-auto ${headerAction}`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {copyState === 'ok'
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />}
+              </svg>
+              <span className="hidden sm:inline" aria-live="polite">
+                {copyState === 'ok' ? 'Copiada' : copyState === 'error' ? 'No se pudo copiar' : 'Copiar'}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={handlePrint}
+              title="Imprimir o guardar como PDF (Ctrl+P)"
+              aria-label="Imprimir o guardar como PDF"
+              className={headerAction}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setFocusMode(!focusMode)}
               aria-pressed={focusMode}
+              aria-label={focusMode ? 'Salir del modo foco' : 'Modo foco'}
               title={focusMode ? 'Salir del modo foco (Esc)' : 'Modo foco: oculta el menú lateral'}
-              className="ml-auto shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className={headerAction}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 {focusMode
                   ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
                   : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />}
               </svg>
-              <span className="hidden sm:inline">{focusMode ? 'Salir del modo foco' : 'Modo foco'}</span>
+              <span className="hidden lg:inline">{focusMode ? 'Salir del modo foco' : 'Modo foco'}</span>
             </button>
           </div>
 
@@ -296,12 +395,19 @@ function EditorInner({ initialData, onEdit }) {
       </div>
 
       {/* Editor area */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8 bg-slate-950 min-h-[calc(100%-6rem)]">
+      {/* max-w-2xl + texto de 16px: unos 70-75 caracteres por línea, lo cómodo para leer */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 sm:py-8 bg-slate-950 min-h-[calc(100%-6rem)]">
 
         <EditorContent
           editor={editor}
-          className="prose prose-invert prose-sm max-w-none min-h-[400px]
+          className="prose prose-invert prose-base max-w-none min-h-[400px]
                      focus:outline-none
+                     [&_.tiptap_ul[data-type=taskList]]:list-none [&_.tiptap_ul[data-type=taskList]]:pl-0
+                     [&_.tiptap_ul[data-type=taskList]>li]:flex [&_.tiptap_ul[data-type=taskList]>li]:items-start [&_.tiptap_ul[data-type=taskList]>li]:gap-2 [&_.tiptap_ul[data-type=taskList]>li]:pl-0
+                     [&_.tiptap_ul[data-type=taskList]>li>label]:mt-[0.4em] [&_.tiptap_ul[data-type=taskList]>li>div]:flex-1
+                     [&_.tiptap_ul[data-type=taskList]>li_p]:my-0
+                     [&_.tiptap_li[data-checked=true]>div]:line-through [&_.tiptap_li[data-checked=true]>div]:text-slate-400
+                     [&_.tiptap_input[type=checkbox]]:w-4 [&_.tiptap_input[type=checkbox]]:h-4 [&_.tiptap_input[type=checkbox]]:accent-violet-500 [&_.tiptap_input[type=checkbox]]:cursor-pointer
                      [&_.tiptap]:outline-none
                      [&_.tiptap_p.is-editor-empty:first-child::before]:text-white/50
                      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
@@ -310,6 +416,16 @@ function EditorInner({ initialData, onEdit }) {
                      [&_.tiptap_p.is-editor-empty:first-child::before]:h-0"
         />
       </div>
+
+      {printing && editor && createPortal(
+        // Solo existe mientras dura la impresión. El HTML sale del editor
+        // (ProseMirror solo serializa nodos de su esquema, el texto va escapado)
+        <div
+          className="note-print-area"
+          dangerouslySetInnerHTML={{ __html: noteToHtml({ title, meetingDate, bodyHtml: editor.getHTML() }) }}
+        />,
+        document.body
+      )}
     </div>
   )
 }
@@ -374,7 +490,7 @@ function EditorSkeleton() {
         <div className="h-8 sm:h-10 bg-white/5 rounded-xl w-2/3 mb-3" />
         <div className="h-8 sm:h-9 bg-white/5 rounded-xl w-1/4" />
       </div>
-      <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 sm:py-8">
         <div className="h-10 bg-white/5 rounded-xl mb-6" />
         <div className="space-y-3">
           <div className="h-4 bg-white/5 rounded-lg w-full" />

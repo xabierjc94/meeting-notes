@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { TasksProvider, useTasks } from '../context/TasksContext'
 import { GestionProvider } from '../context/GestionContext'
 import { useProjects } from '../context/ProjectsContext'
@@ -65,6 +66,7 @@ function TasksContent({ project, projectId }) {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
+      <Helmet><title>{`${project?.name ?? 'Tareas'} — Tareas — MeetingNotes`}</title></Helmet>
       {/* @container: la cabecera se adapta a SU ancho (cambia con la barra lateral), no al de la pantalla */}
       <header className="@container bg-black/20 backdrop-blur-sm border-b border-white/10 px-3 sm:px-6 py-3 shrink-0">
         <div className="flex flex-wrap items-center gap-2 @2xl:flex-nowrap @2xl:gap-4">

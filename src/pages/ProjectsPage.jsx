@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useProjects } from '../context/ProjectsContext'
 import MobileTopBar from '../components/layout/MobileTopBar'
 import Icon from '../components/ui/Icon'
@@ -95,6 +96,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      <Helmet><title>Proyectos — MeetingNotes</title></Helmet>
       <ProjectsSidebarSection />
 
       <MobileTopBar

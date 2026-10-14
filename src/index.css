@@ -153,9 +153,10 @@ option {
    activa con teclado, así que el clic con ratón no muestra el anillo.
    Va fuera de las capas (@layer) de Tailwind a propósito: el CSS sin
    capa gana a las utilidades como outline-none.
-   Los campos de texto no se incluyen: ya tienen su propio anillo.
+   Los campos de texto y los editores (contenteditable) no se incluyen:
+   tienen su propio indicador (el cursor) y un marco al escribir molesta.
    ───────────────────────────────────────────────────────────── */
-:where(a[href], button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+:where(a[href], button, summary, [role="button"], [tabindex]:not([tabindex="-1"]):not([contenteditable="true"])):focus-visible {
   outline: 2px solid #a78bfa; /* violet-400 */
   outline-offset: 2px;
 }
@@ -182,3 +183,39 @@ option {
 /* Scroll horizontal sin barra visible (se desplaza con el dedo o la rueda) */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ─────────────────────────────────────────────────────────────
+   Imprimir / PDF de una nota
+   NoteEditor pinta .note-print-area en <body> solo mientras imprime.
+   Al imprimir se oculta todo lo demás (la app entera) y la nota sale
+   en blanco y negro, con texto real seleccionable en el PDF.
+   ───────────────────────────────────────────────────────────── */
+.note-print-area { display: none; }
+
+@media print {
+  html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
+  body:has(> .note-print-area) > *:not(.note-print-area) { display: none !important; }
+  .note-print-area {
+    display: block;
+    color-scheme: light;
+    color: #111;
+    font: 11pt/1.55 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  .note-print-area h1 { font-size: 20pt; margin: 0 0 4pt; }
+  .note-print-area h2 { font-size: 15pt; margin: 14pt 0 4pt; }
+  .note-print-area h3 { font-size: 12.5pt; margin: 12pt 0 4pt; }
+  .note-print-area p { margin: 0 0 6pt; }
+  .note-print-area ul, .note-print-area ol { margin: 0 0 6pt; padding-left: 18pt; }
+  .note-print-area ul { list-style: disc; }
+  .note-print-area ol { list-style: decimal; }
+  .note-print-area blockquote { border-left: 3px solid #bbb; margin: 0 0 6pt; padding-left: 10pt; color: #444; }
+  .note-print-area pre { background: #f3f3f3; padding: 6pt; border-radius: 4pt; white-space: pre-wrap; }
+  .note-print-area code { font-family: ui-monospace, monospace; font-size: 0.92em; }
+  .note-print-area hr { border: 0; border-top: 1px solid #ccc; margin: 12pt 0; }
+  .note-print-area ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+  .note-print-area li[data-type="taskItem"] { display: flex; gap: 6pt; align-items: flex-start; }
+  .note-print-area li[data-type="taskItem"] > div { flex: 1; }
+  .note-print-area li[data-type="taskItem"] p { margin: 0; }
+  .note-print-area li[data-checked="true"] > div { text-decoration: line-through; color: #666; }
+  .note-print-area h1, .note-print-area h2, .note-print-area h3 { break-after: avoid; }
+}

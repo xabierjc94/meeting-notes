@@ -67,6 +67,13 @@ export default function EditorToolbar({ editor }) {
       >
         <OrderedIcon />
       </ToolbarButton>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleTaskList().run()}
+        active={editor.isActive('taskList')}
+        title="Lista de tareas (Ctrl+Shift+9)"
+      >
+        <TaskIcon />
+      </ToolbarButton>
 
       <Divider />
 
@@ -163,6 +170,15 @@ function CodeIcon() {
   return (
     <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
+    </svg>
+  )
+}
+
+function TaskIcon() {
+  return (
+    <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="6" height="6" rx="1" /><path d="M5 8l1.5 1.5L9 6" /><line x1="13" y1="8" x2="21" y2="8" />
+      <rect x="3" y="14" width="6" height="6" rx="1" /><line x1="13" y1="17" x2="21" y2="17" />
     </svg>
   )
 }
