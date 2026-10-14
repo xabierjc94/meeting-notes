@@ -4,20 +4,31 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../../lib/supabaseClient'
 import { useNotes } from '../../context/NotesContext'
+import { useAppSidebar } from '../layout/AppSidebarContext'
 import { useAutosave } from '../../hooks/useAutosave'
 import { draftKey, readDraft, writeDraft, clearDraft, sameJson } from '../../lib/drafts'
 import EditorToolbar from './EditorToolbar'
 import DatePicker from '../ui/DatePicker'
 
+// ─────────────────────────────────────────────────────────────
+// CONCEPTO: "stale-while-revalidate" (enseña lo guardado, comprueba por detrás)
+//
+// Si la nota está en la caché, se pinta al instante. A la vez pedimos
+// la versión del servidor: si es más nueva (se editó en otro
+// dispositivo) y aún no has tocado nada, la cambiamos. Si ya has
+// escrito, no la pisamos: tu texto manda.
+// ─────────────────────────────────────────────────────────────
 export default function NoteEditor({ noteId }) {
-  const [initialData, setInitialData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { getCachedNote, cacheNote } = useNotes()
+  const [cached] = useState(() => getCachedNote(noteId))
+  const [initialData, setInitialData] = useState(cached ?? null)
+  const [version, setVersion] = useState(0)
   const [fetchError, setFetchError] = useState(null)
+  const editedRef = useRef(false)
 
   useEffect(() => {
+    let cancelled = false
     const fetchNote = async () => {
-      setLoading(true)
-      setFetchError(null)
       try {
         const { data, error } = await supabase
           .from('notes')
@@ -26,15 +37,28 @@ export default function NoteEditor({ noteId }) {
           .single()
 
         if (error) throw error
-        setInitialData(data)
+        if (cancelled) return
+        const current = getCachedNote(noteId)
+        const serverIsNewer = !current || Date.parse(data.updated_at) > Date.parse(current.updated_at)
+        if (!serverIsNewer) return
+        cacheNote(data)
+        if (!current) {
+          setInitialData(data)
+        } else if (!editedRef.current) {
+          setInitialData(data)
+          setVersion(v => v + 1) // remonta el editor con la versión nueva
+        }
       } catch (err) {
-        setFetchError(err.message)
-      } finally {
-        setLoading(false)
+        // Con copia en caché (p. ej. una nota recién creada cuyo INSERT
+        // aún no ha llegado) el error no impide seguir escribiendo
+        if (!cancelled && !getCachedNote(noteId)) setFetchError(err.message)
       }
     }
     fetchNote()
-  }, [noteId])
+    return () => { cancelled = true }
+  }, [noteId, getCachedNote, cacheNote])
+
+  const loading = !initialData && !fetchError
 
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
@@ -51,7 +75,13 @@ export default function NoteEditor({ noteId }) {
     </div>
   )
 
-  return <EditorInner initialData={initialData} />
+  return (
+    <EditorInner
+      key={version}
+      initialData={initialData}
+      onEdit={() => { editedRef.current = true }}
+    />
+  )
 }
 
 // Compara el borrador local con lo que hay en el servidor y decide:
@@ -86,8 +116,9 @@ function listFields(changes) {
   return out
 }
 
-function EditorInner({ initialData }) {
+function EditorInner({ initialData, onEdit }) {
   const { updateNote, updateNoteLocal } = useNotes()
+  const { focusMode, setFocusMode } = useAppSidebar()
   const noteId = initialData.id
   const key = draftKey('note', noteId)
   const conflictKey = draftKey('note-conflict', noteId)
@@ -112,6 +143,13 @@ function EditorInner({ initialData }) {
     draftKey: key,
   })
 
+  // Toda edición avisa al padre (para no pisarla con una versión del
+  // servidor que llegue después) y se encola para guardarse
+  const edit = (changes) => {
+    onEdit?.()
+    queue(changes)
+  }
+
   // Al abrir la nota, aplicamos la decisión de recuperación una sola vez
   const recoveryHandled = useRef(false)
   useEffect(() => {
@@ -121,6 +159,7 @@ function EditorInner({ initialData }) {
       clearDraft(key)
     } else if (recovery.type === 'auto') {
       updateNoteLocal(noteId, listFields(recovery.changes))
+      onEdit?.()
       queue(recovery.changes)
     } else if (recovery.type === 'conflict' && recovery.draft) {
       // Apartamos la copia en otra clave para que lo que se escriba
@@ -128,7 +167,7 @@ function EditorInner({ initialData }) {
       writeDraft(conflictKey, recovery.draft)
       clearDraft(key)
     }
-  }, [recovery, key, conflictKey, noteId, queue, updateNoteLocal])
+  }, [recovery, key, conflictKey, noteId, queue, updateNoteLocal, onEdit])
 
   const editor = useEditor({
     extensions: [
@@ -139,7 +178,7 @@ function EditorInner({ initialData }) {
     ],
     content: 'content' in restored ? restored.content : initialData.content,
     onUpdate: ({ editor }) => {
-      queue({ content: editor.getJSON() })
+      edit({ content: editor.getJSON() })
     },
   })
 
@@ -147,13 +186,13 @@ function EditorInner({ initialData }) {
     const val = e.target.value
     setTitle(val)
     updateNoteLocal(noteId, { title: val })
-    queue({ title: val })
+    edit({ title: val })
   }
 
   const handleDateChange = (val) => {
     setMeetingDate(val)
     updateNoteLocal(noteId, { meeting_date: val || null })
-    queue({ meeting_date: val || null })
+    edit({ meeting_date: val || null })
   }
 
   const applyLocalCopy = () => {
@@ -163,7 +202,7 @@ function EditorInner({ initialData }) {
     // setContent dispara onUpdate, que a su vez encola el contenido
     if ('content' in changes && editor) editor.commands.setContent(changes.content)
     updateNoteLocal(noteId, listFields(changes))
-    queue(changes)
+    edit(changes)
     clearDraft(conflictKey)
     setNotice(null)
   }
@@ -203,13 +242,27 @@ function EditorInner({ initialData }) {
             </div>
           </div>
 
-          {/* Date picker */}
+          {/* Date picker + modo foco */}
           <div className="flex items-center gap-2 mt-2 sm:mt-3">
             <DatePicker
               value={meetingDate}
               onChange={handleDateChange}
               placeholder="Fecha de reunión"
             />
+            <button
+              type="button"
+              onClick={() => setFocusMode(!focusMode)}
+              aria-pressed={focusMode}
+              title={focusMode ? 'Salir del modo foco (Esc)' : 'Modo foco: oculta el menú lateral'}
+              className="ml-auto shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                {focusMode
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />}
+              </svg>
+              <span className="hidden sm:inline">{focusMode ? 'Salir del modo foco' : 'Modo foco'}</span>
+            </button>
           </div>
 
           {notice === 'recovered' && (
@@ -233,12 +286,17 @@ function EditorInner({ initialData }) {
               Este dispositivo tiene cambios sin guardar de esta nota, pero la nota se modificó después en otro sitio.
             </RecoveryNotice>
           )}
+
+          {/* La barra de formato vive en la cabecera fija: así no se pierde
+              al bajar por una nota larga (ni con el teclado del móvil abierto) */}
+          <div className="mt-3">
+            <EditorToolbar editor={editor} />
+          </div>
         </div>
       </div>
 
       {/* Editor area */}
       <div className="max-w-3xl mx-auto px-4 sm:px-10 py-4 sm:py-8 bg-slate-950 min-h-[calc(100%-6rem)]">
-        <EditorToolbar editor={editor} />
 
         <EditorContent
           editor={editor}

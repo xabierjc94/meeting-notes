@@ -1,5 +1,5 @@
-import { useState, useSyncExternalStore, useCallback, useMemo, Suspense } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useState, useEffect, useSyncExternalStore, useCallback, useMemo, Suspense } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { AppSidebarContext } from './AppSidebarContext'
 import Icon from '../ui/Icon'
@@ -49,7 +49,11 @@ function readCollapsed() {
   try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1' } catch { return false }
 }
 
-function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef }) {
+// Desde Tareas o Biblioteca: ir a Notas y crear una nota nueva al llegar
+// (DashboardPage lee state.newNote)
+const QUICK_NOTE = { to: '/dashboard', state: { newNote: true } }
+
+function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef, showQuickNote }) {
   const greeting = getGreeting()
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
   const headerButton = 'ml-auto shrink-0 w-8 h-8 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all'
@@ -86,7 +90,18 @@ function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef }) {
           </button>
         </div>
 
-        <p className="text-xs text-violet-300/60 font-medium mb-4">{greeting}, {userName}</p>
+        <div className="flex items-center gap-2 mb-4">
+          <p className="flex-1 min-w-0 truncate text-xs text-violet-300/60 font-medium">{greeting}, {userName}</p>
+          {showQuickNote && (
+            <Link
+              {...QUICK_NOTE}
+              className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-violet-200 bg-violet-500/15 hover:bg-violet-500/25 transition-colors"
+            >
+              <Icon d={ICONS.plus} className="w-3.5 h-3.5" />
+              Nota rápida
+            </Link>
+          )}
+        </div>
 
         {/* Navigation */}
         <nav aria-label="Secciones" className="flex gap-1 bg-white/5 rounded-xl p-1">
@@ -137,7 +152,7 @@ function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef }) {
   )
 }
 
-function SidebarRail({ user, onExpand, onSignOut, railRef }) {
+function SidebarRail({ user, onExpand, onSignOut, railRef, showQuickNote }) {
   const railButton = 'w-10 h-10 flex items-center justify-center rounded-xl transition-all'
   return (
     <div className="w-[72px] h-full flex flex-col items-center bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden pt-7 pb-4">
@@ -174,6 +189,17 @@ function SidebarRail({ user, onExpand, onSignOut, railRef }) {
             </NavLink>
           ))}
         </nav>
+
+        {showQuickNote && (
+          <Link
+            {...QUICK_NOTE}
+            title="Nota rápida"
+            aria-label="Nota rápida"
+            className={`${railButton} mt-2 text-violet-200 bg-violet-500/15 hover:bg-violet-500/25`}
+          >
+            <Icon d={ICONS.plus} />
+          </Link>
+        )}
 
         <div className="w-8 h-px bg-white/10 my-2" />
 
@@ -222,13 +248,25 @@ export default function AppLayout() {
   const [panelEl, setPanelEl] = useState(null)
   const [railEl, setRailEl] = useState(null)
   const [lastPath, setLastPath] = useState(location.pathname)
+  // Modo foco: oculta la barra lateral para escribir sin distracciones
+  const [focusMode, setFocusMode] = useState(false)
 
-  // Al cambiar de ruta se cierra el drawer móvil y se repliega la tablet (ajuste durante el render, sin efecto)
+  // Al cambiar de ruta se cierra el drawer móvil, se repliega la tablet y se
+  // sale del modo foco (ajuste durante el render, sin efecto)
   if (lastPath !== location.pathname) {
     setLastPath(location.pathname)
     setMobileOpen(false)
     setTabletExpanded(false)
+    setFocusMode(false)
   }
+
+  // Esc sale del modo foco
+  useEffect(() => {
+    if (!focusMode) return
+    const onKey = (e) => { if (e.key === 'Escape') setFocusMode(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [focusMode])
 
   const collapsed = isTablet ? !tabletExpanded : savedCollapsed
 
@@ -252,11 +290,12 @@ export default function AppLayout() {
   }
 
   const showRail = isDesktop && collapsed
+  const isNotes = location.pathname.startsWith('/dashboard')
 
   // Valor estable: abrir/cerrar el drawer no re-renderiza las páginas que consumen el contexto
   const value = useMemo(
-    () => ({ panelEl, railEl, collapsed, setCollapsed, openMobile, closeMobile }),
-    [panelEl, railEl, collapsed, setCollapsed, openMobile, closeMobile]
+    () => ({ panelEl, railEl, collapsed, setCollapsed, openMobile, closeMobile, focusMode, setFocusMode }),
+    [panelEl, railEl, collapsed, setCollapsed, openMobile, closeMobile, focusMode]
   )
 
   return (
@@ -275,7 +314,7 @@ export default function AppLayout() {
             en contenedor de los `fixed` de dentro y los modales de la sección quedarían recortados */}
         <aside
           inert={!isDesktop && !mobileOpen}
-          className={`fixed inset-y-0 left-0 z-50 w-80 flex flex-col shrink-0 overflow-hidden border-r border-white/5 animate-slideInLeft
+          className={`fixed inset-y-0 left-0 z-50 w-80 ${focusMode ? 'hidden' : 'flex'} flex-col shrink-0 overflow-hidden border-r border-white/5 animate-slideInLeft
                       transition-transform duration-300 ease-out ${mobileOpen ? 'translate-none' : '-translate-x-full'}
                       md:static md:z-auto md:translate-none md:transition-[width] ${showRail ? 'md:w-[72px]' : 'md:w-80'}`}
         >
@@ -285,6 +324,7 @@ export default function AppLayout() {
               onExpand={() => setCollapsed(false)}
               onSignOut={handleSignOut}
               railRef={setRailEl}
+              showQuickNote={!isNotes}
             />
           ) : (
             <SidebarFrame
@@ -293,6 +333,7 @@ export default function AppLayout() {
               onClose={closeMobile}
               onSignOut={handleSignOut}
               panelRef={setPanelEl}
+              showQuickNote={!isNotes}
             />
           )}
         </aside>

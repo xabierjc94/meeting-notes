@@ -1,4 +1,5 @@
-import { useState, useMemo, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useNotes } from '../context/NotesContext'
 import { useAppSidebar } from '../components/layout/AppSidebarContext'
@@ -19,19 +20,16 @@ function EditorFallback() {
   )
 }
 
-function NotesRailActions({ handleCreateNote, creating, onSearch }) {
+function NotesRailActions({ handleCreateNote, onSearch }) {
   return (
     <>
       <button
         onClick={handleCreateNote}
-        disabled={creating}
         title="Nueva nota"
         aria-label="Nueva nota"
         className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 active:scale-95"
       >
-        {creating
-          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          : <Icon d={ICONS.plus} />}
+        <Icon d={ICONS.plus} />
       </button>
       <button
         onClick={onSearch}
@@ -45,22 +43,18 @@ function NotesRailActions({ handleCreateNote, creating, onSearch }) {
   )
 }
 
-function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, creating, autoFocusSearch, onSearchFocus, onSelectNote }) {
+function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSearchQuery, handleCreateNote, autoFocusSearch, onSearchFocus, onSelectNote }) {
   return (
     <>
       <div className="px-6 pb-4">
         <h2 className="text-white font-semibold text-sm mb-3">¿Qué vas a documentar hoy?</h2>
         <button
           onClick={handleCreateNote}
-          disabled={creating}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold
                      bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:from-violet-400 disabled:to-purple-400
                      text-white transition-all duration-300 shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98]"
         >
-          {creating
-            ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            : <Icon d={ICONS.plus} />
-          }
+          <Icon d={ICONS.plus} />
           Nueva nota
         </button>
       </div>
@@ -131,16 +125,29 @@ function NotesSidebarSection({ loading, error, filteredNotes, searchQuery, setSe
 
 export default function DashboardPage() {
   const { notes, loading, error, activeNoteId, createNote } = useNotes()
-  const { panelEl, railEl, setCollapsed, closeMobile } = useAppSidebar()
-  const [creating, setCreating] = useState(false)
+  const { panelEl, railEl, setCollapsed, closeMobile, focusMode } = useAppSidebar()
   const [searchQuery, setSearchQuery] = useState('')
   const [focusSearch, setFocusSearch] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  const handleCreateNote = async () => {
-    setCreating(true)
-    try { await createNote() } catch (err) { console.error(err) } finally { setCreating(false) }
+  // Instantáneo: la nota se crea en local y el servidor se entera por detrás
+  const handleCreateNote = () => {
+    createNote()
     closeMobile()
   }
+
+  // "Nota rápida" desde Tareas o Biblioteca llega con state.newNote.
+  // Limpiamos el state con replace para que recargar no cree otra nota.
+  // La ref (que sobrevive al doble montaje de StrictMode) evita crear dos.
+  const wantsNewNote = location.state?.newNote === true
+  const handledNavRef = useRef(null)
+  useEffect(() => {
+    if (!wantsNewNote || handledNavRef.current === location.key) return
+    handledNavRef.current = location.key
+    navigate('.', { replace: true, state: null })
+    createNote()
+  }, [wantsNewNote, location.key, navigate, createNote])
 
   // Desde el rail: desplegar el menú y enfocar el buscador (una sola vez)
   const handleRailSearch = () => {
@@ -183,7 +190,6 @@ export default function DashboardPage() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           handleCreateNote={handleCreateNote}
-          creating={creating}
           autoFocusSearch={focusSearch}
           onSearchFocus={() => setFocusSearch(false)}
           onSelectNote={closeMobile}
@@ -191,25 +197,21 @@ export default function DashboardPage() {
         panelEl
       )}
       {railEl && createPortal(
-        <NotesRailActions handleCreateNote={handleCreateNote} creating={creating} onSearch={handleRailSearch} />,
+        <NotesRailActions handleCreateNote={handleCreateNote} onSearch={handleRailSearch} />,
         railEl
       )}
 
-      <MobileTopBar
+      {!focusMode && <MobileTopBar
         action={
           <button
             onClick={handleCreateNote}
-            disabled={creating}
             aria-label="Nueva nota"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/20 transition-all"
           >
-            {creating
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Icon d={ICONS.plus} className="w-5 h-5" />
-            }
+            <Icon d={ICONS.plus} className="w-5 h-5" />
           </button>
         }
-      />
+      />}
 
       <div className="flex-1 overflow-y-auto">
         {activeNote ? (
