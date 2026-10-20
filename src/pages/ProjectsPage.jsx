@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useProjects } from '../context/ProjectsContext'
-import MobileTopBar from '../components/layout/MobileTopBar'
+import PageHeader from '../components/ui/PageHeader'
+import Button from '../components/ui/Button'
 import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
@@ -64,6 +65,19 @@ export default function ProjectsPage() {
   const [editingProject, setEditingProject] = useState(null)
   const [confirmProject, setConfirmProject] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // "Nuevo proyecto" desde la paleta de comandos (⌘K) llega con state.newProject.
+  // Se limpia el state para que recargar no vuelva a abrir el formulario;
+  // la ref evita abrirlo dos veces con el doble montaje de StrictMode.
+  const wantsNewProject = location.state?.newProject === true
+  const handledNavRef = useRef(null)
+  useEffect(() => {
+    if (!wantsNewProject || handledNavRef.current === location.key) return
+    handledNavRef.current = location.key
+    navigate('.', { replace: true, state: null })
+    setShowModal(true)
+  }, [wantsNewProject, location.key, navigate])
 
   // Igual que desde la barra lateral: al crear, se abre directamente el tablero nuevo
   const handleSave = async (data) => {
@@ -99,31 +113,17 @@ export default function ProjectsPage() {
       <Helmet><title>Proyectos — MeetingNotes</title></Helmet>
       <ProjectsSidebarSection />
 
-      <MobileTopBar
-        action={
-          <button
-            onClick={() => setShowModal(true)}
-            aria-label="Nuevo proyecto"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/20 transition-all"
-          >
-            <Icon d={ICONS.plus} className="w-5 h-5" />
-          </button>
+      {/* Cabecera nueva (sistema de diseño): migas + título + acción principal.
+          Incluye el botón ☰ de móvil, así que sustituye a la MobileTopBar. */}
+      <PageHeader
+        breadcrumb={[{ label: 'Tareas' }, { label: 'Todos los proyectos' }]}
+        title="Proyectos"
+        actions={
+          <Button onClick={() => setShowModal(true)} icon={<Icon d={ICONS.plus} />} aria-label="Nuevo proyecto">
+            <span className="hidden sm:inline">Nuevo proyecto</span>
+          </Button>
         }
-      >
-        <span className="font-bold text-white text-sm">Proyectos</span>
-      </MobileTopBar>
-
-      {/* Header (escritorio): la navegación entre secciones vive ya en la barra lateral */}
-      <header className="hidden md:flex items-center justify-between gap-4 bg-black/20 backdrop-blur-sm border-b border-white/10 px-6 py-3 shrink-0">
-        <h1 className="text-lg font-bold text-white">Proyectos</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 shrink-0"
-        >
-          <Icon d={ICONS.plus} />
-          Nuevo proyecto
-        </button>
-      </header>
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">

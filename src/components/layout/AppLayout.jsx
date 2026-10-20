@@ -4,13 +4,9 @@ import { useAuth } from '../../context/AuthContext'
 import { AppSidebarContext } from './AppSidebarContext'
 import Icon from '../ui/Icon'
 import { ICONS } from '../ui/icons'
-
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Buenos días'
-  if (hour < 18) return 'Buenas tardes'
-  return 'Buenas noches'
-}
+import Logo from '../ui/Logo'
+import Spinner from '../ui/Spinner'
+import CommandPalette from './CommandPalette'
 
 function getInitials(name, email) {
   if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -53,137 +49,141 @@ function readCollapsed() {
 // (DashboardPage lee state.newNote)
 const QUICK_NOTE = { to: '/dashboard', state: { newNote: true } }
 
-function SidebarFrame({ user, onCollapse, onClose, onSignOut, panelRef, showQuickNote }) {
-  const greeting = getGreeting()
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'
-  const headerButton = 'ml-auto shrink-0 w-8 h-8 items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all'
+// En Mac el atajo se muestra como ⌘K; en el resto, Ctrl K
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
+const SEARCH_KEYS = IS_MAC ? '⌘K' : 'Ctrl K'
+
+function UserAvatar({ user, className = '' }) {
+  return (
+    <span
+      className={`shrink-0 w-9 h-9 rounded-xl bg-pill-lilac text-pill-lilac-ink flex items-center justify-center text-xs font-bold ${className}`}
+      title={user?.email}
+      aria-hidden="true"
+    >
+      {getInitials(user?.user_metadata?.full_name, user?.email)}
+    </span>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Barra lateral desplegada (inspirada en el diseño de referencia):
+//   bloque de espacio de trabajo → "Buscar ⌘K" → MENÚ PRINCIPAL
+//   (navegación vertical) → panel de la sección (portal) → usuario.
+// Plana: sin degradados ni orbes; la jerarquía la dan el tamaño, el
+// color del texto y el lima del elemento activo.
+// ─────────────────────────────────────────────────────────────
+function SidebarFrame({ user, onCollapse, onClose, onSignOut, onSearch, panelRef, showQuickNote }) {
+  const headerButton = 'ml-auto shrink-0 w-9 h-9 items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-card transition-colors'
 
   return (
-    <div className="w-80 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden">
-      {/* Decorative gradient orbs */}
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 -left-16 w-36 h-36 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Header section */}
-      <div className="relative z-10 px-6 pt-7 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/30 ring-1 ring-violet-400/30">
-            <Icon d={ICONS.note} className="w-5 h-5 text-white" />
+    <div className="w-80 h-full flex flex-col bg-surface">
+      <div className="px-4 pt-5">
+        {/* Espacio de trabajo */}
+        <div className="flex items-center gap-3">
+          <Logo size="md" />
+          <div className="min-w-0">
+            <p className="font-bold text-ink leading-tight tracking-tight">MeetingNotes</p>
+            <p className="text-xs text-ink-subtle">Espacio personal</p>
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">MeetingNotes</span>
-          <button
-            onClick={onCollapse}
-            className={`hidden md:flex ${headerButton}`}
-            title="Plegar menú"
-            aria-label="Plegar menú"
-            aria-expanded={true}
-          >
+          <button onClick={onCollapse} className={`hidden md:flex ${headerButton}`} title="Plegar menú" aria-label="Plegar menú" aria-expanded={true}>
             <Icon d={ICONS.collapse} />
           </button>
-          <button
-            onClick={onClose}
-            className={`flex md:hidden ${headerButton}`}
-            title="Cerrar menú"
-            aria-label="Cerrar menú"
-          >
+          <button onClick={onClose} className={`flex md:hidden ${headerButton}`} title="Cerrar menú" aria-label="Cerrar menú">
             <Icon d={ICONS.collapse} />
           </button>
         </div>
 
-        <div className="flex items-center gap-2 mb-4">
-          <p className="flex-1 min-w-0 truncate text-xs text-violet-300/60 font-medium">{greeting}, {userName}</p>
-          {showQuickNote && (
-            <Link
-              {...QUICK_NOTE}
-              className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-violet-200 bg-violet-500/15 hover:bg-violet-500/25 transition-colors"
-            >
-              <Icon d={ICONS.plus} className="w-3.5 h-3.5" />
-              Nota rápida
-            </Link>
-          )}
-        </div>
+        {/* Buscar (abre la paleta de comandos) */}
+        <button
+          type="button"
+          onClick={onSearch}
+          className="mt-5 w-full h-10 flex items-center gap-2.5 px-3 rounded-xl bg-card border border-line text-sm text-ink-muted hover:text-ink hover:border-line-strong transition-colors"
+        >
+          <Icon d={ICONS.search} className="w-4 h-4" />
+          <span className="flex-1 text-left">Buscar</span>
+          <kbd className="hidden md:block text-[11px] font-medium text-ink-subtle border border-line rounded-md px-1.5 py-0.5">{SEARCH_KEYS}</kbd>
+        </button>
 
-        {/* Navigation */}
-        <nav aria-label="Secciones" className="flex gap-1 bg-white/5 rounded-xl p-1">
+        {/* Menú principal */}
+        <p className="mt-6 mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-ink-subtle">Menú principal</p>
+        <nav aria-label="Secciones" className="flex flex-col gap-0.5">
           {NAV_ITEMS.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
-              title={label}
-              className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all ${
-                isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/10'
+              className={({ isActive }) => `group flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-medium transition-colors ${
+                isActive ? 'bg-card text-ink' : 'text-ink-muted hover:text-ink hover:bg-card/60'
               }`}
             >
-              <Icon d={icon} />
-              <span className="text-[10px] font-semibold">{label}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon d={icon} className={`w-[18px] h-[18px] ${isActive ? 'text-accent' : ''}`} />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
+          {showQuickNote && (
+            <Link
+              {...QUICK_NOTE}
+              className="flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-medium text-accent hover:bg-accent-soft transition-colors"
+            >
+              <Icon d={ICONS.plus} className="w-[18px] h-[18px]" />
+              Nota rápida
+            </Link>
+          )}
         </nav>
       </div>
 
-      {/* Hueco que rellena cada sección con createPortal */}
-      <div ref={panelRef} className="relative z-10 flex-1 min-h-0 flex flex-col" />
+      <div className="mx-4 mt-4 mb-4 h-px bg-line" />
 
-      {/* User footer */}
-      <div className="relative z-10 border-t border-white/10 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center shrink-0 border border-violet-400/20">
-              <span className="text-xs font-bold text-violet-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-200 truncate">
-                {user?.user_metadata?.full_name || 'Usuario'}
-              </p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={onSignOut}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-            title="Cerrar sesión"
-            aria-label="Cerrar sesión"
-          >
-            <Icon d={ICONS.signOut} />
-          </button>
+      {/* Hueco que rellena cada sección con createPortal */}
+      <div ref={panelRef} className="flex-1 min-h-0 flex flex-col" />
+
+      {/* Usuario */}
+      <div className="border-t border-line px-4 py-3 flex items-center gap-3">
+        <UserAvatar user={user} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-ink truncate">{user?.user_metadata?.full_name || 'Usuario'}</p>
+          <p className="text-xs text-ink-subtle truncate">{user?.email}</p>
         </div>
+        <button
+          onClick={onSignOut}
+          className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-ink-muted hover:text-danger hover:bg-danger/10 transition-colors"
+          title="Cerrar sesión"
+          aria-label="Cerrar sesión"
+        >
+          <Icon d={ICONS.signOut} />
+        </button>
       </div>
     </div>
   )
 }
 
-function SidebarRail({ user, onExpand, onSignOut, railRef, showQuickNote }) {
-  const railButton = 'w-10 h-10 flex items-center justify-center rounded-xl transition-all'
+// Barra plegada (rail): mismos elementos, solo iconos con su etiqueta en aria-label
+function SidebarRail({ user, onExpand, onSignOut, onSearch, railRef, showQuickNote }) {
+  const railButton = 'w-10 h-10 flex items-center justify-center rounded-xl transition-colors'
   return (
-    <div className="w-[72px] h-full flex flex-col items-center bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 relative overflow-hidden pt-7 pb-4">
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col items-center gap-2 w-full">
-        <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/30 ring-1 ring-violet-400/30 mb-2">
-          <Icon d={ICONS.note} className="w-5 h-5 text-white" />
-        </div>
-        <button
-          onClick={onExpand}
-          className={`${railButton} text-slate-400 hover:text-white hover:bg-white/10`}
-          title="Desplegar menú"
-          aria-label="Desplegar menú"
-          aria-expanded={false}
-        >
+    <div className="w-[72px] h-full flex flex-col items-center bg-surface pt-5 pb-3">
+      <div className="flex flex-col items-center gap-2 w-full">
+        <Logo size="md" className="mb-1" />
+        <button onClick={onExpand} className={`${railButton} text-ink-muted hover:text-ink hover:bg-card`} title="Desplegar menú" aria-label="Desplegar menú" aria-expanded={false}>
           <Icon d={ICONS.expand} />
         </button>
+        <button onClick={onSearch} className={`${railButton} text-ink-muted hover:text-ink hover:bg-card`} title={`Buscar (${SEARCH_KEYS})`} aria-label="Buscar">
+          <Icon d={ICONS.search} />
+        </button>
 
-        <div className="w-8 h-px bg-white/10 my-2" />
+        <div className="w-8 h-px bg-line my-2" />
 
-        <nav aria-label="Secciones" className="flex flex-col items-center gap-2">
+        <nav aria-label="Secciones" className="flex flex-col items-center gap-1.5">
           {NAV_ITEMS.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
               title={label}
               aria-label={label}
-              className={({ isActive }) => `${railButton} ${
-                isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/10'
-              }`}
+              className={({ isActive }) => `${railButton} ${isActive ? 'bg-card text-accent' : 'text-ink-muted hover:text-ink hover:bg-card'}`}
             >
               <Icon d={icon} />
             </NavLink>
@@ -191,32 +191,22 @@ function SidebarRail({ user, onExpand, onSignOut, railRef, showQuickNote }) {
         </nav>
 
         {showQuickNote && (
-          <Link
-            {...QUICK_NOTE}
-            title="Nota rápida"
-            aria-label="Nota rápida"
-            className={`${railButton} mt-2 text-violet-200 bg-violet-500/15 hover:bg-violet-500/25`}
-          >
+          <Link {...QUICK_NOTE} title="Nota rápida" aria-label="Nota rápida" className={`${railButton} mt-1.5 text-accent hover:bg-accent-soft`}>
             <Icon d={ICONS.plus} />
           </Link>
         )}
 
-        <div className="w-8 h-px bg-white/10 my-2" />
+        <div className="w-8 h-px bg-line my-2" />
 
         {/* Hueco para las acciones rápidas de cada sección */}
         <div ref={railRef} className="flex flex-col items-center gap-2" />
       </div>
 
-      <div className="relative z-10 mt-auto flex flex-col items-center gap-2 pt-4 border-t border-white/10 w-full">
-        <div
-          className="w-9 h-9 bg-gradient-to-br from-violet-500/30 to-purple-500/30 rounded-xl flex items-center justify-center border border-violet-400/20"
-          title={user?.email}
-        >
-          <span className="text-xs font-bold text-violet-200">{getInitials(user?.user_metadata?.full_name, user?.email)}</span>
-        </div>
+      <div className="mt-auto flex flex-col items-center gap-2 pt-3 border-t border-line w-full">
+        <UserAvatar user={user} />
         <button
           onClick={onSignOut}
-          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-ink-muted hover:text-danger hover:bg-danger/10 transition-colors"
           title="Cerrar sesión"
           aria-label="Cerrar sesión"
         >
@@ -230,7 +220,7 @@ function SidebarRail({ user, onExpand, onSignOut, railRef, showQuickNote }) {
 function ContentSpinner() {
   return (
     <div className="flex-1 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-400 rounded-full animate-spin" />
+      <Spinner size="lg" />
     </div>
   )
 }
@@ -259,6 +249,22 @@ export default function AppLayout() {
     setTabletExpanded(false)
     setFocusMode(false)
   }
+
+  // Paleta de comandos: Ctrl+K (⌘K en Mac) desde cualquier pantalla
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const closePalette = useCallback(() => setPaletteOpen(false), [])
+  useEffect(() => {
+    const onKey = (e) => {
+      // e.code (tecla física) funciona también con teclados no latinos; !e.repeat
+      // evita que mantener pulsado abra y cierre sin parar
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.repeat && e.code === 'KeyK') {
+        e.preventDefault()
+        setPaletteOpen((open) => !open)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
 
   // Esc sale del modo foco
   useEffect(() => {
@@ -300,10 +306,11 @@ export default function AppLayout() {
 
   return (
     <AppSidebarContext.Provider value={value}>
-      <div className="flex h-dvh bg-slate-950 overflow-hidden">
+      <div className="flex h-dvh bg-canvas overflow-hidden">
+        {paletteOpen && <CommandPalette onClose={closePalette} />}
         {mobileOpen && (
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+            className="fixed inset-0 bg-black/60 z-40 md:hidden animate-fadeIn"
             onClick={closeMobile}
           />
         )}
@@ -314,7 +321,7 @@ export default function AppLayout() {
             en contenedor de los `fixed` de dentro y los modales de la sección quedarían recortados */}
         <aside
           inert={!isDesktop && !mobileOpen}
-          className={`fixed inset-y-0 left-0 z-50 w-80 ${focusMode ? 'hidden' : 'flex'} flex-col shrink-0 overflow-hidden border-r border-white/5 animate-slideInLeft
+          className={`fixed inset-y-0 left-0 z-50 w-80 ${focusMode ? 'hidden' : 'flex'} flex-col shrink-0 overflow-hidden border-r border-line animate-slideInLeft
                       transition-transform duration-300 ease-out ${mobileOpen ? 'translate-none' : '-translate-x-full'}
                       md:static md:z-auto md:translate-none md:transition-[width] ${showRail ? 'md:w-[72px]' : 'md:w-80'}`}
         >
@@ -323,6 +330,7 @@ export default function AppLayout() {
               user={user}
               onExpand={() => setCollapsed(false)}
               onSignOut={handleSignOut}
+              onSearch={() => setPaletteOpen(true)}
               railRef={setRailEl}
               showQuickNote={!isNotes}
             />
@@ -332,6 +340,7 @@ export default function AppLayout() {
               onCollapse={() => setCollapsed(true)}
               onClose={closeMobile}
               onSignOut={handleSignOut}
+              onSearch={() => { closeMobile(); setPaletteOpen(true) }}
               panelRef={setPanelEl}
               showQuickNote={!isNotes}
             />
