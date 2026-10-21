@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTasks } from '../../context/TasksContext'
 import ConfirmDialog from '../ui/ConfirmDialog'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
+import Pill from '../ui/Pill'
+import { tagTone } from '../../lib/taskStyles'
 import DatePicker from '../ui/DatePicker'
 import RecurrenceIcon from './RecurrenceIcon'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence'
@@ -12,7 +16,7 @@ const PRIORITY_OPTIONS = [
   { value: 'urgent', label: 'Urgente', color: 'text-red-300 bg-red-500/15' },
 ]
 
-export default function TaskModal({ task, defaultColumnId, defaultTitle = '', onClose }) {
+export default function TaskModal({ task, defaultColumnId, defaultTitle = '', defaultDueDate = '', onClose }) {
   const { columns, addTask, editTask, removeTask } = useTasks()
   const isEditing = !!task
   const tagInputRef = useRef(null)
@@ -42,7 +46,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
     description: task?.description || '',
     column_id: task?.column_id || defaultColumnId || columns[0]?.id || '',
     priority: task?.priority || 'medium',
-    due_date: task?.due_date || '',
+    due_date: task?.due_date || defaultDueDate,
     tags: task?.tags || [],
     notes: task?.notes || '',
     recurrence: task?.recurrence || '',
@@ -110,35 +114,38 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
     else if (e.key === 'Backspace' && !tagInput && form.tags.length > 0) removeTag(form.tags[form.tags.length - 1])
   }
 
+  const label = 'block text-xs font-medium text-ink-muted mb-1.5'
+
   return (
     <>
-    {/* Bottom sheet on mobile, centered modal on desktop */}
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm sm:p-4">
-      <div className="bg-slate-900 border border-white/10 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
-
-        {/* Handle bar (mobile only) */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-white/10 rounded-full" />
+    {/* Modal común: Esc cierra, el foco queda dentro y vuelve al cerrar.
+        En móvil es una hoja que sube desde abajo. */}
+    <Modal
+      title={isEditing ? 'Editar tarea' : 'Nueva tarea'}
+      onClose={onClose}
+      initialFocusRef={titleRef}
+      footer={
+        <div className="w-full flex flex-col gap-2">
+          {error && <p role="alert" className="text-xs text-danger text-center">{error}</p>}
+          <div className="flex gap-2">
+            {isEditing && (
+              <Button variant="danger" onClick={() => setConfirmDelete(true)} disabled={deleting}>
+                {deleting ? 'Eliminando…' : 'Eliminar'}
+              </Button>
+            )}
+            <Button variant="secondary" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={saving || !form.title.trim()} className="flex-1">
+              {saving ? 'Guardando…' : isEditing ? 'Guardar' : 'Crear tarea'}
+            </Button>
+          </div>
         </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 sm:py-4 border-b border-white/10 shrink-0">
-          <h3 className="font-semibold text-white">{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h3>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-white/10 active:bg-white/20 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Form */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      }
+    >
+        <div className="space-y-4">
           {/* Title */}
           <textarea
             ref={titleRef}
+            aria-label="Título de la tarea"
             placeholder="Título de la tarea"
             value={form.title}
             onChange={e => {
@@ -147,43 +154,35 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
               e.target.style.height = e.target.scrollHeight + 'px'
             }}
             onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
-            autoFocus
             required
             rows={1}
-            className="w-full text-lg font-semibold text-white placeholder-white/50 border-0 outline-none focus:ring-0 p-0 resize-none overflow-hidden leading-snug"
+            className="w-full text-lg font-semibold text-ink placeholder:text-ink-subtle bg-transparent border-0 outline-none p-0 resize-none overflow-hidden leading-snug"
           />
 
           {/* Description */}
           <textarea
             ref={descRef}
-            placeholder="Añade una descripción..."
+            aria-label="Descripción"
+            placeholder="Añade una descripción…"
             value={form.description}
             onChange={e => { setForm({ ...form, description: e.target.value }); resizeDesc(e.target) }}
             rows={3}
-            className="w-full text-sm text-slate-300 placeholder-white/50 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
+            className="field resize-none overflow-hidden"
           />
 
           {/* Column + Priority — stack on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Columna</label>
-              <select
-                value={form.column_id}
-                onChange={e => setForm({ ...form, column_id: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              >
+              <label htmlFor="task-column" className={label}>Columna</label>
+              <select id="task-column" value={form.column_id} onChange={e => setForm({ ...form, column_id: e.target.value })} className="field">
                 {columns.map(col => (
                   <option key={col.id} value={col.id}>{col.name}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Prioridad</label>
-              <select
-                value={form.priority}
-                onChange={e => setForm({ ...form, priority: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              >
+              <label htmlFor="task-priority" className={label}>Prioridad</label>
+              <select id="task-priority" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })} className="field">
                 {PRIORITY_OPTIONS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
@@ -194,9 +193,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
           {/* Due date + repetición */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                {form.recurrence ? 'Primera fecha' : 'Fecha límite'}
-              </label>
+              <span className={label}>{form.recurrence ? 'Primera fecha' : 'Fecha límite'}</span>
               <DatePicker
                 value={form.due_date}
                 onChange={val => setForm({ ...form, due_date: val })}
@@ -206,13 +203,8 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
             </div>
             {!isRecurringCopy && (
               <div>
-                <label htmlFor="task-recurrence" className="block text-xs font-medium text-slate-400 mb-1.5">Repetir</label>
-                <select
-                  id="task-recurrence"
-                  value={form.recurrence}
-                  onChange={e => setForm({ ...form, recurrence: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-                >
+                <label htmlFor="task-recurrence" className={label}>Repetir</label>
+                <select id="task-recurrence" value={form.recurrence} onChange={e => setForm({ ...form, recurrence: e.target.value })} className="field">
                   {RECURRENCE_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
@@ -221,91 +213,61 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', on
             )}
           </div>
           {form.recurrence && !isRecurringCopy && (
-            <p className="flex items-start gap-1.5 -mt-2 text-xs text-slate-400">
-              <RecurrenceIcon className="w-3.5 h-3.5 mt-px shrink-0 text-violet-300" />
+            <p className="flex items-start gap-1.5 -mt-2 text-xs text-ink-muted">
+              <RecurrenceIcon className="w-3.5 h-3.5 mt-px shrink-0 text-accent" />
               <span>
                 Se repite: {recurrenceLabel(form.recurrence).toLowerCase()}. En cada fecha aparecerá una copia en «{columns[0]?.name ?? 'la primera columna'}», aunque no hayas completado la anterior.
               </span>
             </p>
           )}
           {isRecurringCopy && (
-            <p className="flex items-center gap-1.5 -mt-2 text-xs text-slate-400">
-              <RecurrenceIcon className="w-3.5 h-3.5 shrink-0 text-violet-300" />
+            <p className="flex items-center gap-1.5 -mt-2 text-xs text-ink-muted">
+              <RecurrenceIcon className="w-3.5 h-3.5 shrink-0 text-accent" />
               Copia creada por una tarea que se repite.
             </p>
           )}
 
           {/* Tags */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Etiquetas</label>
+            <label htmlFor="task-tag-input" className={label}>Etiquetas</label>
             <div
-              className="flex flex-wrap gap-1.5 p-3 bg-white/5 border border-white/10 rounded-xl cursor-text min-h-[48px] focus-within:ring-2 focus-within:ring-violet-500/50 focus-within:border-violet-500/50 transition-all"
+              className="field flex flex-wrap items-center gap-1.5 min-h-12 cursor-text focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]"
               onClick={() => tagInputRef.current?.focus()}
             >
               {form.tags.map(tag => (
-                <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-violet-500/15 text-violet-300 text-xs font-medium rounded-lg">
+                <Pill key={tag} tone={tagTone(tag)}>
                   {tag}
-                  <button type="button" onClick={() => removeTag(tag)} className="w-4 h-4 flex items-center justify-center text-violet-400 hover:text-violet-200 transition-colors">×</button>
-                </span>
+                  <button type="button" onClick={() => removeTag(tag)} aria-label={`Quitar etiqueta ${tag}`} className="-mr-1 w-4 h-4 flex items-center justify-center rounded-full hover:bg-black/10">×</button>
+                </Pill>
               ))}
               <input
+                id="task-tag-input"
                 ref={tagInputRef}
                 type="text"
                 value={tagInput}
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 onBlur={() => tagInput && addTag(tagInput)}
-                placeholder={form.tags.length === 0 ? 'Escribe y pulsa Enter...' : ''}
-                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-white placeholder-white/50"
+                placeholder={form.tags.length === 0 ? 'Escribe y pulsa Enter…' : ''}
+                className="flex-1 min-w-[120px] text-sm outline-none bg-transparent text-ink placeholder:text-ink-subtle"
               />
             </div>
           </div>
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Notas</label>
+            <label htmlFor="task-notes" className={label}>Notas</label>
             <textarea
+              id="task-notes"
               ref={notesRef}
-              placeholder="Escribe un comentario o nota..."
+              placeholder="Escribe un comentario o nota…"
               value={form.notes}
               onChange={e => { setForm({ ...form, notes: e.target.value }); resizeDesc(e.target) }}
               rows={2}
-              className="w-full text-sm text-slate-300 placeholder-white/50 bg-white/5 border border-white/10 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all overflow-hidden"
+              className="field resize-none overflow-hidden"
             />
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="flex flex-col gap-2 px-5 py-4 border-t border-white/10 shrink-0 pb-safe">
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-          <div className="flex gap-3">
-            {isEditing && (
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(true)}
-                disabled={deleting}
-                className="px-4 py-3.5 border border-red-500/30 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/10 active:bg-red-500/20 transition-colors disabled:opacity-60"
-              >
-                {deleting ? '...' : 'Eliminar'}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3.5 border border-white/10 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 active:bg-white/15 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={saving || !form.title.trim()}
-              className="flex-1 px-4 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20 disabled:opacity-60"
-            >
-              {saving ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear tarea'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </Modal>
 
     {confirmDelete && (
       <ConfirmDialog

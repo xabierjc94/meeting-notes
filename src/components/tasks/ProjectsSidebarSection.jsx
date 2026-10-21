@@ -13,7 +13,7 @@ function ProjectsRailActions({ onNewProject }) {
       onClick={onNewProject}
       title="Nuevo proyecto"
       aria-label="Nuevo proyecto"
-      className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 active:scale-95"
+      className="w-10 h-10 flex items-center justify-center rounded-xl bg-accent hover:bg-accent-hover text-accent-ink transition-all hover:scale-105 active:scale-95"
     >
       <Icon d={ICONS.plus} />
     </button>
@@ -25,12 +25,11 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
   return (
     <>
       <div className="px-6 pb-4">
-        <h2 className="text-white font-semibold text-sm mb-3">Tus proyectos</h2>
+        <h2 className="text-ink font-semibold text-sm mb-3">Tus proyectos</h2>
         <button
           onClick={onNewProject}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold
-                     bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500
-                     text-white transition-all duration-300 shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full h-10 flex items-center justify-center gap-2 px-4 rounded-xl text-sm font-semibold
+                     bg-accent text-accent-ink hover:bg-accent-hover transition-colors"
         >
           <Icon d={ICONS.plus} />
           Nuevo proyecto
@@ -42,16 +41,16 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
         {loading ? (
           <div className="space-y-2 px-2 pt-1">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 bg-white/5 rounded-xl animate-pulse" />
+              <div key={i} className="h-10 bg-card rounded-xl animate-pulse" />
             ))}
           </div>
         ) : projects.length === 0 ? (
           <div className="px-3 pt-8 text-center">
-            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
-              <Icon d={ICONS.folder} className="w-8 h-8 text-slate-400" strokeWidth={1.5} />
+            <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mx-auto mb-4 border border-line">
+              <Icon d={ICONS.folder} className="w-8 h-8 text-ink-muted" strokeWidth={1.5} />
             </div>
-            <p className="text-sm font-medium text-slate-400">Sin proyectos todavía</p>
-            <p className="text-xs text-slate-400 mt-1.5">Crea tu primer proyecto con el botón de arriba</p>
+            <p className="text-sm font-medium text-ink-muted">Sin proyectos todavía</p>
+            <p className="text-xs text-ink-muted mt-1.5">Crea tu primer proyecto con el botón de arriba</p>
           </div>
         ) : (
           <nav aria-label="Proyectos" className="space-y-1">
@@ -62,12 +61,12 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
                 onClick={onSelectProject}
                 title={project.name}
                 className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
-                  isActive ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10'
+                  isActive ? 'bg-card-hover text-ink' : 'text-ink hover:bg-card-hover'
                 }`}
               >
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: project.color || '#6366f1' }} />
                 <span className="flex-1 min-w-0 truncate font-medium">{project.name}</span>
-                <span className="shrink-0 text-xs text-slate-400 tabular-nums">{taskCounts[project.id] ?? 0}</span>
+                <span className="shrink-0 text-xs text-ink-muted tabular-nums">{taskCounts[project.id] ?? 0}</span>
               </NavLink>
             ))}
           </nav>

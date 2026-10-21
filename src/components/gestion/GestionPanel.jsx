@@ -93,26 +93,26 @@ export default function GestionPanel() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
+            <svg className="w-5 h-5 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
-          <p className="text-slate-400 text-sm">Cargando gestión...</p>
+          <p className="text-ink-muted text-sm">Cargando gestión...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
+    <div className="flex flex-col h-full bg-canvas">
       {/* Toolbar */}
-      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10 px-4 sm:px-6 py-3 shrink-0">
+      <div className="bg-canvas border-b border-line px-4 sm:px-6 py-3 shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
 
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
-            <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -120,7 +120,7 @@ export default function GestionPanel() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar candidatos..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
             />
           </div>
 
@@ -129,8 +129,8 @@ export default function GestionPanel() {
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all border shrink-0 ${
               showFilters || activeFilters > 0
-                ? 'bg-violet-500/15 text-violet-300 border-violet-500/30'
-                : 'border-white/10 text-slate-300 hover:bg-white/10'
+                ? 'bg-accent-soft text-accent border-accent/50'
+                : 'border-line text-ink hover:bg-card-hover'
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,16 +138,16 @@ export default function GestionPanel() {
             </svg>
             <span className="hidden sm:inline">Filtros</span>
             {activeFilters > 0 && (
-              <span className="w-5 h-5 bg-violet-600 text-white text-xs rounded-full flex items-center justify-center font-bold">{activeFilters}</span>
+              <span className="w-5 h-5 bg-accent text-ink text-xs rounded-full flex items-center justify-center font-bold">{activeFilters}</span>
             )}
           </button>
 
           {/* View toggle */}
-          <div className="flex bg-white/5 rounded-xl p-1 shrink-0">
+          <div className="flex bg-card rounded-xl p-1 shrink-0">
             <button
               onClick={() => setGestionView('table')}
               className={`flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                gestionView === 'table' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                gestionView === 'table' ? 'bg-card-hover text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +158,7 @@ export default function GestionPanel() {
             <button
               onClick={() => setGestionView('cards')}
               className={`flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                gestionView === 'cards' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                gestionView === 'cards' ? 'bg-card-hover text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
               }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@ export default function GestionPanel() {
             <div ref={exportRef} className="relative">
               <button
                 onClick={() => setShowExportMenu(v => !v)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/10 text-slate-400 hover:text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all"
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-ink-muted hover:text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all"
                 title="Exportar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,10 +184,10 @@ export default function GestionPanel() {
               {showExportMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 z-50 bg-slate-900 border border-white/10 rounded-xl shadow-xl overflow-hidden w-44">
+                  <div className="absolute right-0 top-full mt-1.5 z-50 bg-card border border-line rounded-xl shadow-xl overflow-hidden w-44">
                     <button
                       onClick={() => handleExport('excel')}
-                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-card-hover transition-colors"
                     >
                       <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -196,7 +196,7 @@ export default function GestionPanel() {
                     </button>
                     <button
                       onClick={() => handleExport('pdf')}
-                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10 transition-colors border-t border-white/10"
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-ink hover:bg-card-hover transition-colors border-t border-line"
                     >
                       <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -211,7 +211,7 @@ export default function GestionPanel() {
             {/* Settings */}
             <button
               onClick={() => setShowSettings(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-white/10 text-slate-400 hover:text-violet-300 hover:bg-violet-500/10 hover:border-violet-500/30 transition-all"
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-ink-muted hover:text-accent hover:bg-accent-soft hover:border-accent transition-all"
               title="Ajustes"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +223,7 @@ export default function GestionPanel() {
             {/* New candidate */}
             <button
               onClick={() => { setEditRecord(null); setShowModal(true) }}
-              className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-violet-500 hover:to-purple-500 active:scale-95 transition-all shadow-md shadow-violet-500/20"
+              className="w-10 h-10 sm:w-auto sm:px-4 flex items-center justify-center gap-2 bg-accent text-accent-ink rounded-xl text-sm font-semibold hover:bg-accent-hover active:scale-95 transition-all"
             >
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -235,11 +235,11 @@ export default function GestionPanel() {
 
         {/* Filters row */}
         {showFilters && (
-          <div className="mt-3 flex flex-wrap gap-2 items-center pt-3 border-t border-white/10">
+          <div className="mt-3 flex flex-wrap gap-2 items-center pt-3 border-t border-line">
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="text-sm bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="text-sm bg-card border border-line-strong text-ink rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
             >
               <option value="">Todos los estados</option>
               {statuses.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -248,7 +248,7 @@ export default function GestionPanel() {
             <select
               value={filterRegion}
               onChange={e => setFilterRegion(e.target.value)}
-              className="text-sm bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+              className="text-sm bg-card border border-line-strong text-ink rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
             >
               <option value="">Todas las regiones</option>
               {allRegions.map(r => <option key={r} value={r}>{r}</option>)}
@@ -258,7 +258,7 @@ export default function GestionPanel() {
               <select
                 value={filterClinic}
                 onChange={e => setFilterClinic(e.target.value)}
-                className="text-sm bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="text-sm bg-card border border-line-strong text-ink rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               >
                 <option value="">Todas las clínicas</option>
                 {clinicNames.map(c => <option key={c} value={c}>{c}</option>)}
@@ -269,7 +269,7 @@ export default function GestionPanel() {
               <select
                 value={filterPosition}
                 onChange={e => setFilterPosition(e.target.value)}
-                className="text-sm bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="text-sm bg-card border border-line-strong text-ink rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               >
                 <option value="">Todas las posiciones</option>
                 {allPositions.map(p => <option key={p} value={p}>{p}</option>)}
@@ -285,7 +285,7 @@ export default function GestionPanel() {
               </button>
             )}
 
-            <span className="text-xs text-slate-400 ml-auto">
+            <span className="text-xs text-ink-muted ml-auto">
               {filtered.length} de {personnel.length} candidato{personnel.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -317,30 +317,30 @@ export default function GestionPanel() {
       {/* Delete confirm */}
       {deleteTarget && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setDeleteTarget(null)}
         >
-          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-sm shadow-2xl p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-card border border-line rounded-2xl w-full max-w-sm shadow-2xl p-6" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-12 bg-red-500/15 rounded-2xl flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
-            <h3 className="text-base font-bold text-white mb-1">Eliminar candidato</h3>
-            <p className="text-sm text-slate-400 mb-5">
-              ¿Seguro que quieres eliminar a <strong className="text-slate-200">{deleteTarget.nombre_apellidos}</strong>? Esta acción no se puede deshacer.
+            <h3 className="text-base font-bold text-ink mb-1">Eliminar candidato</h3>
+            <p className="text-sm text-ink-muted mb-5">
+              ¿Seguro que quieres eliminar a <strong className="text-ink">{deleteTarget.nombre_apellidos}</strong>? Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 border border-white/10 text-slate-300 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors"
+                className="flex-1 py-2.5 border border-line text-ink text-sm font-semibold rounded-xl hover:bg-card-hover transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
                 {deleting ? 'Eliminando...' : 'Eliminar'}
               </button>

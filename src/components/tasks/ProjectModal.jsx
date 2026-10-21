@@ -1,14 +1,26 @@
 import { useState } from 'react'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
 
+// Paleta del rediseño. Los proyectos que ya existen conservan su color:
+// es una elección del usuario y está guardada en la base de datos.
 const PROJECT_COLORS = [
-  '#6366f1','#8b5cf6','#ec4899','#ef4444',
-  '#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#64748b'
+  { value: '#b4f53c', name: 'Lima' },
+  { value: '#4ade80', name: 'Verde' },
+  { value: '#2dd4bf', name: 'Turquesa' },
+  { value: '#38bdf8', name: 'Azul cielo' },
+  { value: '#c4b5fd', name: 'Lila' },
+  { value: '#f9a8d4', name: 'Rosa' },
+  { value: '#f87171', name: 'Rojo' },
+  { value: '#fb923c', name: 'Naranja' },
+  { value: '#facc15', name: 'Amarillo' },
+  { value: '#a3a3a3', name: 'Gris' },
 ]
 
 export default function ProjectModal({ project, onClose, onSave, position }) {
   const [name, setName] = useState(project?.name || '')
   const [description, setDescription] = useState(project?.description || '')
-  const [color, setColor] = useState(project?.color || '#6366f1')
+  const [color, setColor] = useState(project?.color || PROJECT_COLORS[0].value)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -27,70 +39,71 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
     }
   }
 
+  // Grupo de opciones (radiogroup): las flechas cambian de color, como en
+  // un grupo de botones de opción nativo
+  const onColorKey = (e, index) => {
+    const delta = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
+    if (!delta) return
+    e.preventDefault()
+    const next = PROJECT_COLORS[(index + delta + PROJECT_COLORS.length) % PROJECT_COLORS.length]
+    setColor(next.value)
+    e.currentTarget.parentElement.querySelectorAll('[role=radio]')[PROJECT_COLORS.indexOf(next)]?.focus()
+  }
+  // -1 si el color es antiguo: ninguna opción aparece marcada (la primera sigue siendo alcanzable con Tab)
+  const selectedIndex = PROJECT_COLORS.findIndex(c => c.value === color)
+  const label = 'block text-xs font-medium text-ink-muted mb-1.5'
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl animate-scaleIn">
-        <div className="p-6">
-          <h2 className="text-lg font-bold text-white mb-5">
-            {project ? 'Editar proyecto' : 'Nuevo proyecto'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Nombre</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Mi proyecto..."
-                autoFocus
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Descripción (opcional)</label>
-              <input
-                type="text"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Describe el proyecto..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-violet-200/70 mb-2">Color</label>
-              <div className="flex flex-wrap gap-2.5">
-                {PROJECT_COLORS.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={`w-7 h-7 rounded-full transition-transform hover:scale-110 active:scale-95 ${color === c ? 'ring-2 ring-offset-2 ring-offset-slate-900 ring-white scale-110' : ''}`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            </div>
-            {error && <p className="text-xs text-red-400 text-center">{error}</p>}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-violet-500/20"
-              >
-                {saving ? 'Guardando...' : project ? 'Guardar' : 'Crear proyecto'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3 border border-white/15 text-white/70 text-sm font-semibold rounded-xl hover:bg-white/10 transition-all"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+    <Modal
+      title={project ? 'Editar proyecto' : 'Nuevo proyecto'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="submit" form="project-form" disabled={saving || !name.trim()} className="flex-1">
+            {saving ? 'Guardando…' : project ? 'Guardar' : 'Crear proyecto'}
+          </Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">Cancelar</Button>
+        </>
+      }
+    >
+      <form id="project-form" onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="project-name" className={label}>Nombre</label>
+          <input id="project-name" type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Mi proyecto…" autoFocus className="field" />
         </div>
-      </div>
-    </div>
+        <div>
+          <label htmlFor="project-description" className={label}>Descripción (opcional)</label>
+          <input id="project-description" type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe el proyecto…" className="field" />
+        </div>
+        <div>
+          <span id="project-color-label" className={label}>Color</span>
+          <div role="radiogroup" aria-labelledby="project-color-label" className="flex flex-wrap gap-2.5">
+            {PROJECT_COLORS.map((c, i) => {
+              const selected = i === selectedIndex
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={c.name}
+                  title={c.name}
+                  tabIndex={selected || (selectedIndex === -1 && i === 0) ? 0 : -1}
+                  onClick={() => setColor(c.value)}
+                  onKeyDown={e => onColorKey(e, i)}
+                  className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ${selected ? 'ring-2 ring-offset-2 ring-offset-card ring-ink scale-110' : ''}`}
+                  style={{ backgroundColor: c.value }}
+                />
+              )
+            })}
+          </div>
+          {/* Color propio de un proyecto antiguo que ya no está en la paleta */}
+          {!PROJECT_COLORS.some(c => c.value === color) && (
+            <p className="mt-2 text-xs text-ink-subtle">Color actual conservado. Elige otro para cambiarlo.</p>
+          )}
+        </div>
+        {error && <p role="alert" className="text-xs text-danger text-center">{error}</p>}
+      </form>
+    </Modal>
   )
 }

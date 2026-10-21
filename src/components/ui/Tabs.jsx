@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 // ─────────────────────────────────────────────────────────────
 // Pestañas con subrayado lima (patrón ARIA "tablist"):
@@ -10,6 +10,13 @@ import { useRef } from 'react'
 // ─────────────────────────────────────────────────────────────
 export default function Tabs({ items, value, onChange, label, className = '' }) {
   const refs = useRef([])
+
+  // En móvil la tira se desplaza: al cambiar de pestaña (también desde la
+  // URL), la activa se trae a la vista para que no quede medio oculta
+  const selectedIndex = items.findIndex(item => item.id === value)
+  useEffect(() => {
+    refs.current[selectedIndex]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [selectedIndex])
 
   const onKeyDown = (e, index) => {
     const keys = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: items.length - 1 }

@@ -63,19 +63,19 @@ export default function PersonnelModal({ record = null, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
       <div
-        className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90dvh] flex flex-col"
+        className="bg-card border border-line rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90dvh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10 shrink-0">
-          <h2 className="text-base font-bold text-white">
+        <div className="flex items-center justify-between p-5 border-b border-line shrink-0">
+          <h2 className="text-base font-bold text-ink">
             {record ? 'Editar candidato' : 'Nuevo candidato'}
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-card-hover transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -89,7 +89,7 @@ export default function PersonnelModal({ record = null, onClose }) {
 
             {/* Nombre y apellidos */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink mb-1.5">
                 Nombre y apellidos <span className="text-red-400">*</span>
               </label>
               <input
@@ -98,17 +98,17 @@ export default function PersonnelModal({ record = null, onClose }) {
                 onChange={e => set('nombre_apellidos', e.target.value)}
                 placeholder="Ej: María García López"
                 autoFocus
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
                 required
               />
             </div>
 
             {/* Posición */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink mb-1.5">
                 Posición
                 {positions.length === 0 && (
-                  <span className="ml-2 text-slate-400 font-normal">(Añade posiciones desde Ajustes ⚙)</span>
+                  <span className="ml-2 text-ink-muted font-normal">(Añade posiciones desde Ajustes ⚙)</span>
                 )}
               </label>
               <div className="relative">
@@ -116,14 +116,14 @@ export default function PersonnelModal({ record = null, onClose }) {
                   value={form.posicion}
                   onChange={e => set('posicion', e.target.value)}
                   disabled={positions.length === 0}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all appearance-none pr-10 disabled:bg-white/5 disabled:text-slate-400"
+                  className="w-full bg-card border border-line-strong text-ink rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none pr-10 disabled:bg-card disabled:text-ink-muted"
                 >
                   <option value="">Sin posición</option>
                   {positions.map(p => (
                     <option key={p.id} value={p.name}>{p.name}</option>
                   ))}
                 </select>
-                <svg className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-ink-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -131,12 +131,12 @@ export default function PersonnelModal({ record = null, onClose }) {
 
             {/* Estado de la candidatura */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Estado de la candidatura</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Estado de la candidatura</label>
               <div className="relative">
                 <select
                   value={form.estado_candidatura}
                   onChange={e => set('estado_candidatura', e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all appearance-none pr-10"
+                  className="w-full bg-card border border-line-strong text-ink rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all appearance-none pr-10"
                   style={currentStatus ? {
                     borderColor: currentStatus.color + '80',
                     color: currentStatus.color,
@@ -147,7 +147,7 @@ export default function PersonnelModal({ record = null, onClose }) {
                     <option key={s.id} value={s.name}>{s.name}</option>
                   ))}
                 </select>
-                <svg className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-ink-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -155,7 +155,7 @@ export default function PersonnelModal({ record = null, onClose }) {
 
             {/* Región */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Región (provincias)</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Región (provincias)</label>
               <MultiSelect
                 options={PROVINCIAS}
                 value={form.regiones}
@@ -166,10 +166,10 @@ export default function PersonnelModal({ record = null, onClose }) {
 
             {/* Clínica */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink mb-1.5">
                 Clínica
                 {clinicNames.length === 0 && (
-                  <span className="ml-2 text-slate-400 font-normal">(Añade clínicas desde Ajustes ⚙)</span>
+                  <span className="ml-2 text-ink-muted font-normal">(Añade clínicas desde Ajustes ⚙)</span>
                 )}
               </label>
               <MultiSelect
@@ -183,72 +183,72 @@ export default function PersonnelModal({ record = null, onClose }) {
 
             {/* Situación */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Situación</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Situación</label>
               <input
                 type="text"
                 value={form.situacion}
                 onChange={e => set('situacion', e.target.value)}
                 placeholder="Situación actual..."
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               />
             </div>
 
             {/* Preaviso */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Preaviso</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Preaviso</label>
               <input
                 type="text"
                 value={form.preaviso}
                 onChange={e => set('preaviso', e.target.value)}
                 placeholder="Ej: 15 días"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               />
             </div>
 
             {/* Experiencia */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Experiencia</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Experiencia</label>
               <textarea
                 value={form.experiencia}
                 onChange={e => set('experiencia', e.target.value)}
                 placeholder="Describe la experiencia del candidato..."
                 rows={3}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all resize-none"
               />
             </div>
 
             {/* Expectativas salariales */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Expectativas salariales</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Expectativas salariales</label>
               <input
                 type="text"
                 value={form.expectativas_salariales}
                 onChange={e => set('expectativas_salariales', e.target.value)}
                 placeholder="Ej: 30.000€ - 35.000€"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               />
             </div>
 
             {/* Fecha de incorporación */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Fecha de incorporación</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Fecha de incorporación</label>
               <input
                 type="date"
                 value={form.fecha_incorporacion}
                 onChange={e => set('fecha_incorporacion', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
               />
             </div>
 
             {/* Otros */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Otros</label>
+              <label className="block text-xs font-semibold text-ink mb-1.5">Otros</label>
               <textarea
                 value={form.otros}
                 onChange={e => set('otros', e.target.value)}
                 placeholder="Información adicional..."
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all resize-none"
+                className="w-full bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all resize-none"
               />
             </div>
           </div>
@@ -259,18 +259,18 @@ export default function PersonnelModal({ record = null, onClose }) {
         </form>
 
         {/* Footer */}
-        <div className="flex gap-2 p-5 border-t border-white/10 shrink-0">
+        <div className="flex gap-2 p-5 border-t border-line shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 border border-white/10 text-slate-300 text-sm font-semibold rounded-xl hover:bg-white/10 transition-colors"
+            className="flex-1 py-2.5 border border-line text-ink text-sm font-semibold rounded-xl hover:bg-card-hover transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving || !form.nombre_apellidos.trim()}
-            className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-violet-500 hover:to-purple-500 transition-all disabled:opacity-50 shadow-md shadow-violet-500/20"
+            className="flex-1 py-2.5 bg-accent text-accent-ink text-sm font-semibold rounded-xl hover:bg-accent-hover transition-all disabled:opacity-50"
           >
             {saving ? 'Guardando...' : record ? 'Guardar cambios' : 'Crear candidato'}
           </button>

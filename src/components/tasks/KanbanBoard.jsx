@@ -115,7 +115,7 @@ export default function KanbanBoard() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900">
+    <div className="h-full flex flex-col bg-canvas">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
