@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useTasks } from '../../context/TasksContext'
 import TaskCard from './TaskCard'
 import TaskModal from './TaskModal'
+import { hasOpenModal } from '../../hooks/useModalLayer'
 
 const COLORS = ['#b4f53c','#4ade80','#2dd4bf','#38bdf8','#c4b5fd','#f9a8d4','#f87171','#fb923c','#facc15','#a3a3a3']
 
@@ -67,7 +68,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
 
   useEffect(() => {
     if (!expanded) return
-    const onKey = (e) => { if (e.key === 'Escape') { setExpanded(false); setExpandedAdding(false); setExpandedTitle('') } }
+    const onKey = (e) => { if (e.key === 'Escape' && !hasOpenModal()) { setExpanded(false); setExpandedAdding(false); setExpandedTitle('') } }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [expanded])
@@ -251,7 +252,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                 className="w-full text-sm border border-line-strong rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/40 bg-card-hover text-ink placeholder:text-ink-subtle"
               />
               <div className="flex gap-2 mt-2">
-                <button type="submit" className="flex-1 py-2.5 bg-accent text-ink text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors active:scale-95">Añadir</button>
+                <button type="submit" className="flex-1 py-2.5 bg-accent text-accent-ink text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors active:scale-95">Añadir</button>
                 <button type="button" onClick={() => setAdding(false)} className="flex-1 py-2.5 border border-line-strong text-ink-muted text-sm font-semibold rounded-xl hover:bg-card-hover transition-colors active:scale-95">Cancelar</button>
               </div>
             </form>
@@ -364,7 +365,7 @@ export default function KanbanColumn({ column, tasks, onOpenTask, dragHandleProp
                     className="w-full text-sm border border-line-strong rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent/40 bg-card-hover text-ink placeholder:text-ink-subtle"
                   />
                   <div className="flex gap-2 mt-2">
-                    <button type="submit" className="flex-1 py-2.5 bg-accent text-ink text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors active:scale-95">Añadir</button>
+                    <button type="submit" className="flex-1 py-2.5 bg-accent text-accent-ink text-sm font-semibold rounded-xl hover:bg-accent-hover transition-colors active:scale-95">Añadir</button>
                     <button type="button" onClick={() => { setExpandedAdding(false); setExpandedTitle('') }} className="flex-1 py-2.5 border border-line-strong text-ink-muted text-sm font-semibold rounded-xl hover:bg-card-hover transition-colors active:scale-95">Cancelar</button>
                   </div>
                 </form>

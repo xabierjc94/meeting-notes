@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 
@@ -23,6 +23,9 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
   const [color, setColor] = useState(project?.color || PROJECT_COLORS[0].value)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  // Foco inicial con ref (React 19 no escribe el atributo autofocus en el HTML,
+  // así que useModalLayer no lo vería)
+  const nameRef = useRef(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -57,6 +60,8 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
     <Modal
       title={project ? 'Editar proyecto' : 'Nuevo proyecto'}
       onClose={onClose}
+      initialFocusRef={nameRef}
+      closeOnBackdrop={false}
       footer={
         <>
           <Button type="submit" form="project-form" disabled={saving || !name.trim()} className="flex-1">
@@ -69,7 +74,7 @@ export default function ProjectModal({ project, onClose, onSave, position }) {
       <form id="project-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="project-name" className={label}>Nombre</label>
-          <input id="project-name" type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Mi proyecto…" autoFocus className="field" />
+          <input id="project-name" type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Mi proyecto…" ref={nameRef} className="field" />
         </div>
         <div>
           <label htmlFor="project-description" className={label}>Descripción (opcional)</label>

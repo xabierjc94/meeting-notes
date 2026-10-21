@@ -49,9 +49,11 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
 
   useEffect(() => {
     if (!open) return
-    function handleKey(e) { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
+    // Captura (true) + stopPropagation: este Esc llega ANTES que el del modal
+    // que contiene el selector, y solo cierra el calendario desplegable
+    function handleKey(e) { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false) } }
+    document.addEventListener('keydown', handleKey, true)
+    return () => document.removeEventListener('keydown', handleKey, true)
   }, [open])
 
   const handleToggle = () => {
@@ -176,7 +178,7 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
                   !day
                     ? 'cursor-default'
                     : isSelected(day)
-                    ? 'bg-accent text-ink hover:bg-accent-hover'
+                    ? 'bg-accent text-accent-ink hover:bg-accent-hover'
                     : isToday(day)
                     ? 'bg-accent-soft text-accent hover:bg-accent-soft'
                     : 'text-ink hover:bg-card-hover'

@@ -138,7 +138,7 @@ export default function GestionPanel() {
             </svg>
             <span className="hidden sm:inline">Filtros</span>
             {activeFilters > 0 && (
-              <span className="w-5 h-5 bg-accent text-ink text-xs rounded-full flex items-center justify-center font-bold">{activeFilters}</span>
+              <span className="w-5 h-5 bg-accent text-accent-ink text-xs rounded-full flex items-center justify-center font-bold">{activeFilters}</span>
             )}
           </button>
 

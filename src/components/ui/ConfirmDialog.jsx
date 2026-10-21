@@ -55,7 +55,7 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Eliminar
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 h-11 bg-danger hover:bg-red-300 text-canvas rounded-xl text-sm font-semibold transition-colors"
+            className="flex-1 h-11 bg-danger hover:opacity-90 text-canvas rounded-xl text-sm font-semibold transition-colors"
           >
             {confirmLabel}
           </button>

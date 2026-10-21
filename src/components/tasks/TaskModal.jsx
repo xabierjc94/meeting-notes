@@ -10,10 +10,10 @@ import RecurrenceIcon from './RecurrenceIcon'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence'
 
 const PRIORITY_OPTIONS = [
-  { value: 'low',    label: 'Baja',    color: 'text-emerald-300 bg-emerald-500/15' },
-  { value: 'medium', label: 'Media',   color: 'text-amber-300 bg-amber-500/15' },
-  { value: 'high',   label: 'Alta',    color: 'text-orange-300 bg-orange-500/15' },
-  { value: 'urgent', label: 'Urgente', color: 'text-red-300 bg-red-500/15' },
+  { value: 'low',    label: 'Baja' },
+  { value: 'medium', label: 'Media' },
+  { value: 'high',   label: 'Alta' },
+  { value: 'urgent', label: 'Urgente' },
 ]
 
 export default function TaskModal({ task, defaultColumnId, defaultTitle = '', defaultDueDate = '', onClose }) {
@@ -124,6 +124,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
       title={isEditing ? 'Editar tarea' : 'Nueva tarea'}
       onClose={onClose}
       initialFocusRef={titleRef}
+      closeOnBackdrop={false}
       footer={
         <div className="w-full flex flex-col gap-2">
           {error && <p role="alert" className="text-xs text-danger text-center">{error}</p>}

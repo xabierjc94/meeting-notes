@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom'
 import { useModalLayer } from '../../hooks/useModalLayer'
 
 // Ventana estándar: hoja inferior en móvil, centrada en escritorio.
-export default function Modal({ title, onClose, children, footer = null, size = 'md', initialFocusRef }) {
+// closeOnBackdrop=false en formularios: un clic accidental fuera no debe
+// tirar lo que has escrito (se cierra con Cancelar, ✕ o Esc)
+export default function Modal({ title, onClose, children, footer = null, size = 'md', initialFocusRef, closeOnBackdrop = true }) {
   const ref = useModalLayer(onClose, { initialFocusRef })
   const titleId = useId()
   const width = size === 'sm' ? 'sm:max-w-sm' : size === 'lg' ? 'sm:max-w-2xl' : 'sm:max-w-lg'
@@ -11,7 +13,7 @@ export default function Modal({ title, onClose, children, footer = null, size = 
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4"
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}
+      onMouseDown={(e) => { if (closeOnBackdrop && e.target === e.currentTarget) onClose() }}
     >
       <div
         ref={ref}

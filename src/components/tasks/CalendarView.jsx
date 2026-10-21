@@ -28,14 +28,16 @@ function TaskChip({ task, done, onOpen, draggable = true }) {
       ref={setNodeRef}
       type="button"
       style={style}
-      {...listeners}
-      {...attributes}
-      // dnd-kit pone role="button" y aria-roledescription="draggable"; lo dejamos como botón normal
+      // Solo arrastrable en la cuadrícula: en la lista "+N más" no se esparcen
+      // los atributos de dnd-kit (añadirían aria-disabled a un botón que sí funciona)
+      {...(draggable ? listeners : {})}
+      {...(draggable ? attributes : {})}
       role={undefined}
       aria-roledescription={undefined}
+      aria-describedby={undefined}
       onClick={() => onOpen(task)}
       title={`${task.title} · ${p.label}`}
-      className={`w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-left text-[11px] leading-tight bg-card-hover hover:bg-line transition-colors touch-none
+      className={`w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-left text-[11px] leading-tight bg-card-hover hover:bg-line transition-colors ${draggable ? 'touch-none' : ''}
         ${isDragging ? 'shadow-xl ring-1 ring-accent cursor-grabbing' : 'cursor-pointer'}`}
     >
       <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${p.dot}`} aria-hidden="true" />
@@ -53,7 +55,7 @@ function DayCell({ day, inMonth, isToday, tasks, doneIds, onOpen, onNew, onMore 
     <div
       ref={setNodeRef}
       className={`group min-h-28 p-1.5 flex flex-col gap-1 border-b border-r border-line transition-colors
-        ${inMonth ? 'bg-surface' : 'bg-canvas'} ${isOver ? 'bg-accent-soft' : ''}`}
+        ${isOver ? 'bg-accent-soft' : inMonth ? 'bg-surface' : 'bg-canvas'}`}
     >
       <div className="flex items-center justify-between">
         <span
@@ -130,7 +132,9 @@ export default function CalendarView() {
     } catch {
       setMoveError(`No se pudo mover «${task.title}». Ha vuelto a su fecha.`)
     } finally {
-      setMoves((m) => { const next = { ...m }; delete next[task.id]; return next })
+      // Solo se borra si sigue siendo ESTE movimiento (otro arrastre más nuevo de
+      // la misma tarea no debe perderse)
+      setMoves((m) => { if (m[task.id] !== over.id) return m; const next = { ...m }; delete next[task.id]; return next })
     }
   }
 

@@ -155,7 +155,7 @@ export default function GestionSettings({ onClose }) {
                 <button
                   type="submit"
                   disabled={savingClinic || !newClinic.trim()}
-                  className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                 >
                   Añadir
                 </button>
@@ -224,7 +224,7 @@ export default function GestionSettings({ onClose }) {
                 <button
                   type="submit"
                   disabled={savingPosition || !newPosition.trim()}
-                  className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                 >
                   Añadir
                 </button>
@@ -294,7 +294,7 @@ export default function GestionSettings({ onClose }) {
                   <button
                     type="submit"
                     disabled={savingStatus || !newStatus.trim()}
-                    className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                   >
                     Añadir
                   </button>

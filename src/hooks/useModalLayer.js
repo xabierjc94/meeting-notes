@@ -14,6 +14,10 @@ import { useEffect, useRef } from 'react'
 //   - y lo devuelve al elemento que lo tenía antes al cerrarla.
 // ─────────────────────────────────────────────────────────────
 const stack = []
+
+// Para Esc de capas que no son modales (p. ej. la columna expandida):
+// si hay una ventana abierta encima, Esc es suyo
+export const hasOpenModal = () => stack.length > 0
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export function useModalLayer(onClose, { initialFocusRef } = {}) {

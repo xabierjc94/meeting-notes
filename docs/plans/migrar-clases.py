@@ -79,6 +79,11 @@ def migrate_line(line):
     # visible ≥ 3:1 (WCAG 1.4.11): border-line es solo decorativo
     if 'focus:ring-accent/40' in line:
         line = re.sub(r'\bborder-line\b(?!-)', 'border-line-strong', line)
+    # Fondo lima macizo → el texto SIEMPRE casi negro (blanco sobre lima: 1,3:1).
+    # OJO: en líneas con ternarios (hoy ? 'bg-accent …' : 'text-ink') cambia
+    # también la otra rama: revisar a mano con git diff.
+    if re.search(r'(?<![-:\w])bg-accent(?![-/\w])', line):
+        line = re.sub(r'(?<![-:\w])text-ink(?![-/\w])', 'text-accent-ink', line)
     if primary:
         line = line.replace('text-ink ', 'text-accent-ink ').replace('text-ink"', 'text-accent-ink"').replace('text-ink`', 'text-accent-ink`')
     return re.sub(r'  +(?=\S)', lambda m: m.group(0) if m.start() == 0 else ' ', line)

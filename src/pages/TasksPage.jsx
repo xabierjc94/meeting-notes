@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { TasksProvider, useTasks } from '../context/TasksContext'
@@ -47,6 +47,7 @@ function TasksContent({ project, projectId }) {
   const [showNewColumn, setShowNewColumn] = useState(false)
   const [newColName, setNewColName] = useState('')
   const [savingCol, setSavingCol] = useState(false)
+  const newColRef = useRef(null)
 
   const closeNewColumn = () => { setShowNewColumn(false); setNewColName('') }
 
@@ -142,6 +143,7 @@ function TasksContent({ project, projectId }) {
           title="Nueva columna"
           size="sm"
           onClose={closeNewColumn}
+          initialFocusRef={newColRef}
           footer={
             <>
               <Button type="submit" form="new-column-form" disabled={savingCol || !newColName.trim()} className="flex-1">
@@ -159,7 +161,7 @@ function TasksContent({ project, projectId }) {
               value={newColName}
               onChange={e => setNewColName(e.target.value)}
               placeholder="Por ejemplo: En revisión"
-              autoFocus
+              ref={newColRef}
               className="field"
             />
           </form>
