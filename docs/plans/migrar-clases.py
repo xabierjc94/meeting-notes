@@ -21,7 +21,10 @@ COMMON = [
     # degradados y efectos decorativos fuera
     (r'bg-gradient-to-(r|br|b|l|t|tr|bl|tl) ', ''),
     (r'hover:from-violet-\d+ hover:to-purple-\d+', 'hover:bg-accent-hover'),
+    # degradado translúcido (fondo de icono) → lima suave; macizo → lima
+    (r'from-violet-\d+/\d+ to-purple-\d+/\d+', 'bg-accent-soft'),
     (r'from-violet-\d+(/\d+)? to-purple-\d+(/\d+)?', 'bg-accent'),
+    (r'border-t-violet-\d+', 'border-t-accent'),
     (r'disabled:from-violet-\d+ disabled:to-purple-\d+', ''),
     (r' ?shadow-(md|lg|xl|sm|2xl) shadow-(violet|purple|indigo)-\d+/\d+', ''),
     (r' ?hover:shadow-(violet|purple)-\d+/\d+', ''),
@@ -71,8 +74,21 @@ COMMON = [
 ]
 
 
+# La Biblioteca tenía su propio acento (esmeralda + turquesa). Con un único
+# acento lima, se trata exactamente igual que el violeta: lo normalizamos
+# primero y así reutilizamos todas las reglas de COMMON.
+ALIASES = [
+    (r'(from|to|via)-teal-', r'\1-purple-'),
+    (r'emerald-', 'violet-'),
+    (r'teal-', 'violet-'),
+    (r'bg-white/12', 'bg-white/10'),
+]
+
+
 def migrate_line(line):
-    primary = 'from-violet-600' in line or 'from-violet-500 to-purple' in line
+    for pat, rep in ALIASES:
+        line = re.sub(pat, rep, line)
+    primary = 'from-violet-600' in line or 'from-violet-500 to-purple' in line or re.search(r'(?<![-:\w])bg-violet-600(?![/\w])', line)
     for pat, rep in COMMON:
         line = re.sub(pat, rep, line)
     # Un campo de formulario (lleva el anillo de foco) necesita un borde
@@ -96,7 +112,10 @@ def main(paths):
         out = []
         for raw in src.split('\n'):
             # solo tocamos líneas con clases (className, cadenas de clases o mapas de estilo)
-            if re.search(r'className|class=|[\'"`][^\'"`]*\b(bg|text|border|ring|shadow|from|to|hover|focus)-', raw) and not raw.lstrip().startswith('//'):
+            # ...o líneas de continuación de una cadena de clases repartida en
+            # varias líneas (empiezan directamente por una utilidad de Tailwind)
+            continuation = re.match(r'\s+(bg|text|border|ring|shadow|from|to|hover|focus|disabled|placeholder|rounded|px|py|flex|w|h|inline|absolute|relative)[-:]', raw)
+            if (continuation or re.search(r'className|class=|[\'"`][^\'"`]*\b(bg|text|border|ring|shadow|from|to|hover|focus)-', raw)) and not raw.lstrip().startswith('//'):
                 out.append(migrate_line(raw))
             else:
                 out.append(raw)

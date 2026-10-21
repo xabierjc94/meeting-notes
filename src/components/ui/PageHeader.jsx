@@ -37,6 +37,9 @@ export default function PageHeader({ breadcrumb = [], title, icon = null, meta =
                     {i > 0 && <span className="text-ink-subtle" aria-hidden="true">/</span>}
                     {crumb.to && !last
                       ? <Link to={crumb.to} className="text-ink font-semibold hover:text-accent transition-colors">{crumb.label}</Link>
+                      // onClick: navegación que no cambia la URL (p. ej. salir de una carpeta de la Biblioteca)
+                      : crumb.onClick && !last
+                      ? <button type="button" onClick={crumb.onClick} className="text-ink font-semibold hover:text-accent transition-colors">{crumb.label}</button>
                       : <span aria-current={last ? 'page' : undefined} className={`truncate ${last ? 'text-ink-muted' : 'text-ink font-semibold'}`}>{crumb.label}</span>}
                   </li>
                 )

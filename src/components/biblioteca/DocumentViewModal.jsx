@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { useModalLayer } from '../../hooks/useModalLayer'
 
 const EXT_COLORS = {
   docx: { label: 'Word',  iconColor: '#2563EB' },
@@ -81,8 +82,8 @@ function renderNode(node) {
     case 'bulletList':    return `<ul>${ch()}</ul>`
     case 'orderedList':   return `<ol${a.start?` start="${a.start}"`:''}>${ch()}</ol>`
     case 'listItem':      return `<li>${ch()}</li>`
-    case 'taskList':      return `<ul class="task-list">${ch()}</ul>`
-    case 'taskItem':      return `<li class="task-item"><input type="checkbox"${a.checked?' checked':''} disabled> ${ch()}</li>`
+    case 'taskList': return `<ul class="task-list">${ch()}</ul>`
+    case 'taskItem': return `<li class="task-item"><input type="checkbox"${a.checked?' checked':''} disabled> ${ch()}</li>`
     case 'table':         return `<table><tbody>${ch()}</tbody></table>`
     case 'tableRow':      return `<tr>${ch()}</tr>`
     case 'tableCell':     return `<td>${ch()}</td>`
@@ -98,6 +99,8 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const overlayRef = useRef(null)
+  // Pila de ventanas: Esc, foco atrapado y devuelto al cerrar
+  const panelRef = useModalLayer(onClose)
 
   const ext   = getExt(docMeta?.file_name)
   const badge = EXT_COLORS[ext] ?? { label: 'DOC', iconColor: '#10b981' }
@@ -188,27 +191,33 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 animate-fadeIn"
       onClick={e => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Vista previa de ${docMeta?.title || 'documento'}`}
+        className="bg-card border border-line rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden"
+      >
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-line shrink-0">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-ink text-xs font-bold shrink-0"
             style={{ backgroundColor: badge.iconColor }}
           >
             {badge.label}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-white truncate text-sm">{docMeta?.title || 'Sin título'}</p>
-            <p className="text-xs text-slate-400">{formatDate(docMeta?.updated_at)}</p>
+            <p className="font-semibold text-ink truncate text-sm">{docMeta?.title || 'Sin título'}</p>
+            <p className="text-xs text-ink-muted">{formatDate(docMeta?.updated_at)}</p>
           </div>
           <button
             onClick={() => { onOpen(docId); onClose() }}
             className="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold
-                       bg-emerald-600 hover:bg-emerald-500 text-white transition-all shrink-0"
+                       bg-accent hover:bg-accent-hover text-accent-ink transition-all shrink-0"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -218,7 +227,8 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           </button>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all shrink-0"
+            aria-label="Cerrar"
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-card-hover transition-colors shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -228,29 +238,29 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
 
         {/* Contenido */}
         <div
-          className="overflow-auto bg-slate-950"
+          className="overflow-auto bg-canvas"
           style={{ flex: 1, minHeight: 0 }}
         >
 
           {loading && (
             <div className="flex items-center justify-center h-64">
-              <div className="w-10 h-10 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+              <div className="w-10 h-10 border-2 border-accent/25 border-t-accent rounded-full animate-spin" role="status" aria-label="Cargando vista previa" />
             </div>
           )}
 
           {error && (
             <div className="flex items-center justify-center h-64">
-              <p className="text-sm text-red-400 text-center px-8">{error}</p>
+              <p role="alert" className="text-sm text-danger text-center px-8">{error}</p>
             </div>
           )}
 
           {isEmpty && (
             <div className="flex flex-col items-center justify-center h-64 gap-2">
-              <svg className="w-10 h-10 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10 text-ink-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm text-slate-400">Documento vacío</p>
+              <p className="text-sm text-ink-muted">Documento vacío</p>
             </div>
           )}
 
@@ -303,7 +313,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
           {/* Texto plano */}
           {preview?.type === 'text' && (
             <div className="p-4 md:p-8">
-              <pre className="bg-white/5 border border-white/10 rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
+              <pre className="bg-card border border-line rounded-xl mx-auto max-w-2xl p-4 md:p-8 text-sm text-ink whitespace-pre-wrap font-sans leading-relaxed">
                 {preview.text || '(vacío)'}
               </pre>
             </div>
@@ -311,13 +321,13 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-white/10 bg-slate-900 shrink-0">
-          <p className="text-xs text-slate-400">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-line bg-card shrink-0">
+          <p className="text-xs text-ink-muted">
             {docMeta?.file_path ? 'Archivo original' : 'Contenido guardado'} · Solo lectura
           </p>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-ink hover:bg-card-hover transition-all"
           >
             Cerrar
           </button>

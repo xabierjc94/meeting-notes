@@ -3,7 +3,7 @@ export default function EditorToolbar({ editor }) {
 
   return (
     // Móvil: una sola fila con scroll horizontal (no come altura de pantalla)
-    <div className="flex items-center gap-0.5 px-2 py-1.5 border border-white/10 rounded-xl bg-white/5 flex-nowrap sm:flex-wrap overflow-x-auto no-scrollbar">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 border border-line rounded-xl bg-card flex-nowrap sm:flex-wrap overflow-x-auto no-scrollbar">
 
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -124,8 +124,8 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
         shrink-0 w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-medium
         transition-all duration-150
         ${active
-          ? 'bg-violet-500/20 text-violet-300'
-          : 'text-slate-400 hover:bg-white/10 hover:text-white'
+          ? 'bg-accent-soft text-accent'
+          : 'text-ink-muted hover:bg-card-hover hover:text-ink'
         }
         ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
       `}
@@ -136,7 +136,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }) {
 }
 
 function Divider() {
-  return <div className="shrink-0 w-px h-5 bg-white/10 mx-0.5" />
+  return <div className="shrink-0 w-px h-5 bg-line mx-0.5" aria-hidden="true" />
 }
 
 const iconClass = 'w-3.5 h-3.5'

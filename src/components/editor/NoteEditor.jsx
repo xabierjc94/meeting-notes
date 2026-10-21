@@ -70,18 +70,18 @@ export default function NoteEditor({ noteId }) {
 
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
-    <div className="flex items-center justify-center h-full bg-slate-950">
+    <div className="flex items-center justify-center h-full bg-canvas">
       <div className="text-center animate-scaleIn">
-        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 bg-danger/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-danger/25">
+          <svg className="w-8 h-8 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <p className="text-sm text-red-300 font-medium">No hemos podido abrir la nota</p>
-        <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Puede ser la conexión. Tu contenido no se ha perdido: vuelve a intentarlo.</p>
+        <p className="text-sm text-danger font-medium">No hemos podido abrir la nota</p>
+        <p className="text-xs text-ink-muted mt-1 max-w-xs mx-auto">Puede ser la conexión. Tu contenido no se ha perdido: vuelve a intentarlo.</p>
         <button
           onClick={() => { setFetchError(null); setAttempt(a => a + 1) }}
-          className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors"
+          className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold text-ink bg-card-hover hover:bg-line transition-colors"
         >
           Reintentar
         </button>
@@ -285,12 +285,13 @@ function EditorInner({ initialData, onEdit }) {
     return () => document.removeEventListener('keydown', onKey)
   })
 
-  const headerAction = 'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors'
+  const headerAction = 'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-ink-muted hover:text-ink hover:bg-card-hover transition-colors'
 
   return (
     <div className="animate-fadeIn">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
+      {/* Opaca: sin el desenfoque de antes, un fondo translúcido dejaría ver el texto que pasa por debajo */}
+      <div className="sticky top-0 z-20 bg-canvas border-b border-line">
         <div className="max-w-2xl mx-auto px-4 sm:px-8 py-3 sm:py-4">
           <div className="flex items-start gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
@@ -302,9 +303,9 @@ function EditorInner({ initialData, onEdit }) {
                 onInput={autoResize}
                 placeholder="Sin título"
                 rows={1}
-                className="w-full text-xl sm:text-[1.75rem] font-bold text-white bg-transparent
+                className="w-full text-xl sm:text-[1.75rem] font-bold text-ink bg-transparent
                            border-none outline-none resize-none leading-tight
-                           placeholder-white/40 transition-colors duration-200"
+                           placeholder:text-ink-subtle transition-colors duration-200"
               />
             </div>
             <div className="shrink-0 pt-1 sm:pt-2">
@@ -373,10 +374,10 @@ function EditorInner({ initialData, onEdit }) {
             <RecoveryNotice
               actions={
                 <>
-                  <button onClick={applyLocalCopy} className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 transition-colors">
+                  <button onClick={applyLocalCopy} className="px-2.5 py-1 rounded-lg bg-pill-yellow text-pill-yellow-ink font-semibold hover:opacity-90 transition-opacity">
                     Usar la copia de este dispositivo
                   </button>
-                  <button onClick={discardLocalCopy} className="px-2.5 py-1 rounded-lg bg-white/10 text-slate-200 font-semibold hover:bg-white/20 transition-colors">
+                  <button onClick={discardLocalCopy} className="px-2.5 py-1 rounded-lg bg-card-hover text-ink font-semibold hover:bg-line transition-colors">
                     Descartarla
                   </button>
                 </>
@@ -396,7 +397,7 @@ function EditorInner({ initialData, onEdit }) {
 
       {/* Editor area */}
       {/* max-w-2xl + texto de 16px: unos 70-75 caracteres por línea, lo cómodo para leer */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 sm:py-8 bg-slate-950 min-h-[calc(100%-6rem)]">
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 sm:py-8 bg-canvas min-h-[calc(100%-6rem)]">
 
         <EditorContent
           editor={editor}
@@ -406,10 +407,10 @@ function EditorInner({ initialData, onEdit }) {
                      [&_.tiptap_ul[data-type=taskList]>li]:flex [&_.tiptap_ul[data-type=taskList]>li]:items-start [&_.tiptap_ul[data-type=taskList]>li]:gap-2 [&_.tiptap_ul[data-type=taskList]>li]:pl-0
                      [&_.tiptap_ul[data-type=taskList]>li>label]:mt-[0.4em] [&_.tiptap_ul[data-type=taskList]>li>div]:flex-1
                      [&_.tiptap_ul[data-type=taskList]>li_p]:my-0
-                     [&_.tiptap_li[data-checked=true]>div]:line-through [&_.tiptap_li[data-checked=true]>div]:text-slate-400
-                     [&_.tiptap_input[type=checkbox]]:w-4 [&_.tiptap_input[type=checkbox]]:h-4 [&_.tiptap_input[type=checkbox]]:accent-violet-500 [&_.tiptap_input[type=checkbox]]:cursor-pointer
+                     [&_.tiptap_li[data-checked=true]>div]:line-through [&_.tiptap_li[data-checked=true]>div]:text-ink-subtle
+                     [&_.tiptap_input[type=checkbox]]:w-4 [&_.tiptap_input[type=checkbox]]:h-4 [&_.tiptap_input[type=checkbox]]:accent-accent [&_.tiptap_input[type=checkbox]]:cursor-pointer
                      [&_.tiptap]:outline-none
-                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-white/50
+                     [&_.tiptap_p.is-editor-empty:first-child::before]:text-ink-subtle
                      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
                      [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
                      [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
@@ -432,34 +433,34 @@ function EditorInner({ initialData, onEdit }) {
 
 function SaveIndicator({ status, onRetry }) {
   if (status === 'saved') return (
-    <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium">
-      <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+    <span className="flex items-center gap-1.5 text-xs text-accent font-medium">
+      <span className="w-2 h-2 rounded-full bg-accent" />
       Guardado
     </span>
   )
   if (status === 'saving') return (
-    <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-      <span className="w-3 h-3 border-2 border-slate-200 border-t-violet-500 rounded-full animate-spin" />
+    <span className="flex items-center gap-1.5 text-xs text-ink-muted font-medium">
+      <span className="w-3 h-3 border-2 border-line border-t-accent rounded-full animate-spin" aria-hidden="true" />
       Guardando...
     </span>
   )
   if (status === 'unsaved') return (
-    <span className="flex items-center gap-1.5 text-xs text-amber-500 font-medium">
-      <span className="w-2 h-2 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
+    <span className="flex items-center gap-1.5 text-xs text-pill-yellow font-medium">
+      <span className="w-2 h-2 rounded-full bg-pill-yellow" />
       Sin guardar
     </span>
   )
   if (status === 'offline') return (
-    <span role="status" className="flex items-center gap-1.5 text-xs text-amber-400 font-medium text-right">
-      <span className="w-2 h-2 shrink-0 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
+    <span role="status" className="flex items-center gap-1.5 text-xs text-pill-yellow font-medium text-right">
+      <span className="w-2 h-2 shrink-0 rounded-full bg-pill-yellow" />
       Sin conexión · copia en este dispositivo
     </span>
   )
   if (status === 'error') return (
-    <span role="status" className="flex items-center gap-1.5 text-xs text-red-400 font-medium">
-      <span className="w-2 h-2 shrink-0 rounded-full bg-red-400 shadow-sm shadow-red-400/50" />
+    <span role="status" className="flex items-center gap-1.5 text-xs text-danger font-medium">
+      <span className="w-2 h-2 shrink-0 rounded-full bg-danger" />
       No se pudo guardar
-      <button onClick={onRetry} className="underline underline-offset-2 hover:text-red-300">
+      <button onClick={onRetry} className="underline underline-offset-2 hover:text-ink">
         Reintentar
       </button>
     </span>
@@ -469,11 +470,11 @@ function SaveIndicator({ status, onRetry }) {
 
 function RecoveryNotice({ children, actions, onClose }) {
   return (
-    <div role="status" className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+    <div role="status" className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 rounded-xl bg-pill-yellow/10 border border-pill-yellow/30 text-xs text-ink">
       <span className="flex-1 min-w-48">{children}</span>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
       {onClose && (
-        <button onClick={onClose} aria-label="Cerrar aviso" className="w-6 h-6 flex items-center justify-center rounded-md text-amber-200 hover:bg-amber-500/20">
+        <button onClick={onClose} aria-label="Cerrar aviso" className="w-6 h-6 flex items-center justify-center rounded-md text-ink-muted hover:text-ink hover:bg-pill-yellow/20">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -485,17 +486,17 @@ function RecoveryNotice({ children, actions, onClose }) {
 
 function EditorSkeleton() {
   return (
-    <div className="animate-pulse bg-slate-950 h-full">
-      <div className="sticky top-0 bg-slate-950 border-b border-white/10 px-4 sm:px-10 py-3 sm:py-4">
-        <div className="h-8 sm:h-10 bg-white/5 rounded-xl w-2/3 mb-3" />
-        <div className="h-8 sm:h-9 bg-white/5 rounded-xl w-1/4" />
+    <div className="animate-pulse bg-canvas h-full">
+      <div className="sticky top-0 bg-canvas border-b border-line px-4 sm:px-10 py-3 sm:py-4">
+        <div className="h-8 sm:h-10 bg-card rounded-xl w-2/3 mb-3" />
+        <div className="h-8 sm:h-9 bg-card rounded-xl w-1/4" />
       </div>
       <div className="max-w-2xl mx-auto px-4 sm:px-8 py-4 sm:py-8">
-        <div className="h-10 bg-white/5 rounded-xl mb-6" />
+        <div className="h-10 bg-card rounded-xl mb-6" />
         <div className="space-y-3">
-          <div className="h-4 bg-white/5 rounded-lg w-full" />
-          <div className="h-4 bg-white/5 rounded-lg w-5/6" />
-          <div className="h-4 bg-white/5 rounded-lg w-4/6" />
+          <div className="h-4 bg-card rounded-lg w-full" />
+          <div className="h-4 bg-card rounded-lg w-5/6" />
+          <div className="h-4 bg-card rounded-lg w-4/6" />
         </div>
       </div>
     </div>

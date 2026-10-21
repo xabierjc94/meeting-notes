@@ -21,6 +21,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { useBiblioteca } from '../../context/BibliotecaContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useAutosave } from '../../hooks/useAutosave'
+import { hasOpenModal } from '../../hooks/useModalLayer'
 import DocumentToolbar from './DocumentToolbar'
 
 const PRINT_STYLES = `
@@ -71,10 +72,10 @@ export default function DocumentEditor({ docId, onBack }) {
 
   if (loading) return <EditorSkeleton />
   if (fetchError) return (
-    <div className="flex items-center justify-center h-full bg-slate-950">
-      <div className="text-center bg-white/5 border border-white/10 p-8 rounded-xl">
-        <p className="text-sm text-red-400 font-medium">Error al cargar el documento</p>
-        <p className="text-xs text-slate-400 mt-1">{fetchError}</p>
+    <div className="flex items-center justify-center h-full bg-canvas">
+      <div className="text-center bg-card border border-line p-8 rounded-xl">
+        <p className="text-sm text-danger font-medium">Error al cargar el documento</p>
+        <p className="text-xs text-ink-muted mt-1">{fetchError}</p>
       </div>
     </div>
   )
@@ -178,7 +179,8 @@ function DocumentEditorInner({ initialData, onBack }) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); handlePrint() }
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); setShowFind(v => !v) }
       if (e.key === 'F11') { e.preventDefault(); setFocusMode(v => !v) }
-      if (e.key === 'Escape' && focusMode) setFocusMode(false)
+      // Si hay una ventana abierta (atajos, vista previa…), ese Esc es para ella
+      if (e.key === 'Escape' && focusMode && !hasOpenModal()) setFocusMode(false)
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
@@ -395,16 +397,17 @@ xmlns="http://www.w3.org/TR/REC-html40">
       <style>{PRINT_STYLES}</style>
       <style>{FOCUS_DIM_STYLES}</style>
 
-      <div className={`flex flex-col h-full overflow-hidden transition-colors duration-300 ${focusMode ? 'bg-[#111827]' : 'bg-slate-950'}`}>
+      <div className={`flex flex-col h-full overflow-hidden transition-colors duration-300 ${focusMode ? 'bg-black' : 'bg-canvas'}`}>
 
         {/* ── Barra de título ── */}
         {!focusMode ? (
-          <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-1.5 flex items-center justify-between shrink-0">
+          <div className="bg-surface border-b border-line px-4 py-1.5 flex items-center justify-between shrink-0">
+            {/* Superficie neutra: el lima se reserva para acciones y estados, no para barras enteras */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="flex items-center gap-1 text-white/70 hover:text-white text-xs font-medium shrink-0 hover:bg-white/10 px-2 py-1 rounded-lg transition-all"
+                  className="flex items-center gap-1 text-ink-muted hover:text-ink text-xs font-medium shrink-0 hover:bg-card-hover px-2 py-1 rounded-lg transition-all"
                   title="Volver a documentos"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,7 +416,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
                   Documentos
                 </button>
               )}
-              <svg className="w-4 h-4 text-white/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-ink-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -429,19 +432,19 @@ xmlns="http://www.w3.org/TR/REC-html40">
                   onFocus={e => e.target.select()}
                   autoFocus
                   placeholder="Sin título"
-                  className="bg-white/10 border border-white/20 text-white rounded px-2 py-0.5 text-sm font-medium outline-none focus:border-white/40 placeholder-white/40 flex-1 min-w-0"
+                  className="bg-card-hover border border-line-strong text-ink rounded px-2 py-0.5 text-sm font-medium outline-none focus:border-accent placeholder:text-ink-subtle flex-1 min-w-0"
                 />
               ) : (
                 <button
                   onClick={startTitleEdit}
                   title="Renombrar documento"
-                  className="text-white text-sm font-medium text-left truncate flex-1 min-w-0 hover:bg-white/10 rounded px-2 py-0.5 transition-colors cursor-text"
+                  className="text-ink text-sm font-medium text-left truncate flex-1 min-w-0 hover:bg-card-hover rounded px-2 py-0.5 transition-colors cursor-text"
                 >
                   {title || 'Sin título'}
                 </button>
               )}
               {initialData.file_name && (
-                <span className="text-white/60 text-xs truncate hidden sm:block">({initialData.file_name})</span>
+                <span className="text-ink-muted text-xs truncate hidden sm:block">({initialData.file_name})</span>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
@@ -449,8 +452,10 @@ xmlns="http://www.w3.org/TR/REC-html40">
               {/* Outline panel toggle */}
               <button
                 onClick={() => setShowOutline(v => !v)}
+                aria-pressed={showOutline}
+                aria-label="Esquema del documento"
                 title="Esquema del documento"
-                className={`text-xs px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${showOutline ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                className={`text-xs px-2 py-1 rounded-lg transition-all flex items-center gap-1 ${showOutline ? 'bg-accent-soft text-accent' : 'text-ink-muted hover:text-ink hover:bg-card-hover'}`}
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
@@ -461,8 +466,9 @@ xmlns="http://www.w3.org/TR/REC-html40">
               {/* Focus mode toggle */}
               <button
                 onClick={() => setFocusMode(true)}
+                aria-label="Modo enfoque"
                 title="Modo enfoque (F11)"
-                className="text-white/60 hover:text-white text-xs hover:bg-white/10 px-2 py-1 rounded-lg transition-all flex items-center gap-1"
+                className="text-ink-muted hover:text-ink text-xs hover:bg-card-hover px-2 py-1 rounded-lg transition-all flex items-center gap-1"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
@@ -471,24 +477,24 @@ xmlns="http://www.w3.org/TR/REC-html40">
               </button>
               {/* Zoom */}
               <div className="hidden sm:flex items-center gap-1">
-                <button onClick={() => setZoom(z => Math.max(50, z - 10))}
-                  className="text-white/60 hover:text-white text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-white/10">−</button>
-                <span className="text-white/70 text-xs w-10 text-center">{zoom}%</span>
-                <button onClick={() => setZoom(z => Math.min(200, z + 10))}
-                  className="text-white/60 hover:text-white text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-white/10">+</button>
+                <button onClick={() => setZoom(z => Math.max(50, z - 10))} aria-label="Reducir zoom"
+                  className="text-ink-muted hover:text-ink text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-card-hover">−</button>
+                <span className="text-ink-muted text-xs w-10 text-center">{zoom}%</span>
+                <button onClick={() => setZoom(z => Math.min(200, z + 10))} aria-label="Aumentar zoom"
+                  className="text-ink-muted hover:text-ink text-xs w-7 h-7 flex items-center justify-center rounded hover:bg-card-hover">+</button>
               </div>
             </div>
           </div>
         ) : (
           /* Focus mode minimal header */
-          <div className="bg-black/50 backdrop-blur px-6 py-2 flex items-center justify-between shrink-0 border-b border-white/5">
-            <span className="text-white/50 text-sm font-medium truncate">{title || 'Sin título'}</span>
+          <div className="bg-surface px-6 py-2 flex items-center justify-between shrink-0 border-b border-line">
+            <span className="text-ink-subtle text-sm font-medium truncate">{title || 'Sin título'}</span>
             <div className="flex items-center gap-3">
               <SaveIndicator status={saveStatus} savedAgo={savedAgo} onRetry={retryNow} />
               <button
                 onClick={() => setFocusMode(false)}
                 title="Salir del modo enfoque (ESC)"
-                className="text-white/60 hover:text-white/80 text-xs flex items-center gap-1.5 hover:bg-white/10 px-2.5 py-1 rounded-lg transition-all"
+                className="text-ink-muted hover:text-ink text-xs flex items-center gap-1.5 hover:bg-card-hover px-2.5 py-1 rounded-lg transition-all"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4 4m0 0l5-5M4 4l5 5M15 9l5-5m0 0l-5-5m5 5l-5 5M9 15l-5 5m0 0l5 5m-5-5l5-5M15 15l5 5m0 0l-5 5m5-5l-5-5" />
@@ -521,34 +527,34 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
         {/* ── Error Word ── */}
         {wordError && !focusMode && (
-          <div className="shrink-0 bg-red-500/10 border-b border-red-500/20 px-4 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-red-400">
+          <div role="alert" className="shrink-0 bg-danger/10 border-b border-danger/25 px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-danger">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span><strong>No se pudo abrir Word:</strong> {wordError}</span>
             </div>
-            <button onClick={() => setWordError(null)} className="text-red-400 hover:text-red-300 ml-3 shrink-0">✕</button>
+            <button onClick={() => setWordError(null)} aria-label="Cerrar aviso" className="text-danger hover:text-ink ml-3 shrink-0">✕</button>
           </div>
         )}
 
         {/* ── Panel Buscar / Reemplazar ── */}
         {showFind && !focusMode && (
-          <div className="shrink-0 bg-slate-900 border-b border-white/10 px-4 py-2 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-slate-300">Buscar:</span>
+          <div className="shrink-0 bg-card border-b border-line px-4 py-2 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-ink">Buscar:</span>
             <input value={findText} onChange={e => setFindText(e.target.value)}
               placeholder="Texto a buscar..." autoFocus
-              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
-            <span className="text-xs font-semibold text-slate-300">Reemplazar:</span>
+              className="text-xs bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded px-2 py-1 outline-none focus:border-accent flex-1 min-w-[120px]" />
+            <span className="text-xs font-semibold text-ink">Reemplazar:</span>
             <input value={replaceText} onChange={e => setReplaceText(e.target.value)}
               placeholder="Reemplazar por..."
-              className="text-xs bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-2 py-1 outline-none focus:border-violet-500 flex-1 min-w-[120px]" />
+              className="text-xs bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded px-2 py-1 outline-none focus:border-accent flex-1 min-w-[120px]" />
             <button onClick={handleReplace}
-              className="text-xs bg-violet-600 text-white px-3 py-1 rounded hover:bg-violet-500 font-medium">
+              className="text-xs bg-accent text-accent-ink px-3 py-1 rounded hover:bg-accent-hover font-medium">
               Reemplazar todo
             </button>
             <button onClick={() => setShowFind(false)}
-              className="text-xs text-slate-400 hover:text-white ml-auto">✕ Cerrar</button>
+              className="text-xs text-ink-muted hover:text-ink ml-auto">✕ Cerrar</button>
           </div>
         )}
 
@@ -576,10 +582,10 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
         {/* ── Área del documento + panel de esquema ── */}
         <div className="flex-1 flex overflow-hidden">
-          <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-[#111827] doc-focus-dim' : 'bg-slate-950'}`}>
+          <div className={`flex-1 overflow-y-auto py-8 transition-colors duration-300 ${focusMode ? 'bg-black doc-focus-dim' : 'bg-canvas'}`}>
           <div
             ref={printAreaRef}
-            className="doc-print-area mx-auto bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-white/10"
+            className="doc-print-area mx-auto bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-line"
             style={{
               width: '794px',
               maxWidth: '98%',
@@ -624,26 +630,27 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
           {/* ── Panel de esquema (fuera del área de captura/impresión) ── */}
           {showOutline && !focusMode && (
-            <aside className="w-64 shrink-0 bg-slate-900 border-l border-white/10 flex flex-col">
-              <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
-                <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Esquema</h3>
+            <aside className="w-64 shrink-0 bg-card border-l border-line flex flex-col">
+              <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-line">
+                <h3 className="text-xs font-semibold text-ink uppercase tracking-wider">Esquema</h3>
                 <button
                   onClick={() => setShowOutline(false)}
+                  aria-label="Cerrar esquema"
                   title="Cerrar esquema"
-                  className="text-slate-400 hover:text-white w-6 h-6 flex items-center justify-center rounded hover:bg-white/10 transition-colors"
+                  className="text-ink-muted hover:text-ink w-6 h-6 flex items-center justify-center rounded hover:bg-card-hover transition-colors"
                 >
                   ✕
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-2">
                 {outline.length === 0 ? (
-                  <p className="text-slate-400 text-sm px-2 py-3">Sin encabezados todavía</p>
+                  <p className="text-ink-muted text-sm px-2 py-3">Sin encabezados todavía</p>
                 ) : (
                   outline.map((item, i) => (
                     <button
                       key={`${item.pos}-${i}`}
                       onClick={() => scrollToHeading(item.pos)}
-                      className={`block w-full text-left py-1.5 pr-2 text-slate-300 hover:text-white hover:bg-white/10 rounded cursor-pointer text-sm truncate ${
+                      className={`block w-full text-left py-1.5 pr-2 text-ink hover:text-ink hover:bg-card-hover rounded cursor-pointer text-sm truncate ${
                         { 1: 'pl-2', 2: 'pl-4', 3: 'pl-6', 4: 'pl-8' }[item.level] || 'pl-2'
                       }`}
                     >
@@ -658,20 +665,20 @@ xmlns="http://www.w3.org/TR/REC-html40">
 
         {/* ── Barra de estado inferior ── */}
         {!focusMode ? (
-          <div className="shrink-0 bg-slate-900 border-t border-white/10 px-4 py-1 flex items-center justify-between text-xs text-slate-400">
+          <div className="shrink-0 bg-card border-t border-line px-4 py-1 flex items-center justify-between text-xs text-ink-muted">
             <div className="flex items-center gap-4">
-              <span>Palabras: <span className="text-white font-medium">{wordCount.toLocaleString()}</span></span>
-              <span>Caracteres: <span className="text-white font-medium">{charCount.toLocaleString()}</span></span>
-              <span className="hidden sm:inline">Lectura: <span className="text-white font-medium">~{readingTime} min</span></span>
+              <span>Palabras: <span className="text-ink font-medium">{wordCount.toLocaleString()}</span></span>
+              <span>Caracteres: <span className="text-ink font-medium">{charCount.toLocaleString()}</span></span>
+              <span className="hidden sm:inline">Lectura: <span className="text-ink font-medium">~{readingTime} min</span></span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setShowFind(v => !v)} className="hover:text-white transition-colors" title="Buscar y reemplazar (Ctrl+F)">
+              <button onClick={() => setShowFind(v => !v)} className="hover:text-ink transition-colors" title="Buscar y reemplazar (Ctrl+F)">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
                 </svg>
               </button>
               <span className="opacity-30">|</span>
-              <button onClick={handlePrint} className="hover:text-white transition-colors" title="Imprimir (Ctrl+P)">
+              <button onClick={handlePrint} className="hover:text-ink transition-colors" title="Imprimir (Ctrl+P)">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
                 </svg>
@@ -679,7 +686,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
               <span className="opacity-30">|</span>
               <button
                 onClick={() => setFocusMode(true)}
-                className="hover:text-white transition-colors"
+                className="hover:text-ink transition-colors"
                 title="Modo enfoque (F11)"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -689,8 +696,8 @@ xmlns="http://www.w3.org/TR/REC-html40">
             </div>
           </div>
         ) : (
-          <div className="shrink-0 bg-black/40 px-6 py-1.5 flex items-center justify-center text-xs text-white/60">
-            {wordCount.toLocaleString()} palabras · {charCount.toLocaleString()} caracteres · ~{readingTime} min lectura · <kbd className="ml-1 px-1 py-0.5 bg-white/10 rounded text-[10px]">ESC</kbd>&nbsp;para salir
+          <div className="shrink-0 bg-canvas px-6 py-1.5 flex items-center justify-center text-xs text-ink-muted">
+            {wordCount.toLocaleString()} palabras · {charCount.toLocaleString()} caracteres · ~{readingTime} min lectura · <kbd className="ml-1 px-1 py-0.5 bg-card-hover rounded text-[10px]">ESC</kbd>&nbsp;para salir
           </div>
         )}
       </div>
@@ -715,7 +722,7 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
 
   if (bubbleLinkMode) {
     return (
-      <div className="flex items-center gap-1.5 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 px-2 py-1.5">
+      <div className="flex items-center gap-1.5 bg-card rounded-lg shadow-2xl border border-line px-2 py-1.5">
         <input
           ref={inputRef}
           type="url"
@@ -723,16 +730,16 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
           onChange={e => setBubbleLinkUrl(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') applyLink(); if (e.key === 'Escape') { setBubbleLinkMode(false); setBubbleLinkUrl('') } }}
           placeholder="https://..."
-          className="text-xs bg-gray-800 text-white border border-gray-600 rounded px-2 py-1 outline-none focus:border-blue-500 w-44 placeholder-gray-500"
+          className="text-xs bg-canvas text-ink border border-line-strong rounded px-2 py-1 outline-none focus:border-accent w-44 placeholder:text-ink-subtle"
         />
-        <button onMouseDown={e => { e.preventDefault(); applyLink() }} className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-500">OK</button>
-        <button onMouseDown={e => { e.preventDefault(); setBubbleLinkMode(false); setBubbleLinkUrl('') }} className="text-xs text-gray-400 hover:text-white px-1.5 py-1 rounded hover:bg-gray-700">✕</button>
+        <button onMouseDown={e => { e.preventDefault(); applyLink() }} className="text-xs bg-accent text-accent-ink font-semibold px-2 py-1 rounded hover:bg-accent-hover">OK</button>
+        <button onMouseDown={e => { e.preventDefault(); setBubbleLinkMode(false); setBubbleLinkUrl('') }} className="text-xs text-ink-muted hover:text-ink px-1.5 py-1 rounded hover:bg-card-hover" aria-label="Cancelar enlace">✕</button>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center gap-0.5 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 px-1.5 py-1">
+    <div className="flex items-center gap-0.5 bg-card rounded-lg shadow-2xl border border-line px-1.5 py-1">
       <BBtn active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Negrita (Ctrl+B)">
         <b className="text-[11px]">N</b>
       </BBtn>
@@ -746,7 +753,7 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
         <span className="text-[11px] font-bold line-through">T</span>
       </BBtn>
 
-      <div className="w-px h-4 bg-gray-700 mx-0.5" />
+      <div className="w-px h-4 bg-line mx-0.5" aria-hidden="true" />
 
       <BBtn active={editor.isActive('highlight')} onClick={() => editor.chain().focus().toggleHighlight({ color: '#FEF08A' }).run()} title="Resaltar en amarillo">
         <span className="text-[11px]">✎</span>
@@ -773,7 +780,7 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
         </BBtn>
       )}
 
-      <div className="w-px h-4 bg-gray-700 mx-0.5" />
+      <div className="w-px h-4 bg-line mx-0.5" aria-hidden="true" />
 
       {/* Heading shortcuts */}
       {['H1', 'H2', 'H3'].map((h, i) => (
@@ -787,7 +794,7 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
         </BBtn>
       ))}
 
-      <div className="w-px h-4 bg-gray-700 mx-0.5" />
+      <div className="w-px h-4 bg-line mx-0.5" aria-hidden="true" />
 
       {/* Alineación */}
       {[
@@ -800,7 +807,7 @@ function BubbleToolbar({ editor, bubbleLinkMode, setBubbleLinkMode, bubbleLinkUr
         </BBtn>
       ))}
 
-      <div className="w-px h-4 bg-gray-700 mx-0.5" />
+      <div className="w-px h-4 bg-line mx-0.5" aria-hidden="true" />
 
       {/* Limpiar formato */}
       <BBtn onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} title="Limpiar formato">
@@ -820,7 +827,7 @@ function BBtn({ active, onClick, title, children }) {
       onMouseDown={e => { e.preventDefault(); onClick?.() }}
       title={title}
       className={`w-6 h-6 flex items-center justify-center rounded text-xs transition-all
-        ${active ? 'bg-white/20 text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+        ${active ? 'bg-accent-soft text-accent' : 'text-ink-muted hover:bg-card-hover hover:text-ink'}`}
     >
       {children}
     </button>
@@ -839,21 +846,21 @@ function Ruler() {
   }
 
   return (
-    <div className="hidden md:block shrink-0 bg-slate-900 border-b border-white/10 overflow-hidden h-6">
+    <div className="hidden md:block shrink-0 bg-card border-b border-line overflow-hidden h-6">
       <div className="mx-auto relative" style={{ width: '794px', maxWidth: '100%', height: '100%' }}>
-        <div className="absolute top-0 bottom-0 left-0 bg-white/10" style={{ width: MARGIN }} />
-        <div className="absolute top-0 bottom-0 right-0 bg-white/10" style={{ width: MARGIN }} />
-        <div className="absolute top-0 bottom-0 bg-white/5" style={{ left: MARGIN, right: MARGIN }} />
+        <div className="absolute top-0 bottom-0 left-0 bg-card-hover" style={{ width: MARGIN }} />
+        <div className="absolute top-0 bottom-0 right-0 bg-card-hover" style={{ width: MARGIN }} />
+        <div className="absolute top-0 bottom-0 bg-card" style={{ left: MARGIN, right: MARGIN }} />
         {ticks.map(({ px, isInch, inch }) => (
           <div key={px} className="absolute bottom-0" style={{ left: px }}>
-            <div className={`absolute bottom-0 bg-white/30 ${isInch ? 'h-3 w-px' : 'h-1.5 w-px'}`} />
+            <div className={`absolute bottom-0 bg-line-strong ${isInch ? 'h-3 w-px' : 'h-1.5 w-px'}`} />
             {isInch && inch > 0 && inch < TOTAL_W / 96 && (
-              <span className="absolute bottom-3 text-[8px] text-white/60 -translate-x-1/2" style={{ left: 0 }}>{inch}"</span>
+              <span className="absolute bottom-3 text-[8px] text-ink-muted -translate-x-1/2" style={{ left: 0 }}>{inch}"</span>
             )}
           </div>
         ))}
-        <div className="absolute top-0 bg-violet-400" style={{ left: MARGIN - 1, width: 2, height: 6 }} />
-        <div className="absolute top-0 bg-violet-400" style={{ left: TOTAL_W - MARGIN - 1, width: 2, height: 6 }} />
+        <div className="absolute top-0 bg-accent" style={{ left: MARGIN - 1, width: 2, height: 6 }} />
+        <div className="absolute top-0 bg-accent" style={{ left: TOTAL_W - MARGIN - 1, width: 2, height: 6 }} />
       </div>
     </div>
   )
@@ -863,18 +870,18 @@ function Ruler() {
 function SaveIndicator({ status, savedAgo, onRetry }) {
   const base = 'flex items-center gap-1.5 text-xs font-medium'
   if (status === 'saved') return (
-    <span className={`${base} text-white/60`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-      Guardado{savedAgo && <span className="text-white/60 hidden sm:inline">· {savedAgo}</span>}
+    <span className={`${base} text-ink-muted`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+      Guardado{savedAgo && <span className="text-ink-muted hidden sm:inline">· {savedAgo}</span>}
     </span>
   )
-  if (status === 'saving') return <span className={`${base} text-white/60`}><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Guardando...</span>
-  if (status === 'unsaved') return <span className={`${base} text-yellow-300/80`}><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Sin guardar</span>
-  if (status === 'offline') return <span role="status" className={`${base} text-yellow-300/80`}><span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />Sin conexión · no cierres la pestaña</span>
+  if (status === 'saving') return <span className={`${base} text-ink-muted`}><span className="w-3 h-3 border border-line-strong border-t-accent rounded-full animate-spin" />Guardando...</span>
+  if (status === 'unsaved') return <span className={`${base} text-pill-yellow`}><span className="w-1.5 h-1.5 rounded-full bg-pill-yellow" />Sin guardar</span>
+  if (status === 'offline') return <span role="status" className={`${base} text-pill-yellow`}><span className="w-1.5 h-1.5 rounded-full bg-pill-yellow" />Sin conexión · no cierres la pestaña</span>
   if (status === 'error') return (
-    <span role="status" className={`${base} text-red-300`}>
-      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />No se pudo guardar
-      <button onClick={onRetry} className="underline underline-offset-2 hover:text-red-200">Reintentar</button>
+    <span role="status" className={`${base} text-danger`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-danger" />No se pudo guardar
+      <button onClick={onRetry} className="underline underline-offset-2 hover:text-ink">Reintentar</button>
     </span>
   )
   return null
@@ -883,11 +890,11 @@ function SaveIndicator({ status, savedAgo, onRetry }) {
 /* ─── Skeleton ─── */
 function EditorSkeleton() {
   return (
-    <div className="flex flex-col h-full bg-slate-950 animate-pulse">
-      <div className="h-8 bg-gradient-to-r from-violet-600/80 to-purple-600/80 shrink-0" />
-      <div className="h-16 bg-slate-900 border-b border-white/10 shrink-0" />
+    <div className="flex flex-col h-full bg-canvas animate-pulse">
+      <div className="h-8 bg-accent-soft shrink-0" />
+      <div className="h-16 bg-card border-b border-line shrink-0" />
       <div className="flex-1 flex items-start justify-center pt-12">
-        <div className="w-[794px] max-w-[98%] min-h-48 bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-white/10 p-24 space-y-3">
+        <div className="w-[794px] max-w-[98%] min-h-48 bg-white shadow-2xl shadow-black/50 rounded-sm ring-1 ring-line p-24 space-y-3">
           <div className="h-6 bg-gray-100 rounded w-2/3" />
           <div className="h-4 bg-gray-50 rounded w-full" />
           <div className="h-4 bg-gray-50 rounded w-5/6" />

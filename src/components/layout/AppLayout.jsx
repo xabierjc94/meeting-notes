@@ -7,6 +7,7 @@ import { ICONS } from '../ui/icons'
 import Logo from '../ui/Logo'
 import Spinner from '../ui/Spinner'
 import CommandPalette from './CommandPalette'
+import { hasOpenModal } from '../../hooks/useModalLayer'
 
 function getInitials(name, email) {
   if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -266,10 +267,11 @@ export default function AppLayout() {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
-  // Esc sale del modo foco
+  // Esc sale del modo foco, salvo que haya una ventana abierta encima
+  // (p. ej. los atajos): ese Esc es para cerrar la ventana
   useEffect(() => {
     if (!focusMode) return
-    const onKey = (e) => { if (e.key === 'Escape') setFocusMode(false) }
+    const onKey = (e) => { if (e.key === 'Escape' && !hasOpenModal()) setFocusMode(false) }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [focusMode])

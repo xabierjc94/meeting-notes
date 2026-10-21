@@ -1,10 +1,18 @@
-import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
+import { useState, useMemo, useRef, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../context/AuthContext'
 import { useBiblioteca } from '../context/BibliotecaContext'
 import { useAppSidebar } from '../components/layout/AppSidebarContext'
 import MobileTopBar from '../components/layout/MobileTopBar'
+import PageHeader from '../components/ui/PageHeader'
+import Modal from '../components/ui/Modal'
+import Button from '../components/ui/Button'
+import Pill from '../components/ui/Pill'
+import Spinner from '../components/ui/Spinner'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
+import ColorPicker from '../components/ui/ColorPicker'
+import { PALETTE } from '../lib/palette'
 import Icon from '../components/ui/Icon'
 import { ICONS } from '../components/ui/icons'
 import DocumentGridCard from '../components/biblioteca/DocumentGridCard'
@@ -15,12 +23,6 @@ import { supabase } from '../lib/supabaseClient'
 
 // El editor (TipTap) pesa ~120 KB: se descarga solo al abrir un documento
 const DocumentEditor = lazy(() => import('../components/biblioteca/DocumentEditor'))
-
-const FOLDER_COLORS = [
-  '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6',
-  '#ec4899', '#ef4444', '#f97316', '#eab308',
-  '#84cc16', '#14b8a6', '#6366f1', '#64748b',
-]
 
 // ─── Plantillas de documento (TipTap JSON) ────────────────────────
 // Niveles de encabezado = los mismos que produce el botón T1 del toolbar (level 1).
@@ -100,70 +102,46 @@ const DOC_TEMPLATES = [
 ]
 
 // ─── Modal selector de plantilla ──────────────────────────────────
+// Modal común: pila de ventanas, foco atrapado y devuelto al cerrar
 function TemplateModal({ onSelect, onClose, creating }) {
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
-
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+    <Modal
+      title="Nuevo documento"
+      onClose={onClose}
+      footer={<Button variant="secondary" onClick={onClose} disabled={creating} className="flex-1">Cancelar</Button>}
     >
-      <div
-        className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="px-6 py-5 border-b border-white/10">
-          <h3 className="text-base font-bold text-white">Nuevo documento</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Elige una plantilla para empezar</p>
-        </div>
-        <div className="px-6 py-5 space-y-2.5">
-          {DOC_TEMPLATES.map(tpl => (
-            <button
-              key={tpl.id}
-              disabled={creating}
-              onClick={() => onSelect(tpl)}
-              className="w-full flex items-center gap-3.5 text-left bg-white/5 border border-white/10 rounded-xl px-4 py-3.5
-                         hover:bg-white/10 hover:border-violet-400/30 disabled:opacity-50 transition-all duration-200"
-            >
-              <div className="w-10 h-10 shrink-0 rounded-lg bg-violet-500/15 border border-violet-400/20 text-violet-300 flex items-center justify-center">
-                {tpl.icon}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white">{tpl.name}</p>
-                <p className="text-xs text-slate-400">{tpl.desc}</p>
-              </div>
-              {creating && (
-                <div className="ml-auto w-4 h-4 shrink-0 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              )}
-            </button>
-          ))}
-        </div>
-        <div className="px-6 pb-5">
+      <p className="text-xs text-ink-muted -mt-1 mb-4">Elige una plantilla para empezar</p>
+      <div className="space-y-2.5">
+        {DOC_TEMPLATES.map(tpl => (
           <button
+            key={tpl.id}
             type="button"
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-all"
+            disabled={creating}
+            onClick={() => onSelect(tpl)}
+            className="w-full flex items-center gap-3.5 text-left bg-canvas border border-line rounded-xl px-4 py-3.5
+                       hover:bg-card-hover hover:border-line-strong disabled:opacity-50 transition-colors"
           >
-            Cancelar
+            <div className="w-10 h-10 shrink-0 rounded-lg bg-accent-soft text-accent flex items-center justify-center" aria-hidden="true">
+              {tpl.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">{tpl.name}</p>
+              <p className="text-xs text-ink-muted">{tpl.desc}</p>
+            </div>
+            {creating && <Spinner className="ml-auto" label="Creando documento" />}
           </button>
-        </div>
+        ))}
       </div>
-    </div>
+    </Modal>
   )
 }
 
 // ─── Modal crear/renombrar carpeta ────────────────────────────────
 function FolderModal({ initial, onConfirm, onClose }) {
   const [name, setName] = useState(initial?.name || '')
-  const [color, setColor] = useState(initial?.color || '#10b981')
+  const [color, setColor] = useState(initial?.color || PALETTE[0].value)
   const [saving, setSaving] = useState(false)
   const inputRef = useRef(null)
-
-  useEffect(() => { inputRef.current?.focus() }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -173,122 +151,130 @@ function FolderModal({ initial, onConfirm, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-white/10">
-          <h3 className="text-base font-bold text-white">
-            {initial ? 'Renombrar carpeta' : 'Nueva carpeta'}
-          </h3>
+    <Modal
+      title={initial ? 'Renombrar carpeta' : 'Nueva carpeta'}
+      size="sm"
+      onClose={onClose}
+      initialFocusRef={inputRef}
+      closeOnBackdrop={false}
+      footer={
+        <>
+          <Button type="submit" form="folder-form" disabled={!name.trim() || saving} className="flex-1">
+            {saving ? 'Guardando…' : (initial ? 'Guardar' : 'Crear carpeta')}
+          </Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">Cancelar</Button>
+        </>
+      }
+    >
+      <form id="folder-form" onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="folder-name" className="block text-xs font-medium text-ink-muted mb-1.5">Nombre</label>
+          <input
+            id="folder-name"
+            ref={inputRef}
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Ej: Contratos, Marketing, Proyectos…"
+            className="field"
+          />
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-slate-400 mb-1.5 block">Nombre</label>
-            <input
-              ref={inputRef}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Ej: Contratos, Marketing, Proyectos..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-400"
-            />
+        <ColorPicker value={color} onChange={setColor} />
+        {/* Vista previa */}
+        <div className="flex items-center gap-2.5 bg-canvas border border-line rounded-xl px-3 py-2.5" aria-hidden="true">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '22' }}>
+            <svg className="w-4 h-4" fill="none" stroke={color} strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+            </svg>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-400 mb-1.5 block">Color</label>
-            <div className="flex gap-2 flex-wrap">
-              {FOLDER_COLORS.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-lg transition-all ${color === c ? 'ring-2 ring-offset-2 ring-offset-slate-900 ring-slate-400 scale-110' : 'hover:scale-110'}`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Preview */}
-          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '22' }}>
-              <svg className="w-4 h-4" fill="none" stroke={color} strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-white">{name || 'Sin nombre'}</span>
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-all">
-              Cancelar
-            </button>
-            <button type="submit" disabled={!name.trim() || saving}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 transition-all">
-              {saving ? 'Guardando...' : (initial ? 'Guardar' : 'Crear carpeta')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <span className="text-sm font-semibold text-ink">{name || 'Sin nombre'}</span>
+        </div>
+      </form>
+    </Modal>
   )
 }
 
 // ─── Tarjeta de carpeta en el grid ────────────────────────────────
+// Antes era un <div onClick>: con teclado no se podía abrir. Ahora el nombre
+// es un botón real que cubre la tarjeta (.stretched-link) y las acciones
+// quedan por encima (z-10) para poder pulsarlas por separado.
 function FolderGridCard({ carpeta, docCount, onClick, onRename, onDelete }) {
   const [deleting, setDeleting] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
-  const handleDelete = (e) => {
-    e.stopPropagation()
-    if (!confirm(`¿Eliminar la carpeta "${carpeta.name}"? Los documentos se moverán a la raíz.`)) return
+  const handleDelete = () => {
+    setConfirming(false)
     setDeleting(true)
     onDelete(carpeta.id).catch(() => setDeleting(false))
   }
 
+  const action = 'w-8 h-8 flex items-center justify-center rounded-lg text-ink-muted transition-colors'
+
   return (
     <div
-      onClick={onClick}
-      className="group relative flex flex-col text-left bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer
-                 hover:bg-white/10 hover:shadow-lg transition-all duration-200 select-none overflow-hidden"
-      style={{ opacity: deleting ? 0.5 : 1, borderTopColor: carpeta.color, borderTopWidth: 3 }}
+      className={`group relative flex flex-col bg-card border border-line rounded-2xl p-5 hover:bg-card-hover transition-colors ${deleting ? 'opacity-50' : ''}`}
     >
-      {/* Fondo sutil */}
-      <div className="absolute inset-0 opacity-5 rounded-2xl" style={{ backgroundColor: carpeta.color }} />
-
-      <div className="relative">
-        {/* Icono carpeta */}
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: carpeta.color + '22' }}>
-          <svg className="w-6 h-6" fill="none" stroke={carpeta.color} strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-          </svg>
-        </div>
-
-        <p className="text-sm font-bold text-white truncate w-full mb-1">{carpeta.name}</p>
-        <p className="text-xs text-slate-400">{docCount} documento{docCount !== 1 ? 's' : ''}</p>
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: carpeta.color + '22' }} aria-hidden="true">
+        <svg className="w-6 h-6" fill="none" stroke={carpeta.color} strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+        </svg>
       </div>
 
-      {/* Acciones */}
-      <div className="absolute top-3 right-3 flex gap-1 transition-all duration-150">
+      <p className="text-sm font-bold text-ink truncate pr-16 mb-1">
+        <button type="button" onClick={onClick} className="stretched-link text-left">
+          {carpeta.name}
+        </button>
+      </p>
+      <p className="text-xs text-ink-muted">{docCount} documento{docCount !== 1 ? 's' : ''}</p>
+
+      <div className="absolute z-10 top-3 right-3 flex gap-1">
         <button
-          onClick={e => { e.stopPropagation(); onRename(carpeta) }}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:text-emerald-400 hover:border-emerald-400/30 hover:bg-emerald-500/10 transition-all shadow-sm"
+          type="button"
+          onClick={() => onRename(carpeta)}
+          className={`${action} hover:text-ink hover:bg-line`}
           title="Renombrar"
+          aria-label={`Renombrar carpeta ${carpeta.name}`}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
         <button
-          onClick={handleDelete}
-          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-slate-400 hover:text-red-400 hover:border-red-400/30 hover:bg-red-500/10 transition-all shadow-sm"
+          type="button"
+          onClick={() => setConfirming(true)}
+          disabled={deleting}
+          className={`${action} hover:text-danger hover:bg-danger/10`}
           title="Eliminar carpeta"
+          aria-label={`Eliminar carpeta ${carpeta.name}`}
         >
           {deleting
-            ? <span className="w-3 h-3 border border-white/30 border-t-transparent rounded-full animate-spin" />
-            : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ? <Spinner label="Eliminando carpeta" />
+            : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
           }
         </button>
       </div>
+
+      {/* Nuestro diálogo en vez de confirm() del navegador: mismo estilo que
+          el resto de la app y Cancelar enfocado por defecto */}
+      {confirming && (
+        <ConfirmDialog
+          title="Eliminar carpeta"
+          message={`¿Eliminar la carpeta "${carpeta.name}"? Los documentos se moverán a la raíz.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
     </div>
   )
+}
+
+// Un <label> no se alcanza con Tab ni responde a Enter: lo convertimos en
+// "botón" (tabIndex + role) y Enter/Espacio abren el selector de archivos
+const openFilePickerOnKey = (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return
+  e.preventDefault()
+  document.getElementById('biblioteca-file-input')?.click()
 }
 
 // ─── Acciones rápidas del rail (menú plegado) ─────────────────────
@@ -301,21 +287,24 @@ function BibliotecaRailActions({ handleCreateDoc, creating, importing }) {
         disabled={busy}
         title="Nuevo documento"
         aria-label="Nuevo documento"
-        className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+        className="w-10 h-10 flex items-center justify-center rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-ink transition-colors"
       >
         {creating
-          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ? <Spinner tone="dark" label="Creando documento" />
           : <Icon d={ICONS.plus} />}
       </button>
       <label
         htmlFor="biblioteca-file-input"
+        role="button"
+        tabIndex={busy ? -1 : 0}
+        onKeyDown={openFilePickerOnKey}
         title="Importar documento"
         aria-label="Importar documento"
-        className={`w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all
+        className={`w-10 h-10 flex items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-card-hover transition-all
                     ${busy ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
       >
         {importing
-          ? <div className="w-4 h-4 border-2 border-white/30 border-t-emerald-400 rounded-full animate-spin" />
+          ? <Spinner label="Importando" />
           : <Icon d={ICONS.upload} />}
       </label>
     </>
@@ -326,7 +315,6 @@ function BibliotecaRailActions({ handleCreateDoc, creating, importing }) {
 function BibliotecaSidebarSection({
   handleCreateDoc, creating, importing,
   searchQuery, setSearchQuery,
-  totalDocs,
   carpetas, documentos,
   currentFolderId, onSelectFolder,
   onCreateFolder,
@@ -334,70 +322,65 @@ function BibliotecaSidebarSection({
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="px-6 pb-4">
-        <h2 className="text-white font-semibold text-sm mb-3">Tu biblioteca</h2>
+        <h2 className="text-ink font-semibold text-sm mb-3">Tu biblioteca</h2>
 
         {/* Botones acción */}
         <div className="space-y-2">
-          <button
+          <Button
             onClick={handleCreateDoc}
             disabled={creating || importing}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
-                       bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500
-                       disabled:opacity-50 text-white transition-all duration-200 shadow-lg shadow-emerald-500/20"
+            icon={creating ? <Spinner tone="dark" label="Creando documento" /> : <Icon d={ICONS.plus} />}
+            className="w-full"
           >
-            {creating
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            }
             Nuevo documento
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={onCreateFolder}
             disabled={creating || importing}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
-                       bg-white/8 hover:bg-white/14 border border-white/15 hover:border-white/30
-                       disabled:opacity-50 text-slate-300 hover:text-white transition-all duration-200"
+            icon={<Icon d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />}
+            className="w-full"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            </svg>
             Nueva carpeta
-          </button>
-          <label
+          </Button>
+          {/* Un <label> que apunta al input de archivo: pulsarlo abre el selector */}
+          <Button
+            as="label"
             htmlFor="biblioteca-file-input"
-            className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold
-                       bg-white/5 hover:bg-white/10 border border-white/8 hover:border-white/15
-                       text-slate-400 hover:text-slate-300 transition-all duration-200
-                       ${creating || importing ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+            role="button"
+            tabIndex={creating || importing ? -1 : 0}
+            onKeyDown={openFilePickerOnKey}
+            variant="ghost"
+            size="sm"
+            icon={importing ? <Spinner label="Importando" /> : <Icon d={ICONS.upload} className="w-3.5 h-3.5" />}
+            className={`w-full ${creating || importing ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
           >
-            {importing
-              ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-emerald-400 rounded-full animate-spin" />
-              : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            }
-            {importing ? 'Importando...' : 'Importar archivo'}
-          </label>
-          <p className="text-center text-[10px] text-slate-400">Word · PDF · TXT</p>
+            {importing ? 'Importando…' : 'Importar archivo'}
+          </Button>
+          <p className="text-center text-[10px] text-ink-subtle">Word · PDF · TXT</p>
         </div>
       </div>
 
       {/* Buscador */}
       <div className="px-5 pb-3">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
-            type="text"
-            placeholder="Buscar documentos..."
+            type="search"
+            aria-label="Buscar documentos"
+            placeholder="Buscar documentos…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-9 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+            className="field pl-9 pr-9 py-2 [&::-webkit-search-cancel-button]:hidden"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-line transition-colors"
               title="Limpiar búsqueda"
+              aria-label="Limpiar búsqueda"
             >
               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -409,22 +392,23 @@ function BibliotecaSidebarSection({
 
       {/* Árbol de carpetas */}
       <div className="px-4 pb-2 flex-1 min-h-0 overflow-y-auto">
-        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2 px-1">Ubicaciones</p>
+        <p className="text-[10px] text-ink-subtle font-semibold uppercase tracking-wider mb-2 px-1">Ubicaciones</p>
 
         {/* Todos */}
         <button
           onClick={() => onSelectFolder(null)}
+          aria-current={currentFolderId === null ? 'true' : undefined}
           className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all mb-0.5
             ${currentFolderId === null
-              ? 'bg-white/12 text-white'
-              : 'text-slate-400 hover:bg-white/6 hover:text-slate-200'}`}
+              ? 'bg-card-hover text-ink'
+              : 'text-ink-muted hover:bg-card hover:text-ink'}`}
         >
           <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
           </svg>
           <span className="flex-1 text-left">Todos los documentos</span>
           <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold
-            ${currentFolderId === null ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
+            ${currentFolderId === null ? 'bg-line text-ink' : 'bg-card text-ink-muted'}`}>
             {documentos.length}
           </span>
         </button>
@@ -437,13 +421,14 @@ function BibliotecaSidebarSection({
             <button
               key={carpeta.id}
               onClick={() => onSelectFolder(carpeta.id)}
+              aria-current={isActive ? 'true' : undefined}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all mb-0.5
-                ${isActive ? 'bg-white/12 text-white' : 'text-slate-400 hover:bg-white/6 hover:text-slate-200'}`}
+                ${isActive ? 'bg-card-hover text-ink' : 'text-ink-muted hover:bg-card hover:text-ink'}`}
             >
               <span className="w-3.5 h-3.5 rounded-md shrink-0" style={{ backgroundColor: carpeta.color }} />
               <span className="flex-1 text-left truncate">{carpeta.name}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold
-                ${isActive ? 'bg-white/20 text-white' : 'bg-white/8 text-slate-400'}`}>
+                ${isActive ? 'bg-line text-ink' : 'bg-card text-ink-muted'}`}>
                 {count}
               </span>
             </button>
@@ -451,23 +436,10 @@ function BibliotecaSidebarSection({
         })}
 
         {carpetas.length === 0 && (
-          <p className="text-[10px] text-slate-400 italic px-3 py-2">Sin carpetas aún</p>
+          <p className="text-[10px] text-ink-muted italic px-3 py-2">Sin carpetas aún</p>
         )}
       </div>
 
-      {/* Stats */}
-      <div className="px-4 pb-4">
-        <div className="bg-white/5 rounded-xl p-3 border border-white/8">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-slate-400">Total documentos</span>
-            <span className="text-sm font-bold text-emerald-400">{totalDocs}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">Carpetas</span>
-            <span className="text-sm font-bold text-teal-400">{carpetas.length}</span>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -482,16 +454,16 @@ function DocumentsGrid({
   const currentFolder = carpetas.find(c => c.id === currentFolderId) ?? null
 
   if (loading) return (
-    <div className="p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="p-8 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
       {[1,2,3,4,5,6].map(i => (
-        <div key={i} className="animate-pulse bg-white/5 rounded-2xl border border-white/10 h-40" />
+        <div key={i} className="animate-pulse bg-card rounded-2xl border border-line h-40" />
       ))}
     </div>
   )
 
   if (error) return (
     <div className="flex items-center justify-center h-full">
-      <p className="text-sm text-red-400">{error}</p>
+      <p role="alert" className="text-sm text-danger">{error}</p>
     </div>
   )
 
@@ -502,64 +474,36 @@ function DocumentsGrid({
 
   if (isEmpty && !searchQuery) return (
     <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
-      <div className="w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-3xl flex items-center justify-center border border-emerald-500/20 shadow-inner">
-        <svg className="w-12 h-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center border border-line" aria-hidden="true">
+        <svg className="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
         </svg>
       </div>
       <div className="text-center">
-        <h3 className="text-lg font-bold text-white mb-1">Biblioteca vacía</h3>
-        <p className="text-sm text-slate-400 mb-5">Crea tu primer documento, una carpeta o importa un archivo</p>
+        <h3 className="text-lg font-bold text-ink mb-1">Biblioteca vacía</h3>
+        <p className="text-sm text-ink-muted mb-5">Crea tu primer documento, una carpeta o importa un archivo</p>
         <div className="flex gap-3 justify-center flex-wrap">
-          <button onClick={onCreateDoc}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-500/20">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Nuevo documento
-          </button>
-          <button onClick={onCreateFolder}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-white/10 text-slate-300 hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
-            Nueva carpeta
-          </button>
-          <button onClick={onImport}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-white/10 text-slate-300 hover:bg-white/10 transition-all">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            Importar
-          </button>
+          <Button onClick={onCreateDoc} icon={<Icon d={ICONS.plus} />}>Nuevo documento</Button>
+          <Button variant="secondary" onClick={onCreateFolder} icon={<Icon d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />}>Nueva carpeta</Button>
+          <Button variant="secondary" onClick={onImport} icon={<Icon d={ICONS.upload} />}>Importar</Button>
         </div>
       </div>
     </div>
   )
 
   return (
-    <div className="p-6 overflow-y-auto h-full">
+    <div className="p-4 sm:p-6 overflow-y-auto h-full">
 
-      {/* Breadcrumb cuando hay carpeta activa */}
-      {currentFolder ? (
-        <div className="flex items-center gap-2 mb-5">
-          <button
-            onClick={() => setCurrentFolderId(null)}
-            className="text-xs text-slate-400 hover:text-white transition-colors font-medium"
-          >
-            Biblioteca
-          </button>
-          <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: currentFolder.color }} />
-            <span className="text-xs font-bold text-white">{currentFolder.name}</span>
-          </div>
-          <span className="text-xs text-slate-400 ml-auto">{visibleDocs.length} documento{visibleDocs.length !== 1 ? 's' : ''}</span>
-        </div>
-      ) : searchQuery ? (
-        <p className="text-xs text-slate-400 mb-4">
-          {visibleDocs.length} resultado{visibleDocs.length !== 1 ? 's' : ''} para "<span className="font-medium text-slate-300">{searchQuery}</span>"
+      {/* La carpeta actual se muestra en la cabecera (PageHeader) */}
+      {searchQuery && (
+        <p className="text-xs text-ink-muted mb-4" aria-live="polite">
+          {visibleDocs.length} resultado{visibleDocs.length !== 1 ? 's' : ''} para "<span className="font-medium text-ink">{searchQuery}</span>"
         </p>
-      ) : null}
+      )}
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* auto-fill + mínimo de 14rem: caben tantas columnas como permita el
+          espacio libre (que cambia al plegar la barra lateral) */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
 
         {/* Tarjetas de carpetas (solo en vista raíz, sin búsqueda) */}
         {!currentFolder && !searchQuery && carpetas.map(carpeta => (
@@ -587,8 +531,8 @@ function DocumentsGrid({
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-300">Carpeta vacía</p>
-          <p className="text-xs text-slate-400">Crea un documento o mueve uno existente aquí</p>
+          <p className="text-sm font-semibold text-ink">Carpeta vacía</p>
+          <p className="text-xs text-ink-muted">Crea un documento o mueve uno existente aquí</p>
         </div>
       )}
     </div>
@@ -742,6 +686,9 @@ export default function BibliotecaPage() {
     return documentos.filter(d => !d.folder_id)
   }, [documentos, searchQuery, currentFolderId])
 
+  const currentFolder = carpetas.find(c => c.id === currentFolderId) ?? null
+  // Cabecera: documentos de la carpeta abierta, o todos en la raíz
+  const headerCount = currentFolder ? documentos.filter(d => d.folder_id === currentFolder.id).length : documentos.length
   const activeDocTitle = activeDocId ? (documentos.find(d => d.id === activeDocId)?.title?.trim() || 'Sin título') : null
 
   return (
@@ -754,7 +701,6 @@ export default function BibliotecaPage() {
           importing={importing}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          totalDocs={documentos.length}
           carpetas={carpetas}
           documentos={documentos}
           currentFolderId={currentFolderId}
@@ -812,45 +758,52 @@ export default function BibliotecaPage() {
 
       {/* Error de importación */}
       {importError && (
-        <div className="fixed top-4 right-4 z-50 bg-red-500/15 border border-red-500/20 rounded-xl px-4 py-3 flex items-center gap-2 shadow-lg">
-          <span className="text-sm text-red-300">{importError}</span>
-          <button onClick={() => setImportError(null)} className="text-red-400 hover:text-red-300 ml-1">✕</button>
+        <div role="alert" className="fixed top-4 right-4 left-4 sm:left-auto z-50 bg-card border border-danger/40 rounded-xl pl-4 pr-2 py-2 flex items-center gap-2 shadow-2xl">
+          <span className="flex-1 text-sm text-ink">{importError}</span>
+          <button onClick={() => setImportError(null)} aria-label="Cerrar aviso" className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-muted hover:text-ink hover:bg-danger/15 transition-colors">
+            <Icon d="M6 18L18 6M6 6l12 12" />
+          </button>
         </div>
       )}
 
-      <MobileTopBar
-        action={
-          <button
-            onClick={handleCreateDoc}
-            disabled={creating}
-            aria-label="Nuevo documento"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white"
-          >
-            {creating
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Icon d={ICONS.plus} className="w-5 h-5" />
-            }
+      {/* Con un documento abierto, el editor tiene su propia barra; en móvil
+          dejamos la barra superior con "← Documentos" para volver */}
+      {activeDocId ? (
+        <MobileTopBar>
+          <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-accent">
+            <Icon d="M15 19l-7-7 7-7" />
+            Documentos
           </button>
-        }
-      >
-        {activeDocId
-          ? <button onClick={() => setActiveDoc(null)} className="flex items-center gap-1 text-sm font-medium text-emerald-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              Documentos
-            </button>
-          : <span className="font-bold text-white text-sm">
-              {carpetas.find(c => c.id === currentFolderId)?.name || 'Biblioteca'}
-            </span>
-        }
-      </MobileTopBar>
+        </MobileTopBar>
+      ) : (
+        <PageHeader
+          breadcrumb={currentFolder
+            ? [{ label: 'Biblioteca', onClick: () => setCurrentFolderId(null) }, { label: currentFolder.name }]
+            : []}
+          title={currentFolder?.name ?? 'Biblioteca'}
+          icon={currentFolder
+            ? <span className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: currentFolder.color + '22' }} aria-hidden="true">
+                <svg className="w-5 h-5" fill="none" stroke={currentFolder.color} strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                </svg>
+              </span>
+            : null}
+          meta={!loading && <Pill tone="neutral">{headerCount} documento{headerCount !== 1 ? 's' : ''}</Pill>}
+          actions={
+            <Button onClick={handleCreateDoc} disabled={creating} aria-label="Nuevo documento" icon={creating ? <Spinner tone="dark" label="Creando documento" /> : <Icon d={ICONS.plus} />} className="max-sm:w-10 max-sm:px-0">
+              <span className="hidden sm:inline">Nuevo documento</span>
+            </Button>
+          }
+        />
+      )}
 
       {/* Contenido */}
-      <div className="flex-1 min-h-0 overflow-hidden bg-slate-950">
+      <div className="flex-1 min-h-0 overflow-hidden bg-canvas">
         {activeDocId ? (
           <div className="h-full animate-fadeIn">
             <Suspense fallback={
               <div className="flex items-center justify-center h-full">
-                <div className="w-6 h-6 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+                <Spinner size="md" label="Cargando documento" />
               </div>
             }>
               <DocumentEditor key={activeDocId} docId={activeDocId} onBack={() => setActiveDoc(null)} />

@@ -57,7 +57,7 @@ export default function GestionCards({ records, onEdit, onDelete }) {
             <div className="p-4 border-b border-line">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shrink-0">
-                  <span className="text-ink text-sm font-bold">{initials}</span>
+                  <span className="text-accent-ink text-sm font-bold">{initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <button

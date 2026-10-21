@@ -58,7 +58,14 @@
       { id: 't4', user_id: usuario.id, column_id: 'c3', title: 'Presupuesto', priority: 'low', tags: [], due_date: null, position: 0, created_at: hace(12) },
       { id: 't5', user_id: usuario.id, column_id: 'c2', title: 'Informe semanal', priority: 'medium', tags: [], due_date: dia(0), recurrence: 'weekly', position: 1, created_at: hace(14) },
     ],
-    biblioteca: [], carpetas: [], personnel: [], gestion: [],
+    // Biblioteca: una carpeta y tres documentos (uno dentro, dos en la raíz)
+    carpetas: [{ id: 'f1', owner_id: usuario.id, name: 'Contratos', color: '#38bdf8', created_at: hace(9) }],
+    biblioteca: [
+      { id: 'd1', owner_id: usuario.id, title: 'Acta de constitución', file_name: null, file_path: null, folder_id: null, created_at: hace(5), updated_at: hace(0), content: doc('Texto del acta') },
+      { id: 'd2', owner_id: usuario.id, title: 'Informe trimestral', file_name: 'informe.pdf', file_path: null, folder_id: null, created_at: hace(8), updated_at: hace(2), content: doc('Resultados') },
+      { id: 'd3', owner_id: usuario.id, title: 'Contrato marco', file_name: 'contrato.docx', file_path: null, folder_id: 'f1', created_at: hace(9), updated_at: hace(3), content: doc('Cláusulas') },
+    ],
+    personnel: [], gestion: [],
   }
   const log = []
   const retrasos = { select: 60, insert: 60, update: 60, delete: 60, rpc: 60 }

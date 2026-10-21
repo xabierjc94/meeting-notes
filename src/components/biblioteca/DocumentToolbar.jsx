@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import ShortcutsDialog from '../ui/ShortcutsDialog'
 
 const FONT_FAMILIES = [
   { label: 'Calibri', value: 'Calibri, sans-serif' },
@@ -224,13 +225,13 @@ export default function DocumentToolbar({
   }
 
   return (
-    <div className="bg-slate-900 border-b border-white/10 select-none" onClick={e => e.stopPropagation()}>
+    <div className="bg-card border-b border-line select-none" onClick={e => e.stopPropagation()}>
 
       {/* ── FILA 1: Pestañas + acciones siempre visibles ── */}
-      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-white/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-line overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
 
         {/* Pestañas */}
-        <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5 shrink-0">
+        <div className="flex items-center gap-0.5 bg-canvas rounded-lg p-0.5 shrink-0">
           <TabBtn label="Inicio" active={activeTab === 'inicio'} onClick={() => switchTab('inicio')} />
           <TabBtn label="Insertar" active={activeTab === 'insertar'} onClick={() => switchTab('insertar')} />
         </div>
@@ -273,10 +274,10 @@ export default function DocumentToolbar({
             onMouseDown={e => { e.preventDefault(); onExportPdf?.() }}
             disabled={exporting}
             title="Exportar como PDF"
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-ink hover:bg-card-hover hover:text-ink border border-transparent hover:border-line disabled:opacity-40 transition-all shrink-0"
           >
             {exporting
-              ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
+              ? <span className="w-3 h-3 border border-ink-muted border-t-transparent rounded-full animate-spin" aria-hidden="true" />
               : <PdfIcon />
             }
             <span>PDF</span>
@@ -286,10 +287,10 @@ export default function DocumentToolbar({
             onMouseDown={e => { e.preventDefault(); onExportWord?.() }}
             disabled={exportingWord}
             title="Descargar como Word"
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 disabled:opacity-40 transition-all shrink-0"
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-ink hover:bg-card-hover hover:text-ink border border-transparent hover:border-line disabled:opacity-40 transition-all shrink-0"
           >
             {exportingWord
-              ? <span className="w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin" />
+              ? <span className="w-3 h-3 border border-ink-muted border-t-transparent rounded-full animate-spin" aria-hidden="true" />
               : <WordIcon />
             }
             <span>.doc</span>
@@ -299,10 +300,10 @@ export default function DocumentToolbar({
             onMouseDown={e => { e.preventDefault(); onOpenInWord?.() }}
             disabled={openingWord}
             title="Abrir en Microsoft Word"
-            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-white bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all shrink-0"
+            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-ink bg-[#2b579a] hover:bg-[#1e3f73] border border-[#1e3f73] disabled:opacity-40 transition-all shrink-0"
           >
             {openingWord
-              ? <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
+              ? <span className="w-3 h-3 border border-line-strong border-t-white rounded-full animate-spin" />
               : <WordIcon />
             }
             <span>{openingWord ? 'Abriendo...' : 'Abrir en Word'}</span>
@@ -328,7 +329,7 @@ export default function DocumentToolbar({
               <ParagraphBtn label="T1" title="Título 1 (Ctrl+Alt+1)" active={currentHeading === 'H1'} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="font-bold text-[13px]" />
               <ParagraphBtn label="T2" title="Título 2 (Ctrl+Alt+2)" active={currentHeading === 'H2'} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="font-semibold" />
               <ParagraphBtn label="T3" title="Título 3 (Ctrl+Alt+3)" active={currentHeading === 'H3'} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
-              <ParagraphBtn label="T4" title="Título 4 (Ctrl+Alt+4)" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-slate-400" />
+              <ParagraphBtn label="T4" title="Título 4 (Ctrl+Alt+4)" active={currentHeading === 'H4'} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-ink-muted" />
             </div>
 
             <Sep />
@@ -337,7 +338,7 @@ export default function DocumentToolbar({
             <div ref={fontFamilyRef}>
               <button
                 onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontFamily(v => !v) }}
-                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10 min-w-[100px] justify-between"
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-ink hover:bg-card-hover hover:text-ink border border-transparent hover:border-line min-w-[100px] justify-between"
                 style={{ fontFamily: currentFontFamily }}
                 title="Fuente"
               >
@@ -350,7 +351,7 @@ export default function DocumentToolbar({
                     <button
                       key={f.value}
                       onMouseDown={e => { e.preventDefault(); editor.chain().focus().setFontFamily(f.value).run(); setShowFontFamily(false) }}
-                      className={`w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 hover:text-white rounded ${currentFontFamily === f.value ? 'bg-violet-500/20 text-violet-300 font-semibold' : 'text-slate-300'}`}
+                      className={`w-full text-left px-3 py-1.5 text-sm hover:bg-card-hover hover:text-ink rounded ${currentFontFamily === f.value ? 'bg-accent-soft text-accent font-semibold' : 'text-ink'}`}
                       style={{ fontFamily: f.value }}
                     >
                       {f.label}
@@ -364,7 +365,7 @@ export default function DocumentToolbar({
             <div ref={fontSizeRef} className="flex items-center">
               <button
                 onMouseDown={e => { e.preventDefault(); changeFontSize(-1) }}
-                className="px-1 py-1 border border-r-0 border-white/10 rounded-l bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
+                className="px-1 py-1 border border-r-0 border-line rounded-l bg-card hover:bg-card-hover text-ink text-xs font-bold leading-none"
                 title="Reducir tamaño"
               >A<sub className="text-[7px]">−</sub></button>
               <input
@@ -373,17 +374,17 @@ export default function DocumentToolbar({
                 onChange={handleFontSizeInput}
                 onBlur={handleFontSizeBlur}
                 onKeyDown={e => { if (e.key === 'Enter') { handleFontSizeBlur(); editor.commands.focus() } }}
-                className="w-10 text-center text-xs border-t border-b border-white/10 py-1 bg-white/5 text-white focus:outline-none focus:border-violet-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-10 text-center text-xs border-t border-b border-line-strong py-1 bg-card text-ink focus:outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button
                 onMouseDown={e => { e.preventDefault(); closeAll(); setShowFontSize(v => !v) }}
-                className="px-1 py-1 border border-l-0 border-r-0 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300"
+                className="px-1 py-1 border border-l-0 border-r-0 border-line bg-card hover:bg-card-hover text-ink"
               >
                 <ChevronDown />
               </button>
               <button
                 onMouseDown={e => { e.preventDefault(); changeFontSize(1) }}
-                className="px-1 py-1 border border-l-0 border-white/10 rounded-r bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold leading-none"
+                className="px-1 py-1 border border-l-0 border-line rounded-r bg-card hover:bg-card-hover text-ink text-xs font-bold leading-none"
                 title="Aumentar tamaño"
               >A<sup className="text-[7px]">+</sup></button>
               {showFontSize && (
@@ -392,7 +393,7 @@ export default function DocumentToolbar({
                     <button
                       key={s}
                       onMouseDown={e => { e.preventDefault(); applyFontSize(s) }}
-                      className="w-full text-center px-2 py-1 text-xs hover:bg-white/10 hover:text-white text-slate-300"
+                      className="w-full text-center px-2 py-1 text-xs hover:bg-card-hover hover:text-ink text-ink"
                     >
                       {s}
                     </button>
@@ -445,14 +446,14 @@ export default function DocumentToolbar({
                       <button
                         key={c}
                         onMouseDown={e => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setShowTextColor(false) }}
-                        className="w-5 h-5 rounded-sm border border-white/10 hover:scale-125 transition-transform"
+                        className="w-5 h-5 rounded-sm border border-line hover:scale-125 transition-transform"
                         style={{ backgroundColor: c }}
                         title={c}
                       />
                     ))}
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1 border-t border-white/10 pt-2">
-                    <span className="text-[10px] text-slate-400">Hex:</span>
+                  <div className="flex items-center gap-1.5 mt-1 border-t border-line pt-2">
+                    <span className="text-[10px] text-ink-muted">Hex:</span>
                     <input
                       type="text"
                       value={textColorHex}
@@ -460,19 +461,19 @@ export default function DocumentToolbar({
                       onKeyDown={e => { if (e.key === 'Enter') applyCustomTextColor(textColorHex) }}
                       placeholder="#000000"
                       maxLength={7}
-                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                      className="flex-1 text-[10px] bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded px-1.5 py-1 outline-none focus:border-accent font-mono"
                     />
                     {textColorHex && (
-                      <div className="w-5 h-5 rounded border border-white/10 shrink-0"
+                      <div className="w-5 h-5 rounded border border-line shrink-0"
                         style={{ backgroundColor: (textColorHex.startsWith('#') ? textColorHex : '#' + textColorHex) }} />
                     )}
                     <button
                       onMouseDown={e => { e.preventDefault(); applyCustomTextColor(textColorHex) }}
-                      className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
+                      className="text-[10px] bg-accent text-accent-ink px-1.5 py-1 rounded hover:bg-accent-hover"
                     >OK</button>
                   </div>
                   <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setShowTextColor(false) }}
-                    className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
+                    className="w-full mt-1 text-xs text-ink-muted hover:text-ink py-1 text-left">
                     Sin color
                   </button>
                 </Dropdown>
@@ -494,13 +495,13 @@ export default function DocumentToolbar({
                       <button
                         key={c}
                         onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHighlight({ color: c }).run(); setShowHighlight(false) }}
-                        className="w-6 h-6 rounded border border-white/10 hover:scale-110 transition-transform"
+                        className="w-6 h-6 rounded border border-line hover:scale-110 transition-transform"
                         style={{ backgroundColor: c }}
                       />
                     ))}
                   </div>
-                  <div className="flex items-center gap-1.5 border-t border-white/10 pt-2">
-                    <span className="text-[10px] text-slate-400">Hex:</span>
+                  <div className="flex items-center gap-1.5 border-t border-line pt-2">
+                    <span className="text-[10px] text-ink-muted">Hex:</span>
                     <input
                       type="text"
                       value={highlightHex}
@@ -508,15 +509,15 @@ export default function DocumentToolbar({
                       onKeyDown={e => { if (e.key === 'Enter') applyCustomHighlight(highlightHex) }}
                       placeholder="#FEF08A"
                       maxLength={7}
-                      className="flex-1 text-[10px] bg-white/5 border border-white/10 text-white placeholder-white/50 rounded px-1.5 py-1 outline-none focus:border-violet-500 font-mono"
+                      className="flex-1 text-[10px] bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded px-1.5 py-1 outline-none focus:border-accent font-mono"
                     />
                     <button
                       onMouseDown={e => { e.preventDefault(); applyCustomHighlight(highlightHex) }}
-                      className="text-[10px] bg-violet-600 text-white px-1.5 py-1 rounded hover:bg-violet-500"
+                      className="text-[10px] bg-accent text-accent-ink px-1.5 py-1 rounded hover:bg-accent-hover"
                     >OK</button>
                   </div>
                   <button onMouseDown={e => { e.preventDefault(); editor.chain().focus().unsetHighlight().run(); setShowHighlight(false) }}
-                    className="w-full mt-1 text-xs text-slate-400 hover:text-white py-1 text-left">
+                    className="w-full mt-1 text-xs text-ink-muted hover:text-ink py-1 text-left">
                     Sin resaltado
                   </button>
                 </Dropdown>
@@ -542,7 +543,7 @@ export default function DocumentToolbar({
                     <button
                       key={lh.value}
                       onMouseDown={e => { e.preventDefault(); editor.chain().focus().setLineHeight(lh.value).run(); setShowLineHeight(false) }}
-                      className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
+                      className="w-full text-left px-3 py-1.5 text-xs text-ink hover:bg-card-hover hover:text-ink"
                     >
                       {lh.label}
                     </button>
@@ -594,10 +595,10 @@ export default function DocumentToolbar({
                     onChange={e => setLinkUrl(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') setLink(); if (e.key === 'Escape') closeAll() }}
                     placeholder="https://..."
-                    className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded outline-none focus:border-violet-500"
+                    className="flex-1 text-xs px-2 py-1.5 bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded outline-none focus:border-accent"
                   />
-                  <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500">OK</button>
-                  <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-white/5 text-slate-400 rounded hover:bg-white/10 hover:text-white">✕</button>
+                  <button onMouseDown={e => { e.preventDefault(); setLink() }} className="text-xs px-2.5 py-1.5 bg-accent text-accent-ink rounded hover:bg-accent-hover">OK</button>
+                  <button onMouseDown={e => { e.preventDefault(); closeAll() }} className="text-xs px-2 py-1.5 bg-card text-ink-muted rounded hover:bg-card-hover hover:text-ink">✕</button>
                 </Dropdown>
               )}
             </div>
@@ -612,7 +613,7 @@ export default function DocumentToolbar({
               </Btn>
               {showImageUrl && (
                 <Dropdown onClose={() => setShowImageUrl(false)} triggerRef={imageTriggerRef} className="w-80 p-2">
-                  <div className="text-xs text-slate-400 mb-1.5 font-medium">URL de la imagen</div>
+                  <div className="text-xs text-ink-muted mb-1.5 font-medium">URL de la imagen</div>
                   <div className="flex gap-1.5">
                     <input
                       ref={imageInputRef}
@@ -629,7 +630,7 @@ export default function DocumentToolbar({
                         if (e.key === 'Escape') closeAll()
                       }}
                       placeholder="https://ejemplo.com/imagen.png"
-                      className="flex-1 text-xs px-2 py-1.5 bg-white/5 border border-white/10 text-white placeholder-white/50 rounded outline-none focus:border-violet-500"
+                      className="flex-1 text-xs px-2 py-1.5 bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded outline-none focus:border-accent"
                     />
                     <button
                       onMouseDown={e => {
@@ -640,11 +641,11 @@ export default function DocumentToolbar({
                           closeAll()
                         }
                       }}
-                      className="text-xs px-2.5 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-500"
+                      className="text-xs px-2.5 py-1.5 bg-accent text-accent-ink rounded hover:bg-accent-hover"
                     >OK</button>
                   </div>
-                  <div className="mt-2 border-t border-white/10 pt-2">
-                    <label className="text-xs text-slate-400 font-medium block mb-1">O desde archivo:</label>
+                  <div className="mt-2 border-t border-line pt-2">
+                    <label className="text-xs text-ink-muted font-medium block mb-1">O desde archivo:</label>
                     <input
                       type="file"
                       accept="image/*"
@@ -658,7 +659,7 @@ export default function DocumentToolbar({
                         }
                         reader.readAsDataURL(file)
                       }}
-                      className="text-xs text-slate-400 file:mr-2 file:text-xs file:bg-violet-500/20 file:text-violet-300 file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-violet-500/30"
+                      className="text-xs text-ink-muted file:mr-2 file:text-xs file:bg-accent-soft file:text-accent file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-accent-soft"
                     />
                   </div>
                 </Dropdown>
@@ -683,20 +684,20 @@ export default function DocumentToolbar({
                       <button
                         key={i}
                         onMouseDown={e => { e.preventDefault(); setEmojiCategory(i) }}
-                        className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-violet-500/20 ring-1 ring-violet-400/30' : 'hover:bg-white/10'}`}
+                        className={`shrink-0 text-sm px-1.5 py-0.5 rounded transition-all ${emojiCategory === i ? 'bg-accent-soft ring-1 ring-accent' : 'hover:bg-card-hover'}`}
                         title={cat.label}
                       >
                         {cat.emojis[0]}
                       </button>
                     ))}
                   </div>
-                  <div className="text-[10px] text-slate-400 mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
+                  <div className="text-[10px] text-ink-muted mb-1.5 font-medium">{EMOJI_CATEGORIES[emojiCategory].label}</div>
                   <div className="grid grid-cols-10 gap-0.5 max-h-32 overflow-y-auto">
                     {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji, i) => (
                       <button
                         key={i}
                         onMouseDown={e => { e.preventDefault(); insertEmoji(emoji) }}
-                        className="w-6 h-6 flex items-center justify-center text-base hover:bg-white/10 rounded transition-all hover:scale-125"
+                        className="w-6 h-6 flex items-center justify-center text-base hover:bg-card-hover rounded transition-all hover:scale-125"
                         title={emoji}
                       >
                         {emoji}
@@ -711,7 +712,7 @@ export default function DocumentToolbar({
             {editor.isActive('table') && (
               <>
                 <Sep />
-                <span className="text-[10px] text-slate-400 font-medium px-1">Tabla:</span>
+                <span className="text-[10px] text-ink-muted font-medium px-1">Tabla:</span>
                 <SmallBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title="Añadir columna">+Col</SmallBtn>
                 <SmallBtn onClick={() => editor.chain().focus().deleteColumn().run()} title="Eliminar columna" danger>-Col</SmallBtn>
                 <SmallBtn onClick={() => editor.chain().focus().addRowAfter().run()} title="Añadir fila">+Fila</SmallBtn>
@@ -725,65 +726,9 @@ export default function DocumentToolbar({
         )}
       </div>
 
-      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+      {/* Diálogo común de atajos (el mismo que en Notas), a dos columnas */}
+      {showShortcuts && <ShortcutsDialog groups={SHORTCUT_GROUPS} size="lg" onClose={() => setShowShortcuts(false)} />}
     </div>
-  )
-}
-
-/* ─── Modal de atajos de teclado ─── */
-function ShortcutsModal({ onClose }) {
-  // Keep latest onClose without re-registering the listener
-  const onCloseRef = useRef(onClose)
-  useEffect(() => { onCloseRef.current = onClose })
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation()
-        onCloseRef.current?.()
-      }
-    }
-    document.addEventListener('keydown', handler, true)
-    return () => document.removeEventListener('keydown', handler, true)
-  }, [])
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      onMouseDown={onClose}
-    >
-      <div
-        className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5"
-        onMouseDown={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white">Atajos de teclado</h2>
-          <button
-            onMouseDown={e => { e.preventDefault(); onClose() }}
-            className="w-7 h-7 flex items-center justify-center rounded text-slate-400 hover:bg-white/10 hover:text-white transition-all"
-            title="Cerrar (Esc)"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-          {SHORTCUT_GROUPS.map(group => (
-            <div key={group.label}>
-              <h3 className="text-[11px] font-semibold text-violet-300 uppercase tracking-wider mb-2">{group.label}</h3>
-              <ul className="space-y-1">
-                {group.items.map(([label, keys]) => (
-                  <li key={label} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="text-slate-300">{label}</span>
-                    <kbd className="shrink-0 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-slate-400">{keys}</kbd>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>,
-    document.body
   )
 }
 
@@ -820,7 +765,7 @@ function Dropdown({ children, onClose, className = '', style = {}, triggerRef, a
     <div
       ref={ref}
       style={{ position: 'fixed', top: rect.bottom + 2, left, zIndex: 9999, ...style }}
-      className={`bg-slate-900 border border-white/10 rounded-lg shadow-xl ${className}`}
+      className={`bg-card border border-line rounded-lg shadow-xl ${className}`}
     >
       {children}
     </div>,
@@ -835,7 +780,7 @@ function TabBtn({ label, active, onClick }) {
     <button
       onMouseDown={e => { e.preventDefault(); onClick() }}
       className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-100
-        ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+        ${active ? 'bg-card-hover text-ink' : 'text-ink-muted hover:text-ink'}`}
     >
       {label}
     </button>
@@ -849,7 +794,7 @@ function Btn({ onClick, active, disabled, title, children }) {
       disabled={disabled}
       title={title}
       className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-all duration-100 shrink-0
-        ${active ? 'bg-violet-500/20 text-violet-300' : 'text-slate-300 hover:bg-white/10 hover:text-white'}
+        ${active ? 'bg-accent-soft text-accent' : 'text-ink hover:bg-card-hover hover:text-ink'}
         ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       {children}
@@ -863,7 +808,7 @@ function ParagraphBtn({ label, active, onClick, title, className = '' }) {
       onMouseDown={e => { e.preventDefault(); onClick() }}
       title={title}
       className={`px-2 py-1 rounded text-xs transition-all duration-100 ${className}
-        ${active ? 'bg-violet-500/20 text-violet-300' : 'text-slate-300 hover:bg-white/10'}`}
+        ${active ? 'bg-accent-soft text-accent' : 'text-ink hover:bg-card-hover'}`}
     >
       {label}
     </button>
@@ -876,14 +821,14 @@ function SmallBtn({ children, onClick, title, danger }) {
       onMouseDown={e => { e.preventDefault(); onClick() }}
       title={title}
       className={`px-1.5 py-1 rounded text-[10px] font-semibold transition-all
-        ${danger ? 'text-red-400 hover:bg-red-500/10' : 'text-slate-300 hover:bg-white/10'}`}
+        ${danger ? 'text-danger hover:bg-danger/10' : 'text-ink hover:bg-card-hover'}`}
     >
       {children}
     </button>
   )
 }
 
-function Sep() { return <div className="w-px h-5 bg-white/10 mx-1 shrink-0" /> }
+function Sep() { return <div className="w-px h-5 bg-line mx-1 shrink-0" aria-hidden="true" /> }
 function ChevronDown() { return <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg> }
 
 const ic = 'w-3.5 h-3.5'

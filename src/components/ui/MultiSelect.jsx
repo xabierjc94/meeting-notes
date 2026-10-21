@@ -38,19 +38,19 @@ export default function MultiSelect({
   return (
     <div ref={ref} className="relative">
       <div
-        className="min-h-[42px] w-full border border-white/10 rounded-xl px-3 py-2 flex flex-wrap gap-1.5 items-center cursor-pointer hover:border-violet-500/50 transition-all bg-white/5"
+        className="min-h-[42px] w-full border border-line-strong rounded-xl px-3 py-2 flex flex-wrap gap-1.5 items-center cursor-pointer hover:border-accent transition-all bg-card"
         onClick={() => setOpen(!open)}
       >
         {value.length === 0 && (
-          <span className="text-slate-400 text-sm select-none">{placeholder}</span>
+          <span className="text-ink-muted text-sm select-none">{placeholder}</span>
         )}
         {value.map(v => (
-          <span key={v} className="inline-flex items-center gap-1 bg-violet-500/15 text-violet-300 text-xs font-medium px-2.5 py-1 rounded-lg">
+          <span key={v} className="inline-flex items-center gap-1 bg-accent-soft text-accent text-xs font-medium px-2.5 py-1 rounded-lg">
             {v}
             <button
               type="button"
               onClick={(e) => removeChip(v, e)}
-              className="hover:text-violet-100 transition-colors"
+              className="hover:text-accent-hover transition-colors"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -59,7 +59,7 @@ export default function MultiSelect({
           </span>
         ))}
         <svg
-          className={`w-4 h-4 text-slate-400 ml-auto shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-ink-muted ml-auto shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -67,22 +67,22 @@ export default function MultiSelect({
       </div>
 
       {open && (
-        <div className="absolute z-50 top-full mt-1.5 w-full bg-slate-900 border border-white/10 rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-50 top-full mt-1.5 w-full bg-card border border-line rounded-xl shadow-xl overflow-hidden">
           {searchable && (
-            <div className="p-2 border-b border-white/10">
+            <div className="p-2 border-b border-line">
               <input
                 autoFocus
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar..."
-                className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                className="w-full px-3 py-2 text-sm bg-card border border-line-strong text-ink placeholder:text-ink-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
                 onClick={e => e.stopPropagation()}
               />
             </div>
           )}
           <div className="max-h-52 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-4">Sin resultados</p>
+              <p className="text-ink-muted text-sm text-center py-4">Sin resultados</p>
             ) : (
               filtered.map(option => (
                 <button
@@ -91,15 +91,15 @@ export default function MultiSelect({
                   onClick={(e) => { e.stopPropagation(); toggle(option) }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors ${
                     value.includes(option)
-                      ? 'bg-violet-500/15 text-violet-300'
-                      : 'text-slate-300 hover:bg-white/10'
+                      ? 'bg-accent-soft text-accent'
+                      : 'text-ink hover:bg-card-hover'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded flex items-center justify-center border-2 shrink-0 transition-colors ${
-                    value.includes(option) ? 'bg-violet-600 border-violet-600' : 'border-white/25'
+                    value.includes(option) ? 'bg-accent border-accent' : 'border-line-strong'
                   }`}>
                     {value.includes(option) && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5 text-accent-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
@@ -110,11 +110,11 @@ export default function MultiSelect({
             )}
           </div>
           {value.length > 0 && (
-            <div className="p-2 border-t border-white/10">
+            <div className="p-2 border-t border-line">
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onChange([]) }}
-                className="w-full text-xs text-slate-400 hover:text-red-400 py-1.5 transition-colors"
+                className="w-full text-xs text-ink-muted hover:text-danger py-1.5 transition-colors"
               >
                 Limpiar selección ({value.length})
               </button>
