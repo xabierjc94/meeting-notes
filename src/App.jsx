@@ -21,6 +21,7 @@ import { BibliotecaProvider } from './context/BibliotecaContext'
 import { ProjectsProvider } from './context/ProjectsContext'
 import { AdminProvider } from './context/AdminContext'
 import AppLayout from './components/layout/AppLayout'
+import Logo from './components/ui/Logo'
 
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
@@ -32,17 +33,14 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const UsersPanel = lazy(() => import('./pages/admin/UsersPanel'))
 const ActivityLog = lazy(() => import('./pages/admin/ActivityLog'))
 
+// Pantalla mientras arranca la app o se descarga una página. Es lo primero
+// que ve cualquiera al abrir la web: fondo negro plano y logo lima.
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900">
-      <div className="text-center">
-        <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-violet-500/25 animate-pulse">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </div>
-        <p className="text-violet-200/50 text-sm font-medium">Cargando...</p>
+    <div className="min-h-screen flex items-center justify-center bg-canvas">
+      <div role="status" className="text-center">
+        <Logo size="lg" className="mx-auto mb-3 animate-pulse" />
+        <p className="text-ink-muted text-sm font-medium">Cargando…</p>
       </div>
     </div>
   )

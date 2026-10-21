@@ -7,7 +7,12 @@ const TONES = {
   dark: 'border-accent-ink/25 border-t-accent-ink', // sobre un botón lima
 }
 
+// label={null}: decorativo (aria-hidden), para cuando el texto de al lado ya
+// dice lo que pasa ("Entrando…") y no queremos que se anuncie dos veces
 export default function Spinner({ size = 'sm', tone = 'accent', label = 'Cargando', className = '' }) {
+  if (label === null) {
+    return <span aria-hidden="true" className={`inline-block rounded-full animate-spin ${SIZES[size]} ${TONES[tone]} ${className}`} />
+  }
   return (
     <span role="status" className={`inline-block rounded-full animate-spin ${SIZES[size]} ${TONES[tone]} ${className}`}>
       <span className="sr-only">{label}</span>

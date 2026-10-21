@@ -2,8 +2,13 @@ import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { supabase } from '../lib/supabaseClient'
+import AuthLayout, { AuthError } from '../components/layout/AuthLayout'
+import Button from '../components/ui/Button'
+import Spinner from '../components/ui/Spinner'
 
-function PasswordRequirements({ password }) {
+// Lista viva de requisitos: cumplido en lima con ✓, pendiente en gris (antes
+// los dos en el mismo color). El campo la enlaza con aria-describedby.
+function PasswordRequirements({ id, password }) {
   const checks = [
     { label: '8 caracteres o más', met: password.length >= 8 },
     { label: '1 mayúscula', met: /[A-Z]/.test(password) },
@@ -12,22 +17,24 @@ function PasswordRequirements({ password }) {
   ]
 
   return (
-    <div className="mt-3 space-y-1.5">
-      {checks.map((c, i) => (
-        <div key={i} className="flex items-center gap-2 text-xs transition-colors duration-200">
+    <ul id={id} className="mt-3 space-y-1.5">
+      {checks.map((c) => (
+        <li key={c.label} className="flex items-center gap-2 text-xs">
           <div className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all duration-200 ${
-            c.met ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-white/5 border-white/15'
-          }`}>
+            c.met ? 'bg-accent-soft border-accent/50' : 'bg-card border-line-strong'
+          }`} aria-hidden="true">
             {c.met && (
-              <svg className="w-2.5 h-2.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-2.5 h-2.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             )}
           </div>
-          <span className={c.met ? 'text-emerald-400/80' : 'text-violet-200/30'}>{c.label}</span>
-        </div>
+          <span className={c.met ? 'text-accent' : 'text-ink-muted'}>
+            {c.label}<span className="sr-only">{c.met ? ': cumplido' : ': pendiente'}</span>
+          </span>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -89,131 +96,82 @@ export default function RegisterPage() {
       <meta name="description" content="Crea tu cuenta gratuita en MeetingNotes y empieza a organizar tus reuniones con notas estructuradas y tablero Kanban." />
       <link rel="canonical" href="https://meetingnotes.es/register" />
     </Helmet>
-    <div className="min-h-screen flex bg-slate-950 relative overflow-hidden">
-      <div className="absolute -top-32 -right-24 w-[28rem] h-[28rem] bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 -left-20 w-[32rem] h-[32rem] bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="flex-1 hidden lg:flex items-center justify-center p-12 relative z-10">
-        <div className="max-w-lg animate-fadeIn">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/25">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-white">MeetingNotes</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
-            Empieza a organizar tus reuniones hoy
-          </h2>
-          <p className="text-lg text-violet-200/70 leading-relaxed">
-            Crea una cuenta gratuita y accede a todas las herramientas que necesitas para tomar mejores notas.
-          </p>
-          <div className="mt-12 space-y-4">
-            {['Notas ilimitadas', 'Sincronización en tiempo real', 'Editor de texto enriquecido'].map((item, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-violet-500/20 rounded-full flex items-center justify-center">
-                  <svg className="w-3.5 h-3.5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <AuthLayout
+      hero={{
+        title: 'Empieza a organizar tus reuniones hoy',
+        text: 'Crea una cuenta gratuita y accede a todas las herramientas que necesitas para tomar mejores notas.',
+        children: (
+          <ul className="space-y-4">
+            {['Notas ilimitadas', 'Sincronización en tiempo real', 'Editor de texto enriquecido'].map((item) => (
+              <li key={item} className="flex items-center gap-3">
+                <span className="w-6 h-6 bg-accent-soft rounded-full flex items-center justify-center" aria-hidden="true">
+                  <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                </div>
-                <span className="text-violet-200/60">{item}</span>
-              </div>
+                </span>
+                <span className="text-ink">{item}</span>
+              </li>
             ))}
-          </div>
+          </ul>
+        ),
+      }}
+      title="Crear cuenta"
+      subtitle="Regístrate para empezar"
+      footer={<>¿Ya tienes cuenta?{' '}<Link to="/login" className="text-accent hover:text-accent-hover font-medium underline-offset-2 hover:underline">Inicia sesión</Link></>}
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="register-name" className="block text-sm font-medium text-ink-muted mb-2">Nombre completo</label>
+          <input
+            id="register-name"
+            type="text"
+            autoComplete="name"
+            required
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            placeholder="Tu nombre"
+            className="field py-3"
+          />
         </div>
-      </div>
 
-      <div className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="w-full max-w-md animate-scaleIn">
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-            <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-white">MeetingNotes</span>
-            </div>
-
-            <h1 className="text-2xl font-semibold text-white mb-1">Crear cuenta</h1>
-            <p className="text-sm text-violet-200/50 mb-8">Regístrate para empezar</p>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-violet-200/70 mb-2">Nombre completo</label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Tu nombre"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
-                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
-                             transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-violet-200/70 mb-2">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
-                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
-                             transition-all duration-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-violet-200/70 mb-2">Contraseña</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Escribe una contraseña segura"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white
-                             placeholder-violet-200/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50
-                             transition-all duration-200"
-                />
-                <PasswordRequirements password={password} />
-              </div>
-
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-                  <p className="text-sm text-red-300">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !passwordValid}
-                className="w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl py-3 text-sm font-semibold
-                           hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed
-                           transition-all duration-200 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creando cuenta...
-                  </span>
-                ) : 'Registrarse'}
-              </button>
-            </form>
-
-            <p className="mt-6 text-sm text-violet-200/40 text-center">
-              ¿Ya tienes cuenta?{' '}
-              <Link to="/login" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">Inicia sesión</Link>
-            </p>
-          </div>
+        <div>
+          <label htmlFor="register-email" className="block text-sm font-medium text-ink-muted mb-2">Email</label>
+          <input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="tu@email.com"
+            className="field py-3"
+          />
         </div>
-      </div>
-    </div>
+
+        <div>
+          <label htmlFor="register-password" className="block text-sm font-medium text-ink-muted mb-2">Contraseña</label>
+          {/* new-password: el navegador ofrece generar una contraseña segura */}
+          <input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            aria-describedby="register-password-reqs"
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Escribe una contraseña segura"
+            className="field py-3"
+          />
+          <PasswordRequirements id="register-password-reqs" password={password} />
+        </div>
+
+        {error && <AuthError>{error}</AuthError>}
+
+        <Button type="submit" disabled={loading || !passwordValid} className="w-full h-12" icon={loading ? <Spinner tone="dark" label={null} /> : null}>
+          {loading ? 'Creando cuenta…' : 'Registrarse'}
+        </Button>
+      </form>
+    </AuthLayout>
     </>
   )
 }

@@ -81,6 +81,17 @@
       select() { return api }, single() { q.single = true; return api }, maybeSingle() { q.single = true; return api },
       eq(k, val) { q.filtros.push((r) => r[k] === val); return api },
       in(k, vals) { q.filtros.push((r) => vals.includes(r[k])); return api },
+      // Comparaciones que usa el panel de administración (adminApi.getStats)
+      gt(k, val) { q.filtros.push((r) => r[k] > val); return api },
+      lt(k, val) { q.filtros.push((r) => r[k] < val); return api },
+      neq(k, val) { q.filtros.push((r) => r[k] !== val); return api },
+      lte(k, val) { q.filtros.push((r) => r[k] != null && r[k] <= val); return api },
+      gte(k, val) { q.filtros.push((r) => r[k] != null && r[k] >= val); return api },
+      // Solo el caso que usa la app: .not(columna, 'is', null) → "no es nulo"
+      not(k, op, val) {
+        if (op !== 'is' || val !== null) throw new Error(`arnés: .not('${k}', '${op}', …) no está simulado`)
+        q.filtros.push((r) => r[k] != null); return api
+      },
       order(k, o = {}) { q.orden = { k, asc: o.ascending !== false }; return api },
       limit() { return api }, range() { return api },
       insert(p) { q.op = 'insert'; q.payload = p; return api },
@@ -110,7 +121,8 @@
       if (q.orden) res.sort((a, b) => ((a[q.orden.k] ?? '') > (b[q.orden.k] ?? '') ? 1 : -1) * (q.orden.asc ? 1 : -1))
       log.push(`SELECT ${tabla} (${res.length})`)
       if (q.single) return res[0] ? { data: res[0], error: null } : { data: null, error: { code: 'PGRST116', message: 'no rows' } }
-      return { data: res, error: null }
+      // count: lo leen las consultas con { count: 'exact', head: true }
+      return { data: res, error: null, count: res.length }
     }
     return api
   }
