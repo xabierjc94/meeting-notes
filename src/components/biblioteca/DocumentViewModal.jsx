@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useModalLayer } from '../../hooks/useModalLayer'
-
-const EXT_COLORS = {
-  docx: { label: 'Word',  iconColor: '#2563EB' },
-  doc:  { label: 'Word',  iconColor: '#2563EB' },
-  pdf:  { label: 'PDF',   iconColor: '#DC2626' },
-  xlsx: { label: 'Excel', iconColor: '#16A34A' },
-  xls:  { label: 'Excel', iconColor: '#16A34A' },
-  txt:  { label: 'TXT',   iconColor: '#6B7280' },
-  md:   { label: 'MD',    iconColor: '#7C3AED' },
-}
+import { getFileBadge, DEFAULT_FILE_BADGE } from '../../lib/fileBadges'
 
 function getExt(fileName) {
   return fileName?.split('.').pop()?.toLowerCase() || null
@@ -22,16 +13,6 @@ function formatDate(iso) {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
-}
-
-// Extrae texto plano de nodos Tiptap JSON
-function extractPlainText(node) {
-  if (!node) return ''
-  if (node.type === 'text') return node.text || ''
-  const children = (node.content || []).map(extractPlainText).join('')
-  if (['paragraph', 'heading'].includes(node.type)) return children + '\n'
-  if (node.type === 'hardBreak') return '\n'
-  return children
 }
 
 // Convierte Tiptap JSON a HTML sencillo para preview
@@ -103,7 +84,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
   const panelRef = useModalLayer(onClose)
 
   const ext   = getExt(docMeta?.file_name)
-  const badge = EXT_COLORS[ext] ?? { label: 'DOC', iconColor: '#10b981' }
+  const badge = getFileBadge(docMeta?.file_name) ?? DEFAULT_FILE_BADGE
 
   useEffect(() => {
     let cancelled = false
@@ -204,10 +185,7 @@ export default function DocumentViewModal({ docId, docMeta, onClose, onOpen }) {
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-line shrink-0">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-ink text-xs font-bold shrink-0"
-            style={{ backgroundColor: badge.iconColor }}
-          >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${badge.bg} ${badge.text}`}>
             {badge.label}
           </div>
           <div className="min-w-0 flex-1">

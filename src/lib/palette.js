@@ -12,3 +12,11 @@ export const PALETTE = [
   { value: '#facc15', name: 'Amarillo' },
   { value: '#a3a3a3', name: 'Gris' },
 ]
+
+// Color de la paleta por su nombre ("Azul cielo" → '#38bdf8'). Así los colores
+// por defecto salen de aquí y no se copian a mano en cada archivo.
+export function paletteColor(name) {
+  const color = PALETTE.find(c => c.name === name)
+  if (!color) throw new Error(`Color "${name}" no está en la paleta`)
+  return color.value
+}

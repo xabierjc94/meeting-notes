@@ -566,7 +566,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
           <BubbleMenu
             editor={editor}
             tippyOptions={{ duration: 120, placement: 'top', maxWidth: 'none' }}
-            shouldShow={({ editor, view, state, from, to }) => {
+            shouldShow={({ editor, from, to }) => {
               return from !== to && !editor.isActive('image') && !editor.isActive('table')
             }}
           >

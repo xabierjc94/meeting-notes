@@ -1,36 +1,10 @@
 import { useState } from 'react'
 import { useGestion } from '../../context/GestionContext'
+import ColorPicker from '../ui/ColorPicker'
+import { paletteColor } from '../../lib/palette'
 
-const PRESET_COLORS = [
-  // Grises
-  '#64748b', '#94a3b8', '#cbd5e1',
-  // Azules
-  '#1d4ed8', '#3b82f6', '#60a5fa', '#06b6d4', '#0891b2',
-  // Morados
-  '#7c3aed', '#8b5cf6', '#a78bfa', '#ec4899', '#db2777',
-  // Verdes
-  '#15803d', '#16a34a', '#22c55e', '#84cc16', '#65a30d',
-  // Amarillos / Naranjas
-  '#d97706', '#f59e0b', '#fbbf24', '#f97316', '#ea580c',
-  // Rojos
-  '#b91c1c', '#ef4444', '#f87171',
-]
-
-function ColorPicker({ value, onChange }) {
-  return (
-    <div className="flex gap-1 flex-wrap">
-      {PRESET_COLORS.map(c => (
-        <button
-          key={c}
-          type="button"
-          onClick={() => onChange(c)}
-          className={`w-5 h-5 rounded-full transition-transform shrink-0 ${value === c ? 'scale-125 ring-2 ring-offset-1 ring-slate-400' : 'hover:scale-110'}`}
-          style={{ backgroundColor: c }}
-        />
-      ))}
-    </div>
-  )
-}
+// Color inicial de un estado nuevo: el azul cielo de la paleta
+const DEFAULT_STATUS_COLOR = paletteColor('Azul cielo')
 
 export default function GestionSettings({ onClose }) {
   const { clinics, statuses, positions, addClinic, editClinic, removeClinic, addStatus, editStatus, removeStatus, addPosition, editPosition, removePosition } = useGestion()
@@ -44,7 +18,7 @@ export default function GestionSettings({ onClose }) {
 
   // Status state
   const [newStatus, setNewStatus] = useState('')
-  const [newStatusColor, setNewStatusColor] = useState('#6366f1')
+  const [newStatusColor, setNewStatusColor] = useState(DEFAULT_STATUS_COLOR)
   const [savingStatus, setSavingStatus] = useState(false)
   const [editingStatus, setEditingStatus] = useState(null)
   const [editStatusVal, setEditStatusVal] = useState('')
@@ -88,7 +62,7 @@ export default function GestionSettings({ onClose }) {
     e.preventDefault()
     if (!newStatus.trim()) return
     setSavingStatus(true)
-    try { await addStatus(newStatus.trim(), newStatusColor); setNewStatus(''); setNewStatusColor('#6366f1') }
+    try { await addStatus(newStatus.trim(), newStatusColor); setNewStatus(''); setNewStatusColor(DEFAULT_STATUS_COLOR) }
     finally { setSavingStatus(false) }
   }
 
@@ -299,9 +273,8 @@ export default function GestionSettings({ onClose }) {
                     Añadir
                   </button>
                 </div>
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-xs text-ink-muted shrink-0">Color:</span>
-                  <ColorPicker value={newStatusColor} onChange={setNewStatusColor} />
+                <div className="px-1">
+                  <ColorPicker label="Color del estado" value={newStatusColor} onChange={setNewStatusColor} />
                 </div>
               </form>
 
@@ -324,7 +297,7 @@ export default function GestionSettings({ onClose }) {
                           <button onClick={() => handleSaveStatus(status.id)} className="text-xs text-accent font-semibold px-2 py-1 hover:bg-accent-soft rounded-lg transition-colors">Guardar</button>
                           <button onClick={() => setEditingStatus(null)} className="text-xs text-ink-muted px-2 py-1 hover:bg-card-hover rounded-lg transition-colors">Cancelar</button>
                         </div>
-                        <ColorPicker value={editStatusColor} onChange={setEditStatusColor} />
+                        <ColorPicker label={`Color de ${status.name}`} value={editStatusColor} onChange={setEditStatusColor} />
                       </div>
                     ) : (
                       <>

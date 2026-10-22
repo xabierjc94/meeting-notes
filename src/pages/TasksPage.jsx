@@ -119,11 +119,12 @@ function TasksContent({ project, projectId }) {
           items={VIEWS.map(v => ({ ...v, icon: <Icon d={v.icon} className="w-4 h-4" /> }))}
           value={view}
           onChange={setView}
+          panelId="project-view"
           className="mt-4 -mb-3"
         />
       </PageHeader>
 
-      <div className="flex-1 overflow-hidden" role="tabpanel" aria-label={VIEWS.find(v => v.id === view)?.label}>
+      <div className="flex-1 overflow-hidden" role="tabpanel" id="project-view" aria-labelledby={`project-view-tab-${view}`}>
         {view === 'tablero' && <KanbanBoard />}
         {view === 'lista' && <ListView />}
         {view === 'timeline' && <TimelineView />}

@@ -4,11 +4,13 @@ import { useEffect, useRef } from 'react'
 // Pestañas con subrayado lima (patrón ARIA "tablist"):
 //   - role="tablist" / role="tab" + aria-selected: los lectores de
 //     pantalla anuncian "pestaña 2 de 5, seleccionada".
+//   - Con `panelId`, cada pestaña apunta a su panel (aria-controls) y el
+//     panel se nombra con la pestaña activa: id = `${panelId}-tab-${item.id}`.
 //   - Flechas ← →, Inicio y Fin mueven entre pestañas (lo que espera un usuario de
 //     teclado); solo la activa está en el orden de Tab ("roving tabindex").
 // En móvil se desplazan horizontalmente si no caben.
 // ─────────────────────────────────────────────────────────────
-export default function Tabs({ items, value, onChange, label, className = '' }) {
+export default function Tabs({ items, value, onChange, label, panelId, className = '' }) {
   const refs = useRef([])
 
   // En móvil la tira se desplaza: al cambiar de pestaña (también desde la
@@ -37,6 +39,8 @@ export default function Tabs({ items, value, onChange, label, className = '' }) 
             ref={(el) => { refs.current[i] = el }}
             type="button"
             role="tab"
+            id={panelId ? `${panelId}-tab-${item.id}` : undefined}
+            aria-controls={panelId}
             aria-selected={selected}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(item.id)}

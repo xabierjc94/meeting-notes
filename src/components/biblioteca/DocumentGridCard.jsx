@@ -2,20 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useBiblioteca } from '../../context/BibliotecaContext'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import Spinner from '../ui/Spinner'
+import { getFileBadge } from '../../lib/fileBadges'
 
 function formatDate(iso) {
   if (!iso) return ''
   return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-const EXT_COLORS = {
-  docx: { bg: 'bg-pill-sky', text: 'text-pill-sky-ink', label: 'Word' },
-  doc: { bg: 'bg-pill-sky', text: 'text-pill-sky-ink', label: 'Word' },
-  pdf: { bg: 'bg-pill-red', text: 'text-pill-red-ink', label: 'PDF' },
-  xlsx: { bg: 'bg-pill-mint', text: 'text-pill-mint-ink', label: 'Excel' },
-  xls: { bg: 'bg-pill-mint', text: 'text-pill-mint-ink', label: 'Excel' },
-  txt: { bg: 'bg-card-hover', text: 'text-ink-muted', label: 'TXT' },
-  md: { bg: 'bg-pill-lilac', text: 'text-pill-lilac-ink', label: 'MD' },
 }
 
 export default function DocumentGridCard({ doc, onOpen, onPreview }) {
@@ -27,8 +18,7 @@ export default function DocumentGridCard({ doc, onOpen, onPreview }) {
   const moveRef = useRef(null)
   const moveBtnRef = useRef(null)
 
-  const ext   = doc.file_name?.split('.').pop()?.toLowerCase() || null
-  const badge = ext ? EXT_COLORS[ext] : null
+  const badge = getFileBadge(doc.file_name)
   const currentFolder = carpetas.find(c => c.id === doc.folder_id)
 
   // Cerrar dropdown al click fuera

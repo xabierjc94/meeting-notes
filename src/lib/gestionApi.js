@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient'
+import { paletteColor } from './palette'
 
 // --- Personnel ---
 export async function fetchPersonnel(userId, projectId) {
@@ -144,7 +145,7 @@ export async function fetchStatuses(userId) {
   return data
 }
 
-export async function createStatus(userId, name, color = '#6366f1') {
+export async function createStatus(userId, name, color = paletteColor('Azul cielo')) {
   const { data: existing } = await supabase
     .from('candidacy_statuses')
     .select('position')
@@ -179,13 +180,13 @@ export async function deleteStatus(id) {
 
 export async function seedDefaultStatuses(userId) {
   const defaults = [
-    { user_id: userId, name: 'Screen',      color: '#94a3b8', position: 0 },
-    { user_id: userId, name: 'Llamada',     color: '#3b82f6', position: 1 },
-    { user_id: userId, name: 'Entrevista',  color: '#8b5cf6', position: 2 },
-    { user_id: userId, name: 'Compartido',  color: '#f59e0b', position: 3 },
-    { user_id: userId, name: 'Descartado',  color: '#ef4444', position: 4 },
-    { user_id: userId, name: 'Final',       color: '#f97316', position: 5 },
-    { user_id: userId, name: 'Contratado',  color: '#10b981', position: 6 },
+    { user_id: userId, name: 'Screen',      color: paletteColor('Gris'), position: 0 },
+    { user_id: userId, name: 'Llamada',     color: paletteColor('Azul cielo'), position: 1 },
+    { user_id: userId, name: 'Entrevista',  color: paletteColor('Lila'), position: 2 },
+    { user_id: userId, name: 'Compartido',  color: paletteColor('Amarillo'), position: 3 },
+    { user_id: userId, name: 'Descartado',  color: paletteColor('Rojo'), position: 4 },
+    { user_id: userId, name: 'Final',       color: paletteColor('Naranja'), position: 5 },
+    { user_id: userId, name: 'Contratado',  color: paletteColor('Verde'), position: 6 },
   ]
   const { error } = await supabase.from('candidacy_statuses').insert(defaults)
   if (error) throw error

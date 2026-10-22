@@ -16,34 +16,6 @@ import TaskModal from './TaskModal'
 import { Toast } from '../ui/Toast'
 import { useToast } from '../../hooks/useToast'
 
-function SortableColumn({ col, onOpenTask }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `col-${col.id}`,
-    data: { type: 'column' }
-  })
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.4 : 1,
-        zIndex: isDragging ? 10 : undefined,
-      }}
-      className="group"
-    >
-      <KanbanColumn
-        column={col}
-        tasks={[]}
-        onOpenTask={onOpenTask}
-        dragHandleProps={{ ...attributes, ...listeners }}
-        isDragging={isDragging}
-      />
-    </div>
-  )
-}
-
 export default function KanbanBoard() {
   const { columns, tasks, tasksByColumn, reorderTasks, reorderColumns, moveTaskToColumn } = useTasks()
   const [activeTask, setActiveTask] = useState(null)
@@ -134,7 +106,6 @@ export default function KanbanBoard() {
                   col={col}
                   tasks={tasksByColumn[col.id] || []}
                   onOpenTask={setEditingTask}
-                  activeTaskId={activeTask?.id}
                   onTaskDeleted={(title) => addToast(`Tarea "${title}" eliminada`, 'success')}
                 />
               ))}
@@ -168,7 +139,7 @@ export default function KanbanBoard() {
 }
 
 // Wrapper que combina sortable de columna + droppable de tareas
-function ColumnWithTasks({ col, tasks, onOpenTask, activeTaskId, onTaskDeleted }) {
+function ColumnWithTasks({ col, tasks, onOpenTask, onTaskDeleted }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `col-${col.id}`,
     data: { type: 'column' }

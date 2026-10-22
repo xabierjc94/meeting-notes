@@ -5,10 +5,17 @@ class ErrorBoundary extends Component {
   static getDerivedStateFromError(error) { return { error } }
   render() {
     if (this.state.error) return (
-      <div style={{ padding: 32, fontFamily: 'monospace', background: '#fff' }}>
-        <h2 style={{ color: 'red' }}>Error de renderizado</h2>
-        <pre style={{ whiteSpace: 'pre-wrap', color: '#333', fontSize: 13 }}>{this.state.error?.message}</pre>
-        <pre style={{ whiteSpace: 'pre-wrap', color: '#999', fontSize: 11 }}>{this.state.error?.stack}</pre>
+      <div role="alert" className="min-h-screen bg-canvas text-ink p-6 sm:p-8">
+        <h2 className="text-lg font-bold text-danger">Error de renderizado</h2>
+        <p className="mt-1 text-sm text-ink-muted">Algo ha fallado al mostrar esta pantalla. Recargar suele solucionarlo.</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 h-10 px-4 rounded-xl bg-accent hover:bg-accent-hover text-accent-ink text-sm font-semibold">
+          Recargar
+        </button>
+        <pre className="mt-6 whitespace-pre-wrap font-mono text-[13px] text-ink">{this.state.error?.message}</pre>
+        <details className="mt-2">
+          <summary className="cursor-pointer text-xs text-ink-muted">Detalles técnicos</summary>
+          <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-ink-subtle">{this.state.error?.stack}</pre>
+        </details>
       </div>
     )
     return this.props.children

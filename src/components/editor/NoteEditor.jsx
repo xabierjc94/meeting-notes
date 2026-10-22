@@ -144,7 +144,6 @@ function EditorInner({ initialData, onEdit }) {
   const [meetingDate, setMeetingDate] = useState(
     ('meeting_date' in restored ? restored.meeting_date : initialData.meeting_date) || ''
   )
-  const [isTitleFocused, setIsTitleFocused] = useState(false)
   const [notice, setNotice] = useState(
     recovery.type === 'auto' ? 'recovered' : recovery.type === 'conflict' ? 'conflict' : null
   )
@@ -298,8 +297,6 @@ function EditorInner({ initialData, onEdit }) {
               <textarea
                 value={title}
                 onChange={handleTitleChange}
-                onFocus={() => setIsTitleFocused(true)}
-                onBlur={() => setIsTitleFocused(false)}
                 onInput={autoResize}
                 placeholder="Sin título"
                 rows={1}

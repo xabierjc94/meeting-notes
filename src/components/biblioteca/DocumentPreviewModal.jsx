@@ -1,13 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useModalLayer } from '../../hooks/useModalLayer'
-
-const FILE_ICONS = {
-  pdf:  { color: '#DC2626', label: 'PDF' },
-  docx: { color: '#2563EB', label: 'Word' },
-  doc:  { color: '#2563EB', label: 'Word' },
-  txt:  { color: '#6B7280', label: 'TXT' },
-  md:   { color: '#7C3AED', label: 'MD' },
-}
+import { getFileBadge, FILE_BADGES } from '../../lib/fileBadges'
 
 function formatSize(bytes) {
   if (bytes < 1024) return `${bytes} B`
@@ -16,8 +9,7 @@ function formatSize(bytes) {
 }
 
 export default function DocumentPreviewModal({ file, previewData, onConfirm, onCancel, importing }) {
-  const ext  = file?.name.split('.').pop()?.toLowerCase() || 'txt'
-  const icon = FILE_ICONS[ext] || FILE_ICONS.txt
+  const icon = getFileBadge(file?.name) ?? FILE_BADGES.txt
   const overlayRef = useRef(null)
   // Pila de ventanas: Esc cierra, el foco entra y queda atrapado dentro,
   // y vuelve al botón "Importar" al cerrar
@@ -31,9 +23,6 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
       }
     }
   }, [previewData])
-
-  // Determina si el área de preview debe ser compacta o expandida
-  const isPdfPreview = previewData?.type === 'pdf'
 
   return (
     <div
@@ -51,10 +40,7 @@ export default function DocumentPreviewModal({ file, previewData, onConfirm, onC
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-line shrink-0">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-ink text-xs font-bold shrink-0"
-            style={{ backgroundColor: icon.color }}
-          >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${icon.bg} ${icon.text}`} aria-hidden="true">
             {icon.label}
           </div>
           <div className="min-w-0 flex-1">

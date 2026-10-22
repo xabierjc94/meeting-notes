@@ -6,6 +6,10 @@ import AuthLayout, { AuthError } from '../components/layout/AuthLayout'
 import Button from '../components/ui/Button'
 import Spinner from '../components/ui/Spinner'
 
+// Símbolo admitido en la contraseña. Dentro de [ ] solo hay que escapar
+// "\", "]" y "-" (este último porque si no indica un rango, como en a-z).
+const SYMBOL_RE = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/
+
 // Lista viva de requisitos: cumplido en lima con ✓, pendiente en gris (antes
 // los dos en el mismo color). El campo la enlaza con aria-describedby.
 function PasswordRequirements({ id, password }) {
@@ -13,7 +17,7 @@ function PasswordRequirements({ id, password }) {
     { label: '8 caracteres o más', met: password.length >= 8 },
     { label: '1 mayúscula', met: /[A-Z]/.test(password) },
     { label: '1 minúscula', met: /[a-z]/.test(password) },
-    { label: '1 símbolo (!@#$%^&*)', met: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password) },
+    { label: '1 símbolo (!@#$%^&*)', met: SYMBOL_RE.test(password) },
   ]
 
   return (
@@ -42,7 +46,7 @@ function validatePassword(password) {
   if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres'
   if (!/[A-Z]/.test(password)) return 'Debe incluir al menos una mayúscula'
   if (!/[a-z]/.test(password)) return 'Debe incluir al menos una minúscula'
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) return 'Debe incluir al menos un símbolo (!@#$%^&*)'
+  if (!SYMBOL_RE.test(password)) return 'Debe incluir al menos un símbolo (!@#$%^&*)'
   return null
 }
 
@@ -58,7 +62,7 @@ export default function RegisterPage() {
     return password.length >= 8 &&
       /[A-Z]/.test(password) &&
       /[a-z]/.test(password) &&
-      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)
+      SYMBOL_RE.test(password)
   }, [password])
 
   async function handleSubmit(e) {

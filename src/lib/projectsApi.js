@@ -1,9 +1,10 @@
 import { supabase } from './supabaseClient'
+import { paletteColor } from './palette'
 
 const DEFAULT_COLUMNS = [
-  { name: 'Por hacer', color: '#6366f1', position: 0 },
-  { name: 'En progreso', color: '#f59e0b', position: 1 },
-  { name: 'Completado', color: '#10b981', position: 2 },
+  { name: 'Por hacer', color: paletteColor('Azul cielo'), position: 0 },
+  { name: 'En progreso', color: paletteColor('Amarillo'), position: 1 },
+  { name: 'Completado', color: paletteColor('Verde'), position: 2 },
 ]
 
 export async function getProjects(userId) {

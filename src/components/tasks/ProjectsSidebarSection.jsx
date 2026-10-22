@@ -6,6 +6,7 @@ import { useAppSidebar } from '../layout/AppSidebarContext'
 import Icon from '../ui/Icon'
 import { ICONS } from '../ui/icons'
 import ProjectModal from './ProjectModal'
+import { paletteColor } from '../../lib/palette'
 
 function ProjectsRailActions({ onNewProject }) {
   return (
@@ -64,7 +65,7 @@ function ProjectsPanel({ projects, taskCounts, loading, onNewProject, onSelectPr
                   isActive ? 'bg-card-hover text-ink' : 'text-ink hover:bg-card-hover'
                 }`}
               >
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: project.color || '#6366f1' }} />
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: project.color || paletteColor('Gris') }} />
                 <span className="flex-1 min-w-0 truncate font-medium">{project.name}</span>
                 <span className="shrink-0 text-xs text-ink-muted tabular-nums">{taskCounts[project.id] ?? 0}</span>
               </NavLink>
