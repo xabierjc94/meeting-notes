@@ -40,11 +40,14 @@ export function ProjectsProvider({ children }) {
     return () => { cancelled = true }
   }, [userId])
 
+  // Posición = la mayor que exista + 1 (no la longitud de la lista: tras borrar
+  // uno habría dos proyectos con el mismo número). El nuevo va el primero.
   const addProject = useCallback(async (data) => {
-    const created = await createProject(userId, { ...data, position: projects.length })
-    setProjects(prev => [...prev, created])
+    const position = Math.max(-1, ...projects.map(p => p.position ?? -1)) + 1
+    const created = await createProject(userId, { ...data, position })
+    setProjects(prev => [created, ...prev])
     return created
-  }, [userId, projects.length])
+  }, [userId, projects])
 
   const editProject = useCallback(async (id, data) => {
     const updated = await updateProject(id, data)

@@ -12,7 +12,8 @@ export async function getProjects(userId) {
     .from('projects')
     .select('*')
     .eq('user_id', userId)
-    .order('position')
+    // El más reciente primero (la posición crece con cada proyecto nuevo)
+    .order('position', { ascending: false })
   if (error) throw error
   return data
 }
