@@ -148,8 +148,8 @@ begin
       insert into tasks (user_id, column_id, title, description, notes, priority, due_date, tags, position, recurrence_parent)
       values (
         m.user_id, target_col, m.title, m.description, m.notes, m.priority, occ, m.tags,
-        -- arriba del todo, igual que las tareas nuevas creadas a mano
-        coalesce((select min(position) from tasks where column_id = target_col), 1) - 1,
+        -- abajo del todo, igual que las tareas nuevas creadas a mano
+        coalesce((select max(position) from tasks where column_id = target_col), -1) + 1,
         m.id
       );
       created := created + 1;

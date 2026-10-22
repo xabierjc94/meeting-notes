@@ -64,11 +64,11 @@ export function TasksProvider({ children, projectId }) {
     due_date: data.due_date?.trim() || null,
   })
 
-  // Las tareas nuevas van arriba: posición menor que la primera de la columna
-  // (puede ser negativa; al arrastrar, la columna se renumera desde 0).
+  // Las tareas nuevas van abajo (posición mayor que la última de la columna):
+  // la columna se lee de la más antigua arriba a la más reciente abajo.
   const addTask = async (data) => {
     const colTasks = tasks.filter(t => t.column_id === data.column_id)
-    const position = colTasks.length ? Math.min(...colTasks.map(t => t.position)) - 1 : 0
+    const position = colTasks.length ? Math.max(...colTasks.map(t => t.position)) + 1 : 0
     const task = await createTask(user.id, { ...sanitizeTaskData(data), position })
     setTasks(prev => [...prev, task])
     return task
