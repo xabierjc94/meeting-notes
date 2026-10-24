@@ -8,6 +8,7 @@ import { tagTone } from '../../lib/taskStyles'
 import DatePicker from '../ui/DatePicker'
 import RecurrenceIcon from './RecurrenceIcon'
 import { RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence'
+import { BUCKETS, bucketOf, bucketDateRange, defaultDateFor } from '../../lib/taskBuckets'
 
 const PRIORITY_OPTIONS = [
   { value: 'low',    label: 'Baja' },
@@ -17,7 +18,7 @@ const PRIORITY_OPTIONS = [
 ]
 
 export default function TaskModal({ task, defaultColumnId, defaultTitle = '', defaultDueDate = '', onClose }) {
-  const { columns, addTask, editTask, removeTask } = useTasks()
+  const { pendingColumn, customColumns, today, addTask, editTask, removeTask } = useTasks()
   const isEditing = !!task
   const tagInputRef = useRef(null)
   const titleRef = useRef(null)
@@ -44,13 +45,35 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
   const [form, setForm] = useState({
     title: task?.title || defaultTitle,
     description: task?.description || '',
-    column_id: task?.column_id || defaultColumnId || columns[0]?.id || '',
+    column_id: task?.column_id || defaultColumnId || pendingColumn?.id || '',
     priority: task?.priority || 'medium',
     due_date: task?.due_date || defaultDueDate,
     tags: task?.tags || [],
     notes: task?.notes || '',
     recurrence: task?.recurrence || '',
+    in_progress: task?.in_progress ?? false,
   })
+
+  // "¿Cuándo?" se CALCULA con la fecha, igual que las columnas del tablero:
+  // si cambias la fecha a mano, el selector la sigue solo, y elegir una
+  // opción del selector rellena la fecha. Nunca pueden contradecirse.
+  const inPending = !form.column_id || form.column_id === pendingColumn?.id
+  const location = inPending ? `bucket:${bucketOf(form.due_date || null, today)}` : `col:${form.column_id}`
+  const semanaRange = bucketDateRange('semana', today)
+
+  const changeLocation = (value) => {
+    const [type, id] = value.split(':')
+    if (type === 'col') { setForm(f => ({ ...f, column_id: id })); return }
+    setForm(f => {
+      const range = bucketDateRange(id, today)
+      // Si la fecha que ya tiene encaja en esa columna, se respeta
+      const fits = f.due_date && range && f.due_date >= range.min && (!range.max || f.due_date <= range.max)
+      // Próximamente no borra una fecha que ya había: propone el lunes que
+      // viene (se puede cambiar o quitar con la ×). Sin fecha previa, sigue sin fecha.
+      const fallback = id === 'proximamente' && f.due_date ? range.min : (defaultDateFor(id, today) ?? '')
+      return { ...f, column_id: pendingColumn?.id ?? f.column_id, due_date: fits ? f.due_date : fallback }
+    })
+  }
   // Las copias generadas por una serie no pueden iniciar otra serie
   const isRecurringCopy = !!task?.recurrence_parent
   const [tagInput, setTagInput] = useState('')
@@ -59,12 +82,6 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    if (!form.column_id && columns.length > 0) {
-      setForm(f => ({ ...f, column_id: columns[0].id }))
-    }
-  }, [columns])
-
   const handleSubmit = async (e) => {
     e?.preventDefault()
     if (!form.title.trim()) return
@@ -72,7 +89,9 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
     setError(null)
     // recurrence solo se envía si ha cambiado: así editar una tarea normal
     // no depende de que la columna exista en la base de datos
-    const { recurrence, ...rest } = form
+    const { recurrence, ...fields } = form
+    // Sin columna elegida (proyecto recién cargado), va a "Pendientes"
+    const rest = { ...fields, column_id: fields.column_id || pendingColumn?.id }
     const payload = recurrence !== (task?.recurrence || '') ? { ...rest, recurrence: recurrence || null } : rest
     try {
       if (isEditing) await editTask(task.id, payload)
@@ -174,11 +193,22 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
           {/* Column + Priority — stack on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="task-column" className={label}>Columna</label>
-              <select id="task-column" value={form.column_id} onChange={e => setForm({ ...form, column_id: e.target.value })} className="field">
-                {columns.map(col => (
-                  <option key={col.id} value={col.id}>{col.name}</option>
-                ))}
+              <label htmlFor="task-location" className={label}>¿Cuándo?</label>
+              <select id="task-location" value={location} onChange={e => changeLocation(e.target.value)} className="field">
+                <optgroup label="Por fecha" disabled={!pendingColumn}>
+                  {BUCKETS.map(b => (
+                    <option key={b.id} value={`bucket:${b.id}`} disabled={b.id === 'semana' && !semanaRange && location !== 'bucket:semana'}>
+                      {b.label}
+                    </option>
+                  ))}
+                </optgroup>
+                {customColumns.length > 0 && (
+                  <optgroup label="Tus columnas">
+                    {customColumns.map(col => (
+                      <option key={col.id} value={`col:${col.id}`}>{col.name}</option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
             <div>
@@ -217,7 +247,7 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
             <p className="flex items-start gap-1.5 -mt-2 text-xs text-ink-muted">
               <RecurrenceIcon className="w-3.5 h-3.5 mt-px shrink-0 text-accent" />
               <span>
-                Se repite: {recurrenceLabel(form.recurrence).toLowerCase()}. En cada fecha aparecerá una copia en «{columns[0]?.name ?? 'la primera columna'}», aunque no hayas completado la anterior.
+                Se repite: {recurrenceLabel(form.recurrence).toLowerCase()}. En cada fecha aparecerá una copia en su columna de fecha (Hoy, Mañana…), aunque no hayas completado la anterior.
               </span>
             </p>
           )}
@@ -227,6 +257,25 @@ export default function TaskModal({ task, defaultColumnId, defaultTitle = '', de
               Copia creada por una tarea que se repite.
             </p>
           )}
+
+          {/* En curso: interruptor (role="switch": el lector dice "activado") */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.in_progress}
+            aria-labelledby="task-progress-label"
+            aria-describedby="task-progress-hint"
+            onClick={() => setForm(f => ({ ...f, in_progress: !f.in_progress }))}
+            className="w-full flex items-center justify-between gap-3 px-4 h-12 rounded-xl border border-line-strong hover:bg-card-hover transition-colors"
+          >
+            <span className="text-left">
+              <span id="task-progress-label" className="block text-sm font-medium text-ink">En curso</span>
+              <span id="task-progress-hint" className="block text-xs text-ink-muted">Ya la has empezado</span>
+            </span>
+            <span className={`relative w-10 h-6 rounded-full transition-colors shrink-0 ${form.in_progress ? 'bg-accent' : 'bg-line-strong'}`} aria-hidden="true">
+              <span className={`absolute top-1 w-4 h-4 rounded-full transition-all ${form.in_progress ? 'left-5 bg-accent-ink' : 'left-1 bg-ink'}`} />
+            </span>
+          </button>
 
           {/* Tags */}
           <div>

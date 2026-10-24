@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useTasks } from '../../context/TasksContext'
 import { addDays, dayFromTimestamp, diffDays, eachDay, formatShort, isSameDay, parseISODate, startOfWeek, today, WEEKDAYS } from '../../lib/dates'
-import { isDoneColumn, priorityOf } from '../../lib/taskStyles'
+import { priorityOf } from '../../lib/taskStyles'
+import { BUCKETS } from '../../lib/taskBuckets'
 import TaskModal from './TaskModal'
+
+// Color del punto de cada grupo de fecha: los tokens del tema (mismos tonos que el tablero)
+const BUCKET_COLOR = { hoy: 'var(--color-accent)', manana: 'var(--color-pill-yellow)', semana: 'var(--color-pill-sky)', proximamente: 'var(--color-ink-subtle)' }
 
 // ─────────────────────────────────────────────────────────────
 // VISTA TIMELINE (diagrama de Gantt sencillo)
@@ -20,7 +24,7 @@ const WINDOW_DAYS = 35 // 5 semanas
 const DAY_WIDTH = 'minmax(30px, 1fr)'
 
 export default function TimelineView() {
-  const { tasks, columns } = useTasks()
+  const { tasks, board, customColumns } = useTasks()
   const [start, setStart] = useState(() => addDays(startOfWeek(today()), -7))
   const [openTask, setOpenTask] = useState(null)
   const now = today()
@@ -29,12 +33,20 @@ export default function TimelineView() {
   const todayIndex = diffDays(start, now)
   const grid = { gridTemplateColumns: `var(--label-w) repeat(${WINDOW_DAYS}, ${DAY_WIDTH})` }
 
+  // Mismos grupos que el tablero: Hoy, Mañana, Esta semana, Próximamente,
+  // las columnas extra y, al final, las completadas (el reparto ya viene
+  // hecho en `board`, desde el contexto)
   const { groups, undated, outside } = useMemo(() => {
     const windowEnd = addDays(start, WINDOW_DAYS - 1)
     let outsideCount = 0
-    const groupsList = columns.map((col) => {
-      const rows = tasks
-        .filter((t) => t.column_id === col.id && t.due_date)
+    const sources = [
+      ...BUCKETS.map((b) => ({ col: { id: b.id, name: b.label, color: BUCKET_COLOR[b.id] }, list: board.buckets[b.id], done: false })),
+      ...customColumns.map((c) => ({ col: c, list: board.custom[c.id] ?? [], done: false })),
+      { col: { id: 'completadas', name: 'Completadas', color: 'var(--color-line-strong)' }, list: board.completed, done: true },
+    ]
+    const groupsList = sources.map(({ col, list, done }) => {
+      const rows = list
+        .filter((t) => t.due_date)
         .map((t) => {
           const due = parseISODate(t.due_date)
           let from = dayFromTimestamp(t.created_at) ?? due
@@ -47,10 +59,10 @@ export default function TimelineView() {
           return visible
         })
         .sort((a, b) => a.due - b.due)
-      return { col, rows, done: isDoneColumn(col) }
+      return { col, rows, done }
     }).filter((g) => g.rows.length > 0)
     return { groups: groupsList, undated: tasks.filter((t) => !t.due_date), outside: outsideCount }
-  }, [tasks, columns, start])
+  }, [tasks, board, customColumns, start])
 
   return (
     <div className="h-full flex flex-col p-3 sm:p-6 gap-3 min-h-0">

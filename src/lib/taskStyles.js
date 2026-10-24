@@ -24,9 +24,3 @@ export function tagTone(tag) {
   for (const ch of tag) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   return TAG_TONES[h % TAG_TONES.length]
 }
-
-// Columna "hecha": la app la reconoce por el nombre (como ya hacía ListView)
-export const isDoneColumn = (column) => {
-  const name = column?.name?.toLowerCase() ?? ''
-  return name.includes('complet') || name.includes('done') || name.includes('hecho')
-}

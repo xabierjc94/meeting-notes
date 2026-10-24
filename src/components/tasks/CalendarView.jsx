@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core'
 import { useTasks } from '../../context/TasksContext'
 import { addMonths, formatLongDay, formatMonth, isSameDay, monthGrid, parseISODate, toISODate, today, WEEKDAYS } from '../../lib/dates'
-import { isDoneColumn, priorityOf } from '../../lib/taskStyles'
+import { priorityOf } from '../../lib/taskStyles'
+import { isDone } from '../../lib/taskBuckets'
 import Modal from '../ui/Modal'
 import TaskModal from './TaskModal'
 
@@ -46,7 +47,7 @@ function TaskChip({ task, done, onOpen, draggable = true }) {
   )
 }
 
-function DayCell({ day, inMonth, isToday, tasks, doneIds, onOpen, onNew, onMore }) {
+function DayCell({ day, inMonth, isToday, tasks, onOpen, onNew, onMore }) {
   const iso = toISODate(day)
   const { setNodeRef, isOver } = useDroppable({ id: iso })
   const visible = tasks.slice(0, MAX_CHIPS)
@@ -76,7 +77,7 @@ function DayCell({ day, inMonth, isToday, tasks, doneIds, onOpen, onNew, onMore 
           </svg>
         </button>
       </div>
-      {visible.map((t) => <TaskChip key={t.id} task={t} done={doneIds.has(t.column_id)} onOpen={onOpen} />)}
+      {visible.map((t) => <TaskChip key={t.id} task={t} done={isDone(t)} onOpen={onOpen} />)}
       {hidden > 0 && (
         <button type="button" onClick={() => onMore(iso)} className="text-left px-1.5 text-[11px] font-semibold text-ink-muted hover:text-accent">
           +{hidden} más
@@ -87,15 +88,13 @@ function DayCell({ day, inMonth, isToday, tasks, doneIds, onOpen, onNew, onMore 
 }
 
 export default function CalendarView() {
-  const { tasks, columns, editTask } = useTasks()
+  const { tasks, pendingColumn, editTask } = useTasks()
   const [cursor, setCursor] = useState(() => { const t = today(); return new Date(t.getFullYear(), t.getMonth(), 1, 12) })
   const [openTask, setOpenTask] = useState(null)
   const [newDate, setNewDate] = useState(null)
   const [moreDay, setMoreDay] = useState(null)
   const [moves, setMoves] = useState({}) // id → fecha nueva mientras se guarda
   const [moveError, setMoveError] = useState(null)
-
-  const doneIds = useMemo(() => new Set(columns.filter(isDoneColumn).map((c) => c.id)), [columns])
 
   // Tareas por día ('AAAA-MM-DD' → [tareas]), aplicando los movimientos pendientes
   const byDay = useMemo(() => {
@@ -177,7 +176,6 @@ export default function CalendarView() {
                 inMonth={day.getMonth() === cursor.getMonth()}
                 isToday={isSameDay(day, now)}
                 tasks={byDay.get(toISODate(day)) ?? []}
-                doneIds={doneIds}
                 onOpen={setOpenTask}
                 onNew={setNewDate}
                 onMore={setMoreDay}
@@ -210,7 +208,7 @@ export default function CalendarView() {
                   return (
                     <button key={t.id} type="button" onClick={() => setOpenTask(t)} className="w-full flex items-center gap-2.5 px-3 h-11 rounded-xl bg-card text-left text-sm">
                       <span className={`shrink-0 w-2 h-2 rounded-full ${p.dot}`} aria-hidden="true" />
-                      <span className={`flex-1 truncate ${doneIds.has(t.column_id) ? 'line-through text-ink-subtle' : 'text-ink'}`}>{t.title}</span>
+                      <span className={`flex-1 truncate ${isDone(t) ? 'line-through text-ink-subtle' : 'text-ink'}`}>{t.title}</span>
                       <span className="text-[11px] text-ink-subtle">{p.label}</span>
                     </button>
                   )
@@ -225,13 +223,13 @@ export default function CalendarView() {
         <Modal title={formatLongDay(parseISODate(moreDay))} onClose={() => setMoreDay(null)} size="sm">
           <div className="space-y-1.5">
             {(byDay.get(moreDay) ?? []).map((t) => (
-              <TaskChip key={t.id} task={t} done={doneIds.has(t.column_id)} draggable={false} onOpen={(task) => { setMoreDay(null); setOpenTask(task) }} />
+              <TaskChip key={t.id} task={t} done={isDone(t)} draggable={false} onOpen={(task) => { setMoreDay(null); setOpenTask(task) }} />
             ))}
           </div>
         </Modal>
       )}
       {openTask && <TaskModal task={openTask} onClose={() => setOpenTask(null)} />}
-      {newDate && <TaskModal defaultColumnId={columns[0]?.id} defaultDueDate={newDate} onClose={() => setNewDate(null)} />}
+      {newDate && <TaskModal defaultColumnId={pendingColumn?.id} defaultDueDate={newDate} onClose={() => setNewDate(null)} />}
     </div>
   )
 }

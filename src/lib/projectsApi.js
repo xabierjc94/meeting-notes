@@ -1,10 +1,10 @@
 import { supabase } from './supabaseClient'
 import { paletteColor } from './palette'
 
+// Un proyecto nuevo solo trae la columna oculta "Pendientes": Hoy, Mañana,
+// Esta semana y Próximamente se calculan a partir de la fecha de cada tarea
 const DEFAULT_COLUMNS = [
-  { name: 'Por hacer', color: paletteColor('Azul cielo'), position: 0 },
-  { name: 'En progreso', color: paletteColor('Amarillo'), position: 1 },
-  { name: 'Completado', color: paletteColor('Verde'), position: 2 },
+  { name: 'Pendientes', kind: 'pending', color: paletteColor('Gris'), position: -1 },
 ]
 
 export async function getProjects(userId) {
@@ -26,9 +26,12 @@ export async function createProject(userId, data) {
     .single()
   if (error) throw error
 
-  await supabase.from('task_columns').insert(
+  // Si falla, no se deshace el proyecto: el tablero crea "Pendientes" al
+  // abrirlo (TasksContext). Se avisa en la consola para poder diagnosticarlo.
+  const { error: colError } = await supabase.from('task_columns').insert(
     DEFAULT_COLUMNS.map(c => ({ ...c, user_id: userId, project_id: project.id }))
   )
+  if (colError) console.warn('Columnas del proyecto nuevo:', colError.message)
 
   return project
 }
@@ -52,11 +55,12 @@ export async function deleteProject(id) {
 export async function getProjectTaskCounts(userId) {
   const { data, error } = await supabase
     .from('tasks')
-    .select('column_id, task_columns(project_id)')
+    .select('column_id, completed_at, task_columns(project_id)')
     .eq('user_id', userId)
   if (error) return {}
   const counts = {}
   data.forEach(t => {
+    if (t.completed_at) return // las completadas no cuentan como trabajo pendiente
     const pid = t.task_columns?.project_id
     if (pid) counts[pid] = (counts[pid] || 0) + 1
   })

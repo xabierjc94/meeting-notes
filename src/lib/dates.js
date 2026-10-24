@@ -58,6 +58,17 @@ export function startOfWeek(date) {
   return addDays(date, -offset)
 }
 
+// Domingo de la semana de `date` (último día de una semana que empieza en lunes)
+export function endOfWeek(date) {
+  return addDays(startOfWeek(date), 6)
+}
+
+// Hoy como texto 'AAAA-MM-DD' en hora LOCAL (nunca toISOString: a las
+// 00:30 en España daría todavía el día anterior, que es la fecha en UTC)
+export function todayISO() {
+  return toISODate(today())
+}
+
 // Días enteros entre dos fechas (b - a), inmune al cambio de hora
 export function diffDays(a, b) {
   const ua = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())

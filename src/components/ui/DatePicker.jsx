@@ -1,21 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { parseISODate as parseDate, toISODate as toYMD } from '../../lib/dates'
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const DAYS = ['Lu','Ma','Mi','Ju','Vi','Sá','Do']
-
-function parseDate(str) {
-  if (!str) return null
-  const [y, m, d] = str.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-
-function toYMD(date) {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
 
 function formatDisplay(str) {
   const d = parseDate(str)
@@ -23,10 +11,14 @@ function formatDisplay(str) {
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function DatePicker({ value, onChange, placeholder = 'Seleccionar fecha', className = '' }) {
+// min / max ('AAAA-MM-DD', opcionales): los días fuera de ese rango se ven
+// apagados y no se pueden elegir (p. ej. "Esta semana" solo admite de
+// pasado mañana al domingo). clearLabel añade un botón para quitar la fecha.
+export default function DatePicker({ value, onChange, placeholder = 'Seleccionar fecha', className = '', min = null, max = null, clearLabel = null }) {
   const today = new Date()
   const selected = parseDate(value)
-  const initial = selected || today
+  // Sin fecha elegida, se abre en el mes del primer día permitido
+  const initial = selected || (min && toYMD(today) < min ? parseDate(min) : today)
 
   const [open, setOpen] = useState(false)
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 })
@@ -65,7 +57,7 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
       if (left < 8) left = 8
       const top = r.bottom + 6
       setPopupPos({ top, left, width: maxWidth })
-      if (selected) { setYear(selected.getFullYear()); setMonth(selected.getMonth()) }
+      setYear(initial.getFullYear()); setMonth(initial.getMonth())
     }
     setOpen(o => !o)
   }
@@ -89,9 +81,15 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
   for (let d = 1; d <= lastDay.getDate(); d++) cells.push(d)
   while (cells.length % 7 !== 0) cells.push(null)
 
+  // Los textos 'AAAA-MM-DD' se comparan como texto (mismo orden que las fechas)
+  const inRange = (ymd) => (!min || ymd >= min) && (!max || ymd <= max)
+  const dayYMD = (day) => toYMD(new Date(year, month, day, 12))
+  const isDisabled = (day) => !day || !inRange(dayYMD(day))
+  const todayAllowed = inRange(toYMD(today))
+
   const handleDay = (day) => {
-    if (!day) return
-    onChange(toYMD(new Date(year, month, day)))
+    if (isDisabled(day)) return
+    onChange(dayYMD(day))
     setOpen(false)
   }
 
@@ -173,10 +171,12 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
                 key={i}
                 type="button"
                 onClick={() => handleDay(day)}
-                disabled={!day}
+                disabled={isDisabled(day)}
                 className={`h-8 w-full rounded-lg text-sm font-medium transition-all ${
                   !day
                     ? 'cursor-default'
+                    : isDisabled(day)
+                    ? 'text-ink-subtle/50 line-through cursor-not-allowed'
                     : isSelected(day)
                     ? 'bg-accent text-accent-ink hover:bg-accent-hover'
                     : isToday(day)
@@ -189,16 +189,29 @@ export default function DatePicker({ value, onChange, placeholder = 'Seleccionar
             ))}
           </div>
 
-          {/* Today shortcut */}
-          <div className="mt-3 pt-3 border-t border-line">
-            <button
-              type="button"
-              onClick={() => { onChange(toYMD(today)); setOpen(false) }}
-              className="w-full text-xs font-medium text-accent hover:text-accent py-1 rounded-lg hover:bg-accent-soft transition-colors"
-            >
-              Hoy — {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
-            </button>
-          </div>
+          {/* Atajos: Hoy (si el rango lo permite) y quitar la fecha */}
+          {(todayAllowed || clearLabel) && (
+            <div className="mt-3 pt-3 border-t border-line flex gap-2">
+              {todayAllowed && (
+                <button
+                  type="button"
+                  onClick={() => { onChange(toYMD(today)); setOpen(false) }}
+                  className="flex-1 text-xs font-medium text-accent hover:text-accent py-1 rounded-lg hover:bg-accent-soft transition-colors"
+                >
+                  Hoy — {today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                </button>
+              )}
+              {clearLabel && (
+                <button
+                  type="button"
+                  onClick={() => { onChange(''); setOpen(false) }}
+                  className="flex-1 text-xs font-medium text-ink-muted hover:text-ink py-1 rounded-lg hover:bg-card-hover transition-colors"
+                >
+                  {clearLabel}
+                </button>
+              )}
+            </div>
+          )}
         </div>,
         document.body
       )}

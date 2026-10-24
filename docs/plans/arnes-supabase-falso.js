@@ -30,7 +30,8 @@
 
   const usuario = { id: 'u-1', email: 'javi@ejemplo.test', user_metadata: { full_name: 'Javi' } }
   const hoy = new Date()
-  const dia = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
+  // Fecha LOCAL 'AAAA-MM-DD' (no toISOString: de madrugada daría el día anterior)
+  const dia = (n) => { const d = new Date(hoy); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
   const hace = (n) => { const d = new Date(hoy); d.setDate(d.getDate() - n); d.setHours(10, 0, 0, 0); return d.toISOString() }
   const doc = (t) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: t }] }] })
 
@@ -46,17 +47,21 @@
       { id: 'p1', user_id: usuario.id, name: 'Proyecto demo', color: '#6366f1', description: 'Rebranding', position: 0, created_at: hace(30) },
       { id: 'p2', user_id: usuario.id, name: 'Web corporativa', color: '#10b981', description: null, position: 1, created_at: hace(10) },
     ],
+    // Tablero por fechas: c1 es la columna oculta "Pendientes" (sus tareas se
+    // reparten en Hoy / Mañana / Esta semana / Próximamente según la fecha)
+    // y c2 una columna extra propia.
     task_columns: [
-      { id: 'c1', user_id: usuario.id, project_id: 'p1', name: 'Por hacer', color: '#6366f1', position: 0 },
-      { id: 'c2', user_id: usuario.id, project_id: 'p1', name: 'En progreso', color: '#f59e0b', position: 1 },
-      { id: 'c3', user_id: usuario.id, project_id: 'p1', name: 'Completado', color: '#10b981', position: 2 },
+      { id: 'c1', user_id: usuario.id, project_id: 'p1', name: 'Pendientes', kind: 'pending', color: '#a3a3a3', position: -1, created_at: hace(30) },
+      { id: 'c2', user_id: usuario.id, project_id: 'p1', name: 'Esperando respuesta', kind: 'custom', color: '#38bdf8', position: 0, created_at: hace(30) },
     ],
     tasks: [
-      { id: 't1', user_id: usuario.id, column_id: 'c1', title: 'Ideas de logo', priority: 'high', tags: ['diseño'], due_date: dia(3), position: 0, created_at: hace(4) },
-      { id: 't2', user_id: usuario.id, column_id: 'c1', title: 'Paleta de colores', priority: 'urgent', tags: ['diseño', 'urgente'], due_date: dia(-1), position: 1, created_at: hace(6) },
-      { id: 't3', user_id: usuario.id, column_id: 'c2', title: 'Plan de marketing', priority: 'medium', tags: ['marketing'], due_date: dia(10), position: 0, created_at: hace(2) },
-      { id: 't4', user_id: usuario.id, column_id: 'c3', title: 'Presupuesto', priority: 'low', tags: [], due_date: null, position: 0, created_at: hace(12) },
-      { id: 't5', user_id: usuario.id, column_id: 'c2', title: 'Informe semanal', priority: 'medium', tags: [], due_date: dia(0), recurrence: 'weekly', position: 1, created_at: hace(14) },
+      { id: 't1', user_id: usuario.id, column_id: 'c1', title: 'Ideas de logo', priority: 'high', tags: ['diseño'], due_date: dia(1), position: 0, created_at: hace(4), completed_at: null, in_progress: false },
+      { id: 't2', user_id: usuario.id, column_id: 'c1', title: 'Paleta de colores', priority: 'urgent', tags: ['diseño', 'urgente'], due_date: dia(-1), position: 1, created_at: hace(6), completed_at: null, in_progress: true },
+      { id: 't3', user_id: usuario.id, column_id: 'c1', title: 'Plan de marketing', priority: 'medium', tags: ['marketing'], due_date: dia(10), position: 2, created_at: hace(2), completed_at: null, in_progress: false },
+      { id: 't4', user_id: usuario.id, column_id: 'c1', title: 'Presupuesto', priority: 'low', tags: [], due_date: null, position: 3, created_at: hace(12), completed_at: hace(1), in_progress: false },
+      { id: 't5', user_id: usuario.id, column_id: 'c1', title: 'Informe semanal', priority: 'medium', tags: [], due_date: dia(0), recurrence: 'weekly', position: 4, created_at: hace(14), completed_at: null, in_progress: false },
+      { id: 't6', user_id: usuario.id, column_id: 'c1', title: 'Revisar contrato', priority: 'medium', tags: [], due_date: null, position: 5, created_at: hace(3), completed_at: null, in_progress: false },
+      { id: 't7', user_id: usuario.id, column_id: 'c2', title: 'Respuesta del cliente', priority: 'low', tags: [], due_date: dia(2), position: 0, created_at: hace(5), completed_at: null, in_progress: false },
     ],
     // Biblioteca: una carpeta y tres documentos (uno dentro, dos en la raíz)
     carpetas: [{ id: 'f1', owner_id: usuario.id, name: 'Contratos', color: '#38bdf8', created_at: hace(9) }],

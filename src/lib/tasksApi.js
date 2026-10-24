@@ -91,11 +91,3 @@ export async function deleteTask(id) {
   const { error } = await supabase.from('tasks').delete().eq('id', id)
   if (error) throw error
 }
-
-export async function batchUpdateTaskPositions(updates) {
-  await Promise.all(
-    updates.map(u =>
-      supabase.from('tasks').update({ column_id: u.column_id, position: u.position }).eq('id', u.id)
-    )
-  )
-}

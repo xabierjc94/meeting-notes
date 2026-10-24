@@ -5,7 +5,7 @@ import { recurrenceLabel } from '../../lib/recurrence'
 import { priorityOf, tagTone } from '../../lib/taskStyles'
 import { diffDays, formatShort, parseISODate, today } from '../../lib/dates'
 
-// Vencida / vence pronto. Con lib/dates: "2026-10-20" es un día de
+// Atrasada / vence pronto. Con lib/dates: "2026-10-20" es un día de
 // calendario; new Date("2026-10-20") lo interpretaría como medianoche UTC.
 function dueInfo(due) {
   const date = parseISODate(due)
@@ -21,7 +21,7 @@ function GripHandle({ dragHandleProps, label }) {
     <div
       {...dragHandleProps}
       aria-label={label}
-      className="relative z-10 shrink-0 flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-ink-subtle hover:text-ink hover:bg-card-hover transition-colors"
+      className="relative z-10 shrink-0 hidden md:flex items-center justify-center w-6 h-6 rounded-md cursor-grab active:cursor-grabbing text-ink-subtle hover:text-ink hover:bg-card-hover transition-colors"
       title="Arrastrar"
     >
       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -37,21 +37,44 @@ function DeleteControl({ task, confirming, setConfirming, onDelete }) {
   if (confirming) {
     return (
       <div className="relative z-10 flex items-center gap-1" onClick={e => e.stopPropagation()}>
-        <button onClick={() => onDelete()} className="h-6 px-2 text-[11px] font-semibold bg-danger text-canvas rounded-md">Sí</button>
-        <button onClick={() => setConfirming(false)} className="h-6 px-2 text-[11px] font-semibold bg-card-hover text-ink rounded-md">No</button>
+        <button onClick={() => onDelete()} className="h-7 px-2 text-[11px] font-semibold bg-danger text-canvas rounded-md">Sí</button>
+        <button onClick={() => setConfirming(false)} className="h-7 px-2 text-[11px] font-semibold bg-card-hover text-ink rounded-md">No</button>
       </div>
     )
   }
   return (
     <button
       onClick={e => { e.stopPropagation(); setConfirming(true) }}
-      className="relative z-10 w-6 h-6 flex items-center justify-center rounded-md text-ink-subtle hover:text-danger hover:bg-danger/10 transition-colors"
+      className="relative z-10 w-10 h-10 md:w-6 md:h-6 flex items-center justify-center rounded-md text-ink-subtle hover:text-danger hover:bg-danger/10 transition-colors"
       title="Eliminar tarea"
       aria-label={`Eliminar tarea: ${task.title}`}
     >
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
       </svg>
+    </button>
+  )
+}
+
+// Círculo para completar. El círculo visible mide 20 px, pero el botón
+// ocupa 40 px en móvil (32 en escritorio) para acertar con el dedo.
+function DoneToggle({ task, done, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={e => { e.stopPropagation(); onToggle() }}
+      aria-pressed={done}
+      aria-label={done ? `Marcar como pendiente: ${task.title}` : `Marcar como completada: ${task.title}`}
+      title={done ? 'Marcar como pendiente' : 'Completar'}
+      className="group/done relative z-10 shrink-0 -m-2.5 md:-m-1.5 w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full"
+    >
+      <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+        done ? 'bg-accent border-accent text-accent-ink' : 'border-line-strong text-transparent group-hover/done:border-accent group-hover/done:text-accent'
+      }`}>
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+        </svg>
+      </span>
     </button>
   )
 }
@@ -63,19 +86,19 @@ const CalendarIcon = () => (
 )
 
 // ─────────────────────────────────────────────────────────────
-// Tarjeta de tarea al estilo del diseño de referencia: título arriba,
-// prioridad y etiquetas como pills pastel, y una fila inferior con la
-// fecha. Se conservan las piezas de accesibilidad de los lotes 2-4:
-// título como botón que cubre la tarjeta (.stretched-link), asa de
-// arrastre enfocable, parpadeo de urgentes y el icono de recurrente.
+// Tarjeta de tarea del tablero por fechas:
+//   [○ completar]  Título (botón que cubre la tarjeta)   [⋯ mover] [🗑] [⠿]
+//   descripción · pastillas (En curso, prioridad, etiquetas) · fecha
+// `menu` es el menú ⋯ ya preparado por el tablero (TaskMoveMenu).
+// `compact` es la variante de una línea de la sección Completadas.
 // ─────────────────────────────────────────────────────────────
-export default function TaskCard({ task, onClick, onDelete, overlay, compact = false, stretch = false, done = false, dragHandleProps = null }) {
+export default function TaskCard({ task, onClick, onDelete, onToggleDone, menu = null, overlay, compact = false, done = false, dragHandleProps = null }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const priority = priorityOf(task)
   const due = dueInfo(task.due_date)
   // Una urgente ya terminada (done) no debe alarmar
   const urgentBlink = task.priority === 'urgent' && !done && !overlay
-  const gripLabel = `Mover tarea: ${task.title}`
+  const gripLabel = `Arrastrar tarea: ${task.title}`
 
   // El título es un botón real que cubre toda la tarjeta (.stretched-link):
   // se abre con clic o con Tab + Enter. En la copia que se arrastra no hay botón.
@@ -84,7 +107,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
   const title = onClick ? (
     <p className={titleClass}>
       <button type="button" onClick={onClick} className="stretched-link block w-full text-left cursor-pointer">
-        <span className="line-clamp-2">{task.title}</span>
+        <span className={compact ? 'line-clamp-1' : 'line-clamp-2'}>{task.title}</span>
       </button>
     </p>
   ) : (
@@ -94,7 +117,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
   const dueBadge = due && (
     <span className={`flex items-center gap-1 text-[11px] font-medium ${done ? 'text-ink-subtle' : due.overdue ? 'text-danger' : due.soon ? 'text-pill-orange' : 'text-ink-subtle'}`}>
       <CalendarIcon />
-      {due.overdue && !done ? 'Vencida · ' : ''}{due.label}
+      {due.overdue && !done ? 'Atrasada · ' : ''}{due.label}
     </span>
   )
 
@@ -102,31 +125,32 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
     ${overlay ? 'border-accent/60 shadow-2xl shadow-black/50 rotate-1' : 'border-line hover:border-line-strong hover:bg-card-hover'}
     ${urgentBlink ? 'animate-urgent' : ''}`
 
+  const toggle = onToggleDone && <DoneToggle task={task} done={done} onToggle={onToggleDone} />
+  const actions = (
+    <div className="relative z-10 flex items-center gap-0.5 -my-1 -mr-1 shrink-0" onClick={e => e.stopPropagation()}>
+      {menu}
+      {onDelete && <DeleteControl task={task} confirming={confirmingDelete} setConfirming={setConfirmingDelete} onDelete={onDelete} />}
+      {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} label={gripLabel} />}
+    </div>
+  )
+
   if (compact) {
     return (
-      <div className={`${stretch ? 'h-full' : ''} ${shell} flex flex-col justify-center gap-1.5 px-3 py-2`}>
-        <div className="flex items-center gap-2">
-          {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} label={gripLabel} />}
-          <Pill tone={priority.tone}>{priority.label}</Pill>
-          {task.recurrence && (
-            <span className="shrink-0 text-accent" title={`Se repite: ${recurrenceLabel(task.recurrence)}`}><RecurrenceIcon /></span>
-          )}
-          <span className="ml-auto">{dueBadge}</span>
-          {onDelete && <DeleteControl task={task} confirming={confirmingDelete} setConfirming={setConfirmingDelete} onDelete={onDelete} />}
-        </div>
-        {title}
+      <div className={`${shell} flex items-center gap-3 px-3 py-2`}>
+        {toggle}
+        <div className="flex-1 min-w-0">{title}</div>
+        {dueBadge}
+        {actions}
       </div>
     )
   }
 
   return (
     <div className={`${shell} p-3.5`}>
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
+        {toggle}
         <div className="flex-1 min-w-0">{title}</div>
-        <div className="relative z-10 flex items-center gap-0.5 -mt-0.5 -mr-1" onClick={e => e.stopPropagation()}>
-          {onDelete && <DeleteControl task={task} confirming={confirmingDelete} setConfirming={setConfirmingDelete} onDelete={onDelete} />}
-          {dragHandleProps && <GripHandle dragHandleProps={dragHandleProps} label={gripLabel} />}
-        </div>
+        {actions}
       </div>
 
       {task.description && (
@@ -134,6 +158,7 @@ export default function TaskCard({ task, onClick, onDelete, overlay, compact = f
       )}
 
       <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+        {task.in_progress && !done && <Pill tone="sky">En curso</Pill>}
         <Pill tone={priority.tone}>{priority.label}</Pill>
         {task.tags?.slice(0, 3).map(tag => <Pill key={tag} tone={tagTone(tag)}>{tag}</Pill>)}
         {task.tags?.length > 3 && <Pill tone="neutral">+{task.tags.length - 3}</Pill>}

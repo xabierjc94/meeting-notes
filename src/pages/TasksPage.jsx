@@ -20,6 +20,7 @@ import Button from '../components/ui/Button'
 import Pill from '../components/ui/Pill'
 import Modal from '../components/ui/Modal'
 import Spinner from '../components/ui/Spinner'
+import { isDone } from '../lib/taskBuckets'
 
 // Color por defecto de proyecto y columna nuevos (gris neutro: el usuario
 // elige su color; ya no forzamos el violeta antiguo)
@@ -37,7 +38,7 @@ const VIEWS = [
 const VIEW_IDS = VIEWS.map(v => v.id)
 
 function TasksContent({ project, projectId }) {
-  const { tasks, columns, loading, addColumn } = useTasks()
+  const { tasks, columns, loading, addColumn, pendingColumn } = useTasks()
   const { setTaskCount } = useProjects()
   const [searchParams, setSearchParams] = useSearchParams()
   const view = VIEW_IDS.includes(searchParams.get('vista')) ? searchParams.get('vista') : 'tablero'
@@ -56,15 +57,17 @@ function TasksContent({ project, projectId }) {
     if (!newColName.trim()) return
     setSavingCol(true)
     try {
-      await addColumn({ name: newColName.trim(), color: DEFAULT_COLOR })
+      await addColumn({ name: newColName.trim(), color: DEFAULT_COLOR, kind: 'custom' })
       closeNewColumn()
     } finally {
       setSavingCol(false)
     }
   }
 
-  const totalTasks = tasks.length
-  const urgentTasks = tasks.filter(t => t.priority === 'urgent').length
+  // Solo cuentan las pendientes: las completadas ya no son trabajo por hacer
+  const pendingTasks = tasks.filter(t => !isDone(t))
+  const totalTasks = pendingTasks.length
+  const urgentTasks = pendingTasks.filter(t => t.priority === 'urgent').length
 
   // Mantener al día el contador del proyecto en la barra lateral. Un proyecto real siempre tiene
   // columnas: sin ellas la carga ha fallado y no se pisa el contador con un 0 falso
@@ -95,7 +98,7 @@ function TasksContent({ project, projectId }) {
         icon={<span className="shrink-0 w-9 h-9 rounded-xl" style={{ backgroundColor: projectColor }} aria-hidden="true" />}
         meta={totalTasks > 0 && (
           <>
-            <Pill tone="neutral">{totalTasks} tareas</Pill>
+            <Pill tone="neutral">{totalTasks} pendientes</Pill>
             {urgentTasks > 0 && <Pill tone="red">{urgentTasks} urgentes</Pill>}
           </>
         )}
@@ -134,7 +137,7 @@ function TasksContent({ project, projectId }) {
 
       {showNewTask && (
         <TaskModal
-          defaultColumnId={columns[0]?.id}
+          defaultColumnId={pendingColumn?.id}
           onClose={() => setShowNewTask(false)}
         />
       )}
